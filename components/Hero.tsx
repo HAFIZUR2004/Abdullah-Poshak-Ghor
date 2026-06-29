@@ -8,51 +8,57 @@ export default function Hero() {
   const router = useRouter();
 
   return (
-    <div className="bg-[#faf8f5] relative overflow-hidden py-12 md:py-20 lg:py-24 font-sans">
+    // The hero background is the same dark forest-green as the navbar
+    <div className="bg-[#3a4739] relative overflow-hidden font-sans">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          
-          {/* Left Column: Typography & CTAs */}
-          <div className="space-y-6 max-w-xl z-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
-              <span className="block text-[#2e3a2c]">Live Beautifully.</span>
-              <span className="block text-[#d69a45] mt-2">Furnish Thoughtfully.</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-end min-h-[480px] md:min-h-[560px]">
+
+          {/* Left Column: Typography & CTAs — vertically centred */}
+          <div className="flex flex-col justify-center py-16 lg:py-20 space-y-5 z-10">
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] xl:text-6xl font-extrabold tracking-tight leading-[1.1]">
+              <span className="block text-white">Live Beautifully.</span>
+              <span className="block text-[#d69a45] mt-1">Furnish Thoughtfully.</span>
             </h1>
-            <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
+            <p className="text-sm sm:text-base text-white/70 leading-relaxed max-w-sm">
               Discover timeless furniture that blends comfort, craftsmanship, and modern design.
             </p>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
+
+            {/* CTA Buttons — matching reference: filled amber + ghost outline */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 onClick={() => router.push("/shop")}
-                className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-sm font-bold uppercase tracking-wider px-8 py-4 rounded transition-all shadow-md text-center cursor-pointer"
+                className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-xs font-bold uppercase tracking-widest px-7 py-3 rounded-sm transition-all shadow-md cursor-pointer whitespace-nowrap"
               >
                 Shop Now
               </button>
               <button
                 onClick={() => router.push("/collection")}
-                className="border border-[#d69a45] text-[#2e3a2c] hover:bg-[#d69a45] hover:text-white text-sm font-bold uppercase tracking-wider px-8 py-4 rounded transition-all text-center cursor-pointer"
+                className="border border-white/50 hover:border-white text-white text-xs font-bold uppercase tracking-widest px-7 py-3 rounded-sm transition-all cursor-pointer whitespace-nowrap"
               >
                 Explore Collection
               </button>
             </div>
           </div>
 
-          {/* Right Column: Cozy lounge chair in front of curvy green backdrop */}
-          <div className="relative flex justify-center lg:justify-end items-center h-[350px] sm:h-[450px] lg:h-[550px]">
-            {/* Dark green backdrop shape */}
-            <div className="absolute right-0 top-0 bottom-0 w-[80%] sm:w-[70%] lg:w-[85%] bg-[#3a4739] rounded-l-[200px] lg:rounded-l-[300px] rounded-br-[100px] -z-10 shadow-lg overflow-hidden">
-              {/* Subtle background glow */}
-              <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-            </div>
+          {/* Right Column: Furniture photo sitting on the green background */}
+          <div className="relative flex justify-center lg:justify-end items-end h-[320px] sm:h-[420px] lg:h-[520px]">
+            {/* Subtle dot-grid decoration (top-right corner) */}
+            <div
+              className="absolute top-8 right-4 w-24 h-24 opacity-20 pointer-events-none"
+              style={{
+                backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)",
+                backgroundSize: "10px 10px",
+              }}
+            />
 
-            {/* Armchair image */}
-            <div className="relative w-[90%] h-[90%] sm:w-[80%] sm:h-[80%] lg:w-[90%] lg:h-[90%] hover:scale-105 transition-transform duration-700">
+            {/* Hero furniture image — fills from bottom */}
+            <div className="relative w-full h-full max-w-[540px]">
               <Image
                 src="/images/heroimg.webp"
-                alt="Live Beautifully"
+                alt="Live Beautifully — premium furniture"
                 fill
                 priority
-                className="object-contain"
+                className="object-contain object-bottom drop-shadow-2xl"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>

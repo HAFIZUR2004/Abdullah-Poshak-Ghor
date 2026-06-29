@@ -136,7 +136,7 @@ export default function Navbar() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Top Row: Logo, Search, Icons */}
-          <div className="flex items-center justify-between h-20 gap-4">
+          <div className="flex items-center justify-between h-[60px] gap-4">
             
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -162,21 +162,21 @@ export default function Navbar() {
               ref={searchRef}
             >
               <form onSubmit={handleSearch} className="w-full">
-                <div className="relative flex items-center bg-white rounded-md overflow-hidden shadow-sm h-11">
+                <div className="relative flex items-center bg-white rounded overflow-hidden shadow-sm h-9">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchOpen(true)}
                     placeholder="Search furniture..."
-                    className="w-full bg-transparent pl-4 pr-10 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+                    className="w-full bg-transparent pl-3 pr-9 py-1.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="absolute right-0 top-0 h-full w-10 flex items-center justify-center bg-white text-gray-400 hover:text-[#d69a45] transition-colors"
+                    className="absolute right-0 top-0 h-full w-9 flex items-center justify-center bg-[#d69a45] text-white hover:bg-[#c0873a] transition-colors"
                     aria-label="Search"
                   >
-                    <FiSearch size={18} />
+                    <FiSearch size={15} />
                   </button>
                 </div>
               </form>
@@ -263,30 +263,18 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Bottom Row: Nav Links & Help (MATCHING IMAGE) */}
-          <div className="hidden lg:flex items-center justify-between py-3 border-t border-white/10">
+          {/* Bottom Row: Nav Links & Help */}
+          <div className="hidden lg:flex items-center justify-between py-2.5 border-t border-white/10">
             
-            <nav className="flex items-center gap-6">
-              {/* Home is orange box */}
-              <Link
-                href="/"
-                className={`px-5 py-1.5 rounded-sm text-sm font-medium transition-colors ${
-                  isActive("/") 
-                    ? "bg-[#d69a45] text-white" 
-                    : "text-white/80 hover:text-white"
-                }`}
-              >
-                Home
-              </Link>
-
-              {navLinks.slice(1).map((link) => (
+            <nav className="flex items-center gap-1">
+              {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors ${
+                  className={`px-4 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                     isActive(link.href)
-                      ? "text-white border-b-2 border-[#d69a45] pb-0.5"
-                      : "text-white/80 hover:text-white"
+                      ? "bg-[#d69a45] text-white"
+                      : "text-white/75 hover:text-white"
                   }`}
                 >
                   {link.name}
@@ -295,8 +283,8 @@ export default function Navbar() {
             </nav>
 
             {/* Help Line Info */}
-            <div className="flex items-center gap-2 text-white/80 text-sm">
-              <FiHeadphones size={16} className="text-[#d69a45]" />
+            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+              <FiHeadphones size={13} className="text-[#d69a45]" />
               <span>Need Help? +123 456 7890</span>
             </div>
           </div>
