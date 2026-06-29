@@ -17,7 +17,7 @@ import {
   FiDollarSign,
   FiTrendingUp,
 } from "react-icons/fi";
-import Image from "next/image";
+
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
 
@@ -50,16 +50,49 @@ function useCountdown(targetDate: string | Date) {
   return timeLeft;
 }
 
-// ─── Static Data ──────────────────────────────────────────────────────────────
+// ─── Shared Helpers ────────────────────────────────────────────────────────────
 
-const visualCategories = [
-  { name: "Living Room", slug: "Living Room", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop" },
-  { name: "Bedroom", slug: "Bedroom", image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=400&auto=format&fit=crop" },
-  { name: "Dining Room", slug: "Dining Room", image: "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?q=80&w=400&auto=format&fit=crop" },
-  { name: "Office", slug: "Office", image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=400&auto=format&fit=crop" },
-  { name: "Outdoor", slug: "Outdoor", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400&auto=format&fit=crop" },
-  { name: "Storage", slug: "Storage", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=400&auto=format&fit=crop" },
+const categoryColors = [
+  "from-orange-400 to-amber-500",
+  "from-amber-400 to-yellow-500",
+  "from-rose-400 to-orange-500",
+  "from-yellow-400 to-orange-400",
+  "from-orange-500 to-red-500",
+  "from-amber-500 to-orange-400",
+  "from-yellow-500 to-amber-400",
+  "from-orange-300 to-amber-400",
+  "from-red-400 to-orange-500",
+  "from-amber-600 to-yellow-500",
 ];
+
+const getDefaultImageForCategory = (category: string) => {
+  const map: Record<string, string> = {
+    Electronics:
+      "https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=400&auto=format&fit=crop",
+    Fashion:
+      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=400&auto=format&fit=crop",
+    "Home & Living":
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=400&auto=format&fit=crop",
+    Beauty:
+      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop",
+    Sports:
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop",
+    "Toys & Kids":
+      "https://images.unsplash.com/photo-1558060370-d644479a6d0b?q=80&w=400&auto=format&fit=crop",
+    Accessories:
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=400&auto=format&fit=crop",
+    Grocery:
+      "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400&auto=format&fit=crop",
+    Footwear:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop",
+    Watches:
+      "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=400&auto=format&fit=crop",
+  };
+  return (
+    map[category] ||
+    "https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=400&auto=format&fit=crop"
+  );
+};
 
 const blogPosts = [
   {
@@ -88,6 +121,9 @@ export default function BeautyShopSectionsPage() {
   const router = useRouter();
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dynamicCategories, setDynamicCategories] = useState<
+    Array<{ name: string; count: number; image: string; color?: string }>
+  >([]);
 
   // Target date for Deal Of The Week: 14 days from now
   const dealEndDate = useMemo(() => {
@@ -98,6 +134,29 @@ export default function BeautyShopSectionsPage() {
 
   const countdown = useCountdown(dealEndDate);
 
+  const generateCategories = (products: Product[]) => {
+    const map = new Map();
+    products.forEach((p) => {
+      const name = p.category || "Uncategorized";
+      if (!map.has(name)) {
+        map.set(name, {
+          name,
+          count: 0,
+          image: p.image || getDefaultImageForCategory(name),
+        });
+      }
+      const e = map.get(name);
+      e.count++;
+      map.set(name, e);
+    });
+    setDynamicCategories(
+      Array.from(map.values()).map((c, i) => ({
+        ...c,
+        color: categoryColors[i % categoryColors.length],
+      })),
+    );
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -106,6 +165,7 @@ export default function BeautyShopSectionsPage() {
           const data = await res.json();
           const active = (data as Product[]).filter((p: Product) => p.status === "Active");
           setDbProducts(active);
+          generateCategories(active);
         }
       } catch (e) {
         console.error("Error fetching products:", e);
@@ -116,10 +176,28 @@ export default function BeautyShopSectionsPage() {
     fetchProducts();
   }, []);
 
-  // Filter products for sections
-  const bestSellers = useMemo(() => dbProducts.slice(0, 4), [dbProducts]);
-  const newArrivals = useMemo(() => [...dbProducts].reverse().slice(0, 5), [dbProducts]);
-  const topRated = useMemo(() => dbProducts.slice(1, 6), [dbProducts]);
+  // Filter products using original filters
+  const trendingProducts = useMemo(
+    () => dbProducts.filter((p) => (p.rating ?? 5) >= 4.2).slice(0, 8),
+    [dbProducts],
+  );
+  const specialDeals = useMemo(
+    () => dbProducts.filter((p) => p.discount && p.discount > 10).slice(0, 8),
+    [dbProducts],
+  );
+  const newArrivals = useMemo(
+    () => [...dbProducts].reverse().slice(0, 8),
+    [dbProducts],
+  );
+  const bestSellers = useMemo(
+    () => dbProducts.filter((p) => p.stock && p.stock < 100).slice(0, 8),
+    [dbProducts],
+  );
+
+  // Dynamic deal of the week product
+  const dealProduct = useMemo(() => {
+    return specialDeals[0] || dbProducts[0] || null;
+  }, [specialDeals, dbProducts]);
 
   const goToShop = () => router.push("/shop");
 
@@ -150,36 +228,39 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 2. Shop By Category ──────────────────────────────── */}
-      <section className="py-16 bg-[#faf8f5]">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-[#2e3a2c] tracking-tight mb-3">
-            Shop By Category
-          </h2>
-          <div className="w-12 h-[2px] bg-[#d69a45] mx-auto mb-12" />
+      {/* ── 2. Shop By Category (Restored Dynamic Generation) ── */}
+      {dynamicCategories.length > 0 && (
+        <section className="py-16 bg-[#faf8f5]">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-[#2e3a2c] tracking-tight mb-3">
+              Shop By Category
+            </h2>
+            <p className="text-xs text-gray-500 mb-2">{dynamicCategories.length} categories to explore</p>
+            <div className="w-12 h-[2px] bg-[#d69a45] mx-auto mb-12" />
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {visualCategories.map((cat, index) => (
-              <button
-                key={index}
-                onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.slug)}`)}
-                className="group flex flex-col items-center gap-4 p-5 bg-[#f4f2ec] rounded-xl hover:shadow-md transition-all duration-300 cursor-pointer"
-              >
-                <div className="w-24 h-24 relative overflow-hidden flex items-center justify-center">
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <span className="font-bold text-sm text-[#2e3a2c] group-hover:text-[#d69a45] transition-colors">
-                  {cat.name}
-                </span>
-              </button>
-            ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              {dynamicCategories.slice(0, 6).map((cat, index) => (
+                <button
+                  key={index}
+                  onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
+                  className="group flex flex-col items-center gap-4 p-5 bg-[#f4f2ec] rounded-xl hover:shadow-md transition-all duration-300 cursor-pointer"
+                >
+                  <div className="w-24 h-24 relative overflow-hidden flex items-center justify-center bg-white rounded-lg shadow-inner">
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <span className="font-bold text-sm text-[#2e3a2c] group-hover:text-[#d69a45] transition-colors line-clamp-1">
+                    {cat.name}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── 3. Our Best Sellers ─────────────────────────────── */}
       <section className="py-16 bg-[#faf8f5]">
@@ -350,14 +431,14 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 8. Stats Bar (Dark Olive Green) ─────────────────── */}
+      {/* ── 8. Stats Bar (Dark Olive Green & Dynamic Live count)  ── */}
       <section className="bg-[#2e3a2c] text-white py-10 shadow-inner">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             {[
               { stat: "12+", label: "Years Experience" },
               { stat: "25K+", label: "Happy Customers" },
-              { stat: "360+", label: "Products" },
+              { stat: `${dbProducts.length || "360"}+`, label: "Live Products" },
               { stat: "98%", label: "Satisfaction Rate" },
             ].map(({ stat, label }, idx) => (
               <div key={idx} className="space-y-1">
@@ -369,79 +450,91 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 9. Deal Of The Week ──────────────────────────────── */}
-      <section className="py-16 bg-[#faf8f5]">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-8">
-            <div className="text-left">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#2e3a2c]">
-                Deal Of The Week
-              </h2>
-              <div className="w-12 h-[2px] bg-[#d69a45] mt-3" />
-            </div>
-            {/* Slider arrows */}
-            <div className="flex gap-2">
-              <button className="w-9 h-9 rounded-full bg-[#f4f2ec] flex items-center justify-center text-gray-500 cursor-pointer">
-                <FiChevronLeft size={18} />
-              </button>
-              <button className="w-9 h-9 rounded-full bg-[#f4f2ec] flex items-center justify-center text-gray-500 cursor-pointer">
-                <FiChevronRight size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Deal Spotlight Card */}
-          <div className="bg-[#f4f2ec] rounded-2xl p-6 sm:p-10 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Deal Image */}
-            <div className="bg-white rounded-xl p-4 flex items-center justify-center aspect-video lg:aspect-auto h-[250px] sm:h-[350px]">
-              <img
-                src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=600&auto=format&fit=crop"
-                alt="Rattan Sideboard Cabinet"
-                className="max-h-full object-contain"
-              />
-            </div>
-            {/* Deal Details */}
-            <div className="text-left space-y-6">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2e3a2c]">
-                Rattan Sideboard Cabinet
-              </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Natural finish with spacious storage and modern rattan woven doors. Ideal for dining room, living area, or bedroom storage accents.
-              </p>
-
-              {/* Price Details */}
-              <div className="flex items-baseline gap-3">
-                <span className="text-2xl font-black text-[#d69a45]">৳24,900.00</span>
-                <span className="text-sm text-gray-400 line-through">৳34,900.00</span>
+      {/* ── 9. Deal Of The Week (Restored Dynamic Spotlight) ── */}
+      {dealProduct && (
+        <section className="py-16 bg-[#faf8f5]">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-8">
+              <div className="text-left">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#2e3a2c]">
+                  Deal Of The Week
+                </h2>
+                <div className="w-12 h-[2px] bg-[#d69a45] mt-3" />
               </div>
-
-              {/* Timer/Countdown display */}
-              <div className="flex gap-4">
-                {[
-                  { value: countdown.days, label: "Days" },
-                  { value: countdown.hours, label: "Hours" },
-                  { value: countdown.minutes, label: "Min" },
-                  { value: countdown.seconds, label: "Sec" },
-                ].map(({ value, label }, idx) => (
-                  <div key={idx} className="bg-white px-3 py-2 rounded-lg text-center min-w-[60px] shadow-sm">
-                    <span className="block font-black text-[#2e3a2c] text-lg tabular-nums">
-                      {String(value).padStart(2, "0")}
-                    </span>
-                    <span className="text-[10px] text-gray-500 uppercase font-semibold">{label}</span>
-                  </div>
-                ))}
+              {/* Slider arrows */}
+              <div className="flex gap-2">
+                <button className="w-9 h-9 rounded-full bg-[#f4f2ec] flex items-center justify-center text-gray-500 cursor-pointer">
+                  <FiChevronLeft size={18} />
+                </button>
+                <button className="w-9 h-9 rounded-full bg-[#f4f2ec] flex items-center justify-center text-gray-500 cursor-pointer">
+                  <FiChevronRight size={18} />
+                </button>
               </div>
+            </div>
 
-              <button
-                onClick={goToShop}
-                className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-xs font-bold uppercase tracking-wider px-8 py-3.5 rounded transition-all inline-block shadow cursor-pointer"
+            {/* Deal Spotlight Card */}
+            <div className="bg-[#f4f2ec] rounded-2xl p-6 sm:p-10 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              {/* Deal Image */}
+              <div 
+                className="bg-white rounded-xl p-4 flex items-center justify-center aspect-square h-[250px] sm:h-[350px] cursor-pointer"
+                onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
               >
-                Shop Now
-              </button>
+                <img
+                  src={dealProduct.image || dealProduct.images?.[0] || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=600&auto=format&fit=crop"}
+                  alt={dealProduct.name}
+                  className="max-h-full object-contain hover:scale-102 transition-transform duration-300"
+                />
+              </div>
+              {/* Deal Details */}
+              <div className="text-left space-y-6">
+                <span className="inline-block bg-[#d69a45] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  Special Offer
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2e3a2c] hover:text-[#d69a45] transition-colors cursor-pointer"
+                    onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
+                >
+                  {dealProduct.name}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                  {dealProduct.description || "Premium quality piece constructed to offer the highest levels of comfort and design styling to elevate your home space."}
+                </p>
+
+                {/* Price Details */}
+                <div className="flex items-baseline gap-3">
+                  <span className="text-2xl font-black text-[#d69a45]">৳{dealProduct.price}</span>
+                  {dealProduct.originalPrice && dealProduct.originalPrice > dealProduct.price && (
+                    <span className="text-sm text-gray-400 line-through">৳{dealProduct.originalPrice}</span>
+                  )}
+                </div>
+
+                {/* Timer/Countdown display */}
+                <div className="flex gap-4">
+                  {[
+                    { value: countdown.days, label: "Days" },
+                    { value: countdown.hours, label: "Hours" },
+                    { value: countdown.minutes, label: "Min" },
+                    { value: countdown.seconds, label: "Sec" },
+                  ].map(({ value, label }, idx) => (
+                    <div key={idx} className="bg-white px-3 py-2 rounded-lg text-center min-w-[60px] shadow-sm">
+                      <span className="block font-black text-[#2e3a2c] text-lg tabular-nums">
+                        {String(value).padStart(2, "0")}
+                      </span>
+                      <span className="text-[10px] text-gray-500 uppercase font-semibold">{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
+                  className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-xs font-bold uppercase tracking-wider px-8 py-3.5 rounded transition-all inline-block shadow cursor-pointer"
+                >
+                  Shop Now
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── 10. Top Rated Products ──────────────────────────── */}
       <section className="py-16 bg-[#faf8f5]">
@@ -465,11 +558,11 @@ export default function BeautyShopSectionsPage() {
 
           {loading ? (
             <div className="text-center py-12">Loading top rated products...</div>
-          ) : topRated.length === 0 ? (
+          ) : trendingProducts.length === 0 ? (
             <div className="text-center py-12 text-gray-400">No products available.</div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {topRated.map((product) => (
+              {trendingProducts.slice(0, 5).map((product) => (
                 <ProductCard key={product._id || product.id} product={product} />
               ))}
             </div>
