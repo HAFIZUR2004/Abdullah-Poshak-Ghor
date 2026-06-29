@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/* Brand Colors - Tailwind v4 Theme Configuration */
+@theme {
+  /* Primary Brand Colors */
+  --color-primary-blue: #1f4ea3;
+  --color-primary-gold: #d98a2b;
+  --color-dark-bg: #0e1b35;
+  --color-highlight: #f2b84b;
+
+  /* Extended Palette */
+  --color-glow-gold: #ffb347;
+  --color-soft-blue: #4e7fe0;
+  --color-dark-outline: #0a0f1c;
+  --color-shadow-blue: #163a78;
+  --color-dark-bronze: #8a541a;
+
+  /* Text Colors */
+  --color-text-dark: #171717; /* ✅ Dark text for light background */
+  --color-text-white: #ffffff;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Global Styles */
+:root {
+  --background: #ffffff;
+  --foreground: #171717; /* ✅ Dark text for body */
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+}
+
+/* Custom Utility Classes */
+@layer utilities {
+  .gradient-gold {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-gold) 0%,
+      var(--color-glow-gold) 100%
+    );
+  }
+
+  .gradient-blue {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-blue) 0%,
+      var(--color-soft-blue) 100%
+    );
+  }
+
+  .text-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-gold),
+      var(--color-glow-gold)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background-color: var(--color-primary-blue);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-soft-blue);
+  }
+
+  .btn-gold {
+    background-color: var(--color-primary-gold);
+    color: #0e1b35;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .btn-gold:hover {
+    background-color: var(--color-highlight);
+  }
+
+  .card {
+    background: rgba(10, 15, 28, 0.6);
+    border: 1px solid var(--color-dark-outline);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    border-color: var(--color-primary-gold);
+    box-shadow: 0 0 20px rgba(217, 138, 43, 0.2);
+  }
+}
+
+@layer components {
+  .nav-link {
+    @apply text-text-dark hover:text-primary-gold transition-colors duration-200 relative py-1;
+  }
+
+  .nav-link::after {
+    content: "";
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary-gold transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+}

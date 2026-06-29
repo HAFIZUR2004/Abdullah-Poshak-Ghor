@@ -1,0 +1,30 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { CartProvider } from "@/context/CartContext";
+import { SearchProvider } from "@/context/SearchContext";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "sareng furniture - বিশ্বস্ত পণ্য, আপনার জন্য",
+  description: "সেরা মানের পণ্য সবচেয়ে কম দামে | ইকমার্স সাইট বাংলাদেশ",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="bn" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
+        <CartProvider>
+          <SearchProvider>
+            <main className="min-h-screen">{children}</main>
+          </SearchProvider>
+        </CartProvider>
+      </body>
+    </html>
+  );
+}
