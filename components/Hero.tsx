@@ -51,23 +51,37 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right Column: Armchair in front of curve on light warm beige background */}
-          <div className="relative flex justify-center lg:justify-end items-end h-[350px] sm:h-[450px] lg:h-[550px]">
+          {/* Right Column: Armchair in front of shape containing background image */}
+          <div className="relative flex justify-center lg:justify-end items-end h-[350px] sm:h-[450px] lg:h-[550px] w-full">
             {/* Hanging Pendant Lamp decoration on the beige side */}
-            <div className="absolute top-0 right-[42%] w-[1.5px] h-36 bg-gray-300 hidden lg:block opacity-40" />
-            <div className="absolute top-36 right-[calc(42%-13px)] w-7 h-5 bg-white rounded-t-full shadow-sm hidden lg:block opacity-90 border border-gray-100" />
+            <div className="absolute top-0 right-[42%] w-[1.5px] h-36 bg-gray-300 hidden lg:block opacity-45 z-20" />
+            <div className="absolute top-36 right-[calc(42%-13px)] w-7 h-5 bg-white rounded-t-full shadow-sm hidden lg:block opacity-95 border border-gray-100 z-20" />
             
             {/* Subtle dot grid pattern on the beige side */}
             <div
-              className="absolute top-10 right-4 w-20 h-20 opacity-15 pointer-events-none hidden lg:block"
+              className="absolute top-10 right-4 w-20 h-20 opacity-15 pointer-events-none hidden lg:block z-10"
               style={{
                 backgroundImage: "radial-gradient(#2e3a2c 1px, transparent 1px)",
                 backgroundSize: "8px 8px",
               }}
             />
 
-            {/* Armchair image mock-up */}
-            <div className="relative w-full h-[90%] max-w-[480px] lg:max-w-[500px] hover:scale-102 transition-transform duration-700">
+            {/* Curved background shape container containing real interior room image */}
+            <div className="absolute right-0 top-0 bottom-0 w-[85%] sm:w-[75%] lg:w-[85%] rounded-l-[180px] lg:rounded-l-[260px] rounded-br-[80px] shadow-lg overflow-hidden -z-10 border border-white/5">
+              <Image
+                src="/images/side2.jpg"
+                alt="Cozy Room Interior"
+                fill
+                className="object-cover object-center opacity-90 transition-transform duration-500 hover:scale-102"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                unoptimized
+              />
+              {/* Subtle green theme overlay for blending */}
+              <div className="absolute inset-0 bg-[#3a4739]/10 mix-blend-multiply" />
+            </div>
+
+            {/* Armchair mockup image sitting in front of the curved shape */}
+            <div className="relative w-full h-[90%] max-w-[480px] lg:max-w-[500px] hover:scale-102 transition-transform duration-700 z-10">
               <Image
                 src="/images/heroimg.webp"
                 alt="Live Beautifully - Premium Lounge Armchair"
