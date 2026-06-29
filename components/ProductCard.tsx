@@ -89,50 +89,47 @@ export default function ProductCard({
 
   // Default variant
   return (
-    <div className="group relative bg-white rounded-lg md:rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
-      <Link href={`/product/${productId}`} className="block">
+    <div className="group relative bg-[#f4f2ec] rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 h-full flex flex-col">
+      <Link href={`/product/${productId}`} className="block flex-1">
         {/* Image Section */}
-        <div className="relative h-48 md:h-64 bg-gray-100 overflow-hidden">
+        <div className="relative aspect-square w-full bg-gray-50 flex items-center justify-center overflow-hidden">
           {imageSrc ? (
             <Image
               src={imageSrc}
               alt={product.name}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 50vw, 25vw"
               className="object-cover group-hover:scale-105 transition duration-500"
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-4xl md:text-6xl">
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-4xl">
               📦
             </div>
           )}
 
           {/* Discount Badge */}
           {product.discount && product.discount > 0 && (
-            <span className="absolute top-1 left-1 md:top-2 md:left-2 bg-red-500 text-white text-[10px] md:text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-full z-10">
-              {product.discount}% OFF
+            <span className="absolute top-2 left-2 bg-[#d69a45] text-white text-[9px] font-bold px-2 py-0.5 rounded-full z-10">
+              -{product.discount}%
             </span>
           )}
 
-          {/* Wishlist Button - Top Right */}
-          <button
-            onClick={handleWishlist}
-            className="absolute top-1 right-1 md:top-2 md:right-2 bg-white/90 backdrop-blur-sm p-1.5 md:p-2 rounded-full shadow-md hover:scale-110 transition-transform z-10"
-            aria-label="Add to wishlist"
-          >
-            <FiHeart
-              size={14}
-              className={`transition-colors ${
-                isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
-              }`}
-            />
-          </button>
+          {/* Quick Cart Trigger (Hover overlay) */}
+          {product.inStock !== false && (
+            <button
+              onClick={handleAddToCart}
+              className="absolute bottom-2 right-2 bg-white text-[#2e3a2c] hover:bg-[#d69a45] hover:text-white p-2.5 rounded-full shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 z-10 cursor-pointer"
+              aria-label="Add to cart"
+            >
+              <FiShoppingCart size={14} />
+            </button>
+          )}
 
           {/* Out of Stock Badge */}
           {product.inStock === false && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-              <span className="bg-white text-gray-800 px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-sm font-semibold">
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+              <span className="bg-white text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">
                 Out of Stock
               </span>
             </div>
@@ -140,54 +137,40 @@ export default function ProductCard({
         </div>
 
         {/* Content Section */}
-        <div className="p-2 md:p-4">
-          <p className="text-[10px] md:text-xs text-primary-gold font-medium mb-0.5 md:mb-1 uppercase tracking-wider">
+        <div className="p-4 flex flex-col gap-1.5 text-left">
+          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
             {product.category}
           </p>
-          <h3 className="font-semibold text-gray-800 mb-1 md:mb-2 line-clamp-2 group-hover:text-primary-gold transition text-xs md:text-base">
+          <h3 className="font-bold text-gray-800 text-sm line-clamp-1 group-hover:text-[#d69a45] transition-colors">
             {product.name}
           </h3>
-          <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-            <span className="text-primary-gold font-bold text-sm md:text-lg">
+          
+          {/* Rating */}
+          <div className="flex items-center gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <span
+                key={i}
+                className={`text-xs ${
+                  i < Math.floor(product.rating || 5)
+                    ? "text-amber-400"
+                    : "text-gray-300"
+                }`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[#d69a45] font-black text-sm md:text-base">
               ৳{product.price}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-gray-400 text-[10px] md:text-sm line-through">
+              <span className="text-gray-400 text-xs line-through">
                 ৳{product.originalPrice}
               </span>
             )}
           </div>
-          {product.rating && (
-            <div className="flex items-center justify-between gap-2 mt-1 md:mt-2">
-              <div className="flex items-center gap-0.5 md:gap-1">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-sm ${
-                        i < Math.floor(product.rating || 0)
-                          ? "text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <span className="text-sm text-gray-500">{product.rating}</span>
-              </div>
-
-              {product.inStock !== false && (
-                <button
-                  onClick={handleAddToCart}
-                  className="text-primary-gold px-2 py-1 md:px-3 md:py-1.5 text-sm font-semibold rounded-md hover:bg-primary-gold hover:text-white transition whitespace-nowrap border border-primary-gold/20 flex justify-center items-center gap-2"
-                >
-                  <FiShoppingCart />
-                  Add
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </Link>
     </div>

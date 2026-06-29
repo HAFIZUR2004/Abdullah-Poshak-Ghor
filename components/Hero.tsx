@@ -1,184 +1,70 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-
-// ─── Data ──────────────────────────────────────────────────────────────────────
-
-const mainSlides = [
-  { id: 1, image: "/images/heroimg.webp", alt: "Fashion Collection" },
-  { id: 1, image: "/images/side.jpg", alt: "Fashion Collection" },
-  { id: 2, image: "/images/side2.jpg", alt: "New Season" },
-  { id: 3, image: "/images/side2.jpg", alt: "Hot Deals" },
-];
-
-const sideImages = [
-  {
-    id: 1,
-    image: "/images/suchit-poojari-ljRiZl00n18-unsplash.jpg",
-    alt: "Accessories",
-    label: "New Arrivals",
-  },
-  { id: 2, image: "/images/katja-rooke-77JACslA8G0-unsplash.jpg", alt: "Footwear", label: "Hot Deals" },
-];
-
-const categoryPills = [
-  "Sofas & Couches",
-  "Beds & Mattresses",
-  "Dining Tables & Chairs",
-  "Wardrobes & Almirahs",
-  "TV Units & Cabinets",
-  "Office Furniture",
-  "Bookshelves & Racks",
-  "Dressing Tables",
-  "Center & Coffee Tables",
-  "Shoe Racks",
-  "Outdoor Furniture",
-  "Home Decor & Lighting",
-];
-
-// ─── Component ─────────────────────────────────────────────────────────────────
 
 export default function Hero() {
   const router = useRouter();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const goToSlide = useCallback(
-    (index: number) => {
-      if (isTransitioning) return;
-      setIsTransitioning(true);
-      setCurrentSlide((index + mainSlides.length) % mainSlides.length);
-      setTimeout(() => setIsTransitioning(false), 700);
-    },
-    [isTransitioning],
-  );
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      goToSlide(currentSlide + 1);
-    }, 2000);
-    return () => clearInterval(timer);
-  }, [currentSlide, goToSlide]);
 
   return (
-    <div className="bg-white">
-      {/* ── Main Hero: split layout ──────────────────────────── */}
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 pt-3 pb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_440px] gap-3">
-          {/* ── Left: large slider ── */}
-          <div className="relative rounded-2xl overflow-hidden group">
-            <div className="relative w-full aspect-[16/7] sm:aspect-[16/8] lg:aspect-[16/9]">
-              {mainSlides.map((slide, index) => (
-                <div
-                  key={slide.id}
-                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                    index === currentSlide
-                      ? "opacity-100 z-10"
-                      : "opacity-0 z-0"
-                  }`}
-                >
-                  <Image
-                    src={slide.image}
-                    alt={slide.alt}
-                    fill
-                    className="object-cover object-center"
-                    priority={index === 0}
-                    sizes="(max-width: 1024px) 100vw, 70vw"
-                    quality={90}
-                  />
-                  {/* Subtle gradient overlay for text legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent" />
-                </div>
-              ))}
-            </div>
-
-            {/* Prev / Next arrows — shown on hover */}
-            <button
-              onClick={() => goToSlide(currentSlide - 1)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white"
-              aria-label="Previous slide"
-            >
-              <FiChevronLeft size={18} className="text-gray-800" />
-            </button>
-            <button
-              onClick={() => goToSlide(currentSlide + 1)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white"
-              aria-label="Next slide"
-            >
-              <FiChevronRight size={18} className="text-gray-800" />
-            </button>
-
-            {/* Dot indicators */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
-              {mainSlides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  aria-label={`Slide ${index + 1}`}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === currentSlide
-                      ? "w-6 h-2 bg-orange-500 shadow"
-                      : "w-2 h-2 bg-white/70 hover:bg-white"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* ── Right: two stacked banners ── */}
-          <div className="hidden lg:flex flex-col gap-3">
-            {sideImages.map((img) => (
-              <div
-                key={img.id}
-                className="relative flex-1 rounded-2xl overflow-hidden cursor-pointer group"
-                onClick={() => router.push("/shop")}
-              >
-                <Image
-                  src={img.image}
-                  alt={img.alt}
-                  fill
-                  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                  sizes="440px"
-                  quality={85}
-                />
-                {/* Overlay + label */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-                <div className="absolute bottom-3 left-4">
-                  <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                    {img.label}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="relative overflow-hidden min-h-[500px] sm:min-h-[550px] lg:min-h-[620px] font-sans flex items-center">
+      {/* 1. Full-screen background room interior image (already contains chair, table, plant, and lamp) */}
+      <div className="absolute inset-0 -z-30">
+        <Image
+          src="/images/side.jpg"
+          alt="Premium Furniture Room Scene"
+          fill
+          priority
+          className="object-cover object-right lg:object-center"
+          quality={90}
+        />
       </div>
 
-      {/* ── Category Pill Scrollbar ──────────────────────────── */}
-      <div className="border-y border-gray-100 bg-white">
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8">
-          <div className="flex items-center gap-2 py-2.5 overflow-x-auto scrollbar-hide">
-            {/* All categories icon */}
-            <button className="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-orange-500 text-white text-xs font-semibold shadow-sm hover:bg-orange-600 transition">
-              <span className="text-sm">☰</span>
-              <span>All</span>
-            </button>
+      {/* 2. Solid dark green curved overlay on desktop (divides screen organically) */}
+      <div className="absolute inset-0 -z-10 hidden lg:block">
+        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <path d="M 0 0 L 70 0 Q 58 45 42 100 L 0 100 Z" fill="#3a4739" />
+        </svg>
+      </div>
 
-            {categoryPills.map((cat) => (
+      {/* 3. High-opacity dark green backdrop on mobile/tablet for text readability */}
+      <div className="absolute inset-0 bg-[#3a4739]/90 lg:hidden -z-10" />
+
+      {/* 4. Text Content and CTAs */}
+      <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center lg:min-h-[550px]">
+          
+          {/* Left Column (Over the solid green area) */}
+          <div className="space-y-6 max-w-xl py-16 lg:py-0 text-left">
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] xl:text-[3.75rem] font-extrabold tracking-tight text-white leading-[1.15]">
+              <span>Live Beautifully.</span>
+              <span className="block text-[#d69a45] mt-2">Furnish Thoughtfully.</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-sm font-light">
+              Discover timeless furniture that blends comfort, craftsmanship, and modern design.
+            </p>
+            
+            {/* CTA Buttons - colored/styled to match reference */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                key={cat}
-                onClick={() =>
-                  router.push(`/shop?category=${encodeURIComponent(cat)}`)
-                }
-                className="shrink-0 whitespace-nowrap px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 text-xs font-medium hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all duration-200"
+                onClick={() => router.push("/shop")}
+                className="bg-[#d69a45] hover:bg-[#c0873a] text-[#3a4739] text-xs font-black uppercase tracking-widest px-7 py-3 rounded-sm transition-all shadow-md cursor-pointer whitespace-nowrap"
               >
-                {cat}
+                Shop Now
               </button>
-            ))}
+              <button
+                onClick={() => router.push("/collection")}
+                className="border border-white/40 hover:border-white text-white text-xs font-bold uppercase tracking-widest px-7 py-3 rounded-sm transition-all cursor-pointer whitespace-nowrap"
+              >
+                Explore Collection
+              </button>
+            </div>
           </div>
+
+          {/* Right Column (Placeholder to preserve grid spacing; room scene displays from the background image) */}
+          <div className="hidden lg:block h-[500px]" />
+
         </div>
       </div>
     </div>

@@ -3,20 +3,20 @@
 /* Brand Colors - Tailwind v4 Theme Configuration */
 @theme {
   /* Primary Brand Colors */
-  --color-primary-blue: #1f4ea3;
-  --color-primary-gold: #d98a2b;
-  --color-dark-bg: #0e1b35;
-  --color-highlight: #f2b84b;
+  --color-primary-blue: #3a4739; /* Mapped to Forest Green */
+  --color-primary-gold: #d69a45; /* Mapped to Golden Bronze */
+  --color-dark-bg: #2e3a2c;      /* Mapped to Dark Olive Green */
+  --color-highlight: #e8a855;
 
   /* Extended Palette */
-  --color-glow-gold: #ffb347;
-  --color-soft-blue: #4e7fe0;
-  --color-dark-outline: #0a0f1c;
-  --color-shadow-blue: #163a78;
-  --color-dark-bronze: #8a541a;
+  --color-glow-gold: #e8a855;
+  --color-soft-blue: #4e5a4d;    /* Mapped to Sage Green */
+  --color-dark-outline: #232a21;
+  --color-shadow-blue: #232a21;
+  --color-dark-bronze: #ab752b;
 
   /* Text Colors */
-  --color-text-dark: #171717; /* ✅ Dark text for light background */
+  --color-text-dark: #2e3326; 
   --color-text-white: #ffffff;
 
   /* Typography */
@@ -26,8 +26,8 @@
 
 /* Global Styles */
 :root {
-  --background: #ffffff;
-  --foreground: #171717; /* ✅ Dark text for body */
+  --background: #faf8f5; /* Warm Beige Background */
+  --foreground: #2e3326; /* Dark Olive text for body */
 }
 
 body {
@@ -82,7 +82,7 @@ body {
 
   .btn-gold {
     background-color: var(--color-primary-gold);
-    color: #0e1b35;
+    color: white;
     padding: 0.5rem 1.5rem;
     border-radius: 0.5rem;
     font-weight: 600;
@@ -94,8 +94,8 @@ body {
   }
 
   .card {
-    background: rgba(10, 15, 28, 0.6);
-    border: 1px solid var(--color-dark-outline);
+    background: #f4f2ec;
+    border: 1px solid rgba(58, 71, 57, 0.1);
     border-radius: 1rem;
     padding: 1.5rem;
     transition: all 0.3s ease;
@@ -103,7 +103,7 @@ body {
 
   .card:hover {
     border-color: var(--color-primary-gold);
-    box-shadow: 0 0 20px rgba(217, 138, 43, 0.2);
+    box-shadow: 0 4px 20px rgba(214, 154, 69, 0.1);
   }
 }
 
