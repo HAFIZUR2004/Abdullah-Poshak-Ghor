@@ -265,7 +265,7 @@ export default function BeautyShopSectionsPage() {
                 768: { slidesPerView: 3, spaceBetween: 16 },
                 1024: { slidesPerView: 4, spaceBetween: 20 },
               }}
-              className="!overflow-visible"
+              className="w-full overflow-hidden py-2 px-1"
             >
               {bestSellers.map((product) => (
                 <SwiperSlide key={product._id || product.id}>
@@ -336,7 +336,7 @@ export default function BeautyShopSectionsPage() {
                 640: { slidesPerView: 3 },
                 1024: { slidesPerView: 5, spaceBetween: 16 },
               }}
-              className="!overflow-visible"
+              className="w-full overflow-hidden py-2 px-1"
             >
               {newArrivals.map((product) => (
                 <SwiperSlide key={product._id || product.id}>
@@ -545,7 +545,7 @@ export default function BeautyShopSectionsPage() {
                 640: { slidesPerView: 3 },
                 1024: { slidesPerView: 5, spaceBetween: 16 },
               }}
-              className="!overflow-visible"
+              className="w-full overflow-hidden py-2 px-1"
             >
               {trendingProducts.map((product) => (
                 <SwiperSlide key={product._id || product.id}>
