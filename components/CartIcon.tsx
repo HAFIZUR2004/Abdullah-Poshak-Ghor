@@ -16,7 +16,7 @@ export default function CartIcon() {
   if (!mounted) {
     return (
       <div className="relative">
-        <FiShoppingCart size={22} className="text-gray-600" />
+        <FiShoppingCart size={22} className="text-current" />
       </div>
     );
   }
@@ -26,7 +26,7 @@ export default function CartIcon() {
   if (isLoading) {
     return (
       <div className="relative">
-        <FiShoppingCart size={22} className="text-gray-600" />
+        <FiShoppingCart size={22} className="text-current" />
       </div>
     );
   }
@@ -35,10 +35,10 @@ export default function CartIcon() {
     <div className="relative">
       <FiShoppingCart
         size={22}
-        className="text-gray-600 hover:text-primary-gold transition cursor-pointer"
+        className="text-current hover:text-primary-gold transition cursor-pointer"
       />
       {cartCount > 0 && (
-        <span className="absolute -top-2 -right-2 bg-primary-gold text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+        <span className="absolute -top-2 -right-2 bg-primary-gold text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
           {cartCount}
         </span>
       )}

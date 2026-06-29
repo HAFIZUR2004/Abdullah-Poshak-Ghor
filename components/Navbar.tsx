@@ -132,24 +132,27 @@ export default function Navbar() {
   return (
     <>
       {/* ── Main Header (MATCHING THE IMAGE) ────────────────── */}
-      <header className="bg-[#3e3f33] text-white sticky top-0 z-50 shadow-md font-sans">
+      <header className="bg-[#3a4739] text-white sticky top-0 z-50 shadow-md font-sans">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Top Row: Logo, Search, Icons */}
           <div className="flex items-center justify-between h-20 gap-4">
             
             {/* Logo */}
-            <Link href="/" className="shrink-0">
-              <div className="relative">
-                {/* Make sure your logo image is transparent PNG */}
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <div className="relative w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center">
                 <Image
                   src="/images/image.png" 
-                  alt="Sea Commercial"
-                  width={60}
-                  height={60}
-                  className="w-14 h-14 object-contain"
+                  alt="Sea Connecting Dots"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 object-contain"
                   priority
                 />
+              </div>
+              <div className="flex flex-col justify-center">
+                <span className="text-xl font-bold tracking-wider leading-none text-white uppercase font-sans">sea</span>
+                <span className="text-[7px] uppercase tracking-widest text-white/80 font-sans">connecting dots</span>
               </div>
             </Link>
 
@@ -170,7 +173,7 @@ export default function Navbar() {
                   />
                   <button
                     type="submit"
-                    className="absolute right-0 top-0 h-full w-10 flex items-center justify-center bg-white text-gray-400 hover:text-orange-500 transition-colors"
+                    className="absolute right-0 top-0 h-full w-10 flex items-center justify-center bg-white text-gray-400 hover:text-[#d69a45] transition-colors"
                     aria-label="Search"
                   >
                     <FiSearch size={18} />
@@ -200,7 +203,7 @@ export default function Navbar() {
                             <p className="text-sm font-medium text-gray-800 truncate">
                               {product.name}
                             </p>
-                            <p className="text-xs text-orange-500 font-bold">
+                            <p className="text-xs text-[#d69a45] font-bold">
                               ৳{product.price}
                             </p>
                           </div>
@@ -222,11 +225,11 @@ export default function Navbar() {
                 <FiSearch size={20} />
               </button>
               
-              <Link href="/wishlist" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-white transition">
+              <Link href="/wishlist" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition">
                 <FiHeart size={20} />
               </Link>
 
-              <Link href="/cart" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-white transition">
+              <Link href="/cart" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition">
                 <CartIcon />
               </Link>
 
@@ -235,7 +238,7 @@ export default function Navbar() {
                 <>
                   {user ? (
                     <div className="flex items-center gap-2">
-                      <Link href="/profile" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-white transition">
+                      <Link href="/profile" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition">
                          <FiUser size={20} />
                       </Link>
                       <button onClick={handleLogout} className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-red-400 transition">
@@ -243,7 +246,7 @@ export default function Navbar() {
                       </button>
                     </div>
                   ) : (
-                    <Link href="/login" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-white transition">
+                    <Link href="/login" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition">
                       <FiUser size={20} />
                     </Link>
                   )}
@@ -269,7 +272,7 @@ export default function Navbar() {
                 href="/"
                 className={`px-5 py-1.5 rounded-sm text-sm font-medium transition-colors ${
                   isActive("/") 
-                    ? "bg-[#e18d46] text-white" 
+                    ? "bg-[#d69a45] text-white" 
                     : "text-white/80 hover:text-white"
                 }`}
               >
@@ -282,7 +285,7 @@ export default function Navbar() {
                   href={link.href}
                   className={`text-sm font-medium transition-colors ${
                     isActive(link.href)
-                      ? "text-white border-b-2 border-[#e18d46] pb-0.5"
+                      ? "text-white border-b-2 border-[#d69a45] pb-0.5"
                       : "text-white/80 hover:text-white"
                   }`}
                 >
@@ -293,7 +296,7 @@ export default function Navbar() {
 
             {/* Help Line Info */}
             <div className="flex items-center gap-2 text-white/80 text-sm">
-              <FiHeadphones size={16} className="text-[#e18d46]" />
+              <FiHeadphones size={16} className="text-[#d69a45]" />
               <span>Need Help? +123 456 7890</span>
             </div>
           </div>
@@ -304,7 +307,7 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setIsMenuOpen(false)} />
-          <div className="absolute top-0 left-0 h-full w-72 bg-[#3e3f33] text-white shadow-2xl flex flex-col p-5 overflow-y-auto">
+          <div className="absolute top-0 left-0 h-full w-72 bg-[#3a4739] text-white shadow-2xl flex flex-col p-5 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <span className="font-bold text-lg">Menu</span>
               <button onClick={() => setIsMenuOpen(false)} className="p-1">
@@ -319,7 +322,7 @@ export default function Navbar() {
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`px-3 py-2 rounded-sm text-base font-medium ${
-                    isActive(link.href) ? "bg-[#e18d46] text-white" : "text-white/80"
+                    isActive(link.href) ? "bg-[#d69a45] text-white" : "text-white/80"
                   }`}
                 >
                   {link.name}
@@ -329,12 +332,12 @@ export default function Navbar() {
             
             <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
               {!loading && !user && (
-                 <Link href="/login" onClick={() => setIsMenuOpen(false)} className="bg-[#e18d46] text-center py-2 rounded-sm font-medium">
+                 <Link href="/login" onClick={() => setIsMenuOpen(false)} className="bg-[#d69a45] text-center py-2 rounded-sm font-medium">
                    Login / Register
                  </Link>
               )}
               <div className="flex items-center gap-2 text-white/80 mt-2">
-                <FiHeadphones size={16} className="text-[#e18d46]" />
+                <FiHeadphones size={16} className="text-[#d69a45]" />
                 <span className="text-sm">Need Help? +123 456 7890</span>
               </div>
             </div>
