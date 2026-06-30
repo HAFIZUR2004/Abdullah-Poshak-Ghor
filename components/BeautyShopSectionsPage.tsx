@@ -4,12 +4,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   FiShield,
-  FiRotateCcw,
   FiTruck,
   FiAward,
+  FiHeart,
   FiUsers,
   FiThumbsUp,
-  FiHeart,
   FiArrowRight,
   FiChevronLeft,
   FiChevronRight,
@@ -17,6 +16,7 @@ import {
   FiDollarSign,
   FiTrendingUp,
 } from "react-icons/fi";
+import CustomOrderSection from "@/components/CustomOrderSection";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -179,29 +179,8 @@ export default function BeautyShopSectionsPage() {
   return (
     <div className="bg-[#faf8f5] text-[#2e3326] font-sans antialiased">
 
-      {/* ── 1. Trust Bar ─────────────────────────────────────── */}
-      <section className="bg-white border-b border-gray-100 py-6">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: FiAward, title: "Premium Quality", desc: "Finest materials" },
-              { icon: FiHeart, title: "Timeless Design", desc: "Trendy & timeless" },
-              { icon: FiTruck, title: "Fast Delivery", desc: "On-time at your door" },
-              { icon: FiRotateCcw, title: "Easy Returns", desc: "Hassle-free returns" },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#faf8f5] rounded-full flex items-center justify-center text-[#d69a45] shrink-0">
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs text-[#2e3a2c]">{title}</h4>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── 1. Custom Order Section ────────────────────────── */}
+      <CustomOrderSection />
 
       {/* ── 2. Shop By Category ──────────────────────────────── */}
       {dynamicCategories.length > 0 && (
