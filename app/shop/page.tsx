@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiGrid, FiList } from "react-icons/fi";
 import ProductCard from "@/components/ProductCard";
 import ProductListItem from "@/components/ProductListItem";
-import ShopPageSkeleton from "@/components/skeletons/ShopPageSkeleton";
-import ProductListItemSkeleton from "@/components/skeletons/ProductListItemSkeleton";
+import PremiumLoader from "@/components/PremiumLoader";
 import { Product } from "@/types";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -87,36 +86,7 @@ export default function ShopPage() {
 
   // Loading State
   if (isLoading || !mounted) {
-    if (viewMode === "grid") {
-      return <ShopPageSkeleton />;
-    } else {
-      return (
-        <div className="min-h-screen bg-white">
-          <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-6 animate-pulse" />
-            <div className="bg-white rounded-md p-2 mb-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 h-10 bg-gray-200 rounded-md animate-pulse" />
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="w-16 h-9 bg-gray-200 rounded-md animate-pulse"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="h-4 bg-gray-200 rounded w-32 mb-4 animate-pulse" />
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <ProductListItemSkeleton key={i} />
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
+    return <PremiumLoader />;
   }
 
   return (

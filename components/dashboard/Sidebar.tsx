@@ -83,7 +83,7 @@ export default function Sidebar() {
           >
             <div className="bg-linear-to-br   transition-transform group-hover:scale-105">
               <Image
-                src="/images/image.png"
+                src="/images/logo.webp"
                 alt="Sareng Furniture"
                 width={55}
                 height={55}

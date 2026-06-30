@@ -4,12 +4,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   FiShield,
-  FiRotateCcw,
   FiTruck,
   FiAward,
+  FiHeart,
   FiUsers,
   FiThumbsUp,
-  FiHeart,
   FiArrowRight,
   FiChevronLeft,
   FiChevronRight,
@@ -17,6 +16,7 @@ import {
   FiDollarSign,
   FiTrendingUp,
 } from "react-icons/fi";
+import CustomOrderSection from "@/components/CustomOrderSection";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -112,11 +112,10 @@ export default function BeautyShopSectionsPage() {
     Array<{ name: string; count: number; image: string }>
   >([]);
 
-  // Swiper refs for Best Sellers
+  // Swiper refs
+  const categorySwiper  = useRef<SwiperType | null>(null);
   const bestSellerSwiper = useRef<SwiperType | null>(null);
-  // Swiper refs for New Arrivals
   const newArrivalSwiper = useRef<SwiperType | null>(null);
-  // Swiper refs for Top Rated
   const topRatedSwiper = useRef<SwiperType | null>(null);
 
   const dealEndDate = useMemo(() => {
@@ -179,57 +178,71 @@ export default function BeautyShopSectionsPage() {
   return (
     <div className="bg-[#faf8f5] text-[#2e3326] font-sans antialiased">
 
-      {/* ── 1. Trust Bar ─────────────────────────────────────── */}
-      <section className="bg-white border-b border-gray-100 py-6">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: FiAward, title: "Premium Quality", desc: "Finest materials" },
-              { icon: FiHeart, title: "Timeless Design", desc: "Trendy & timeless" },
-              { icon: FiTruck, title: "Fast Delivery", desc: "On-time at your door" },
-              { icon: FiRotateCcw, title: "Easy Returns", desc: "Hassle-free returns" },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#faf8f5] rounded-full flex items-center justify-center text-[#d69a45] shrink-0">
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs text-[#2e3a2c]">{title}</h4>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── 1. Custom Order Section ────────────────────────── */}
+      <CustomOrderSection />
 
       {/* ── 2. Shop By Category ──────────────────────────────── */}
       {dynamicCategories.length > 0 && (
-        <section className="py-14 bg-[#faf8f5]">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] tracking-tight mb-8">
-              Shop By Category
-            </h2>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-              {dynamicCategories.slice(0, 6).map((cat, index) => (
-                <button
-                  key={index}
-                  onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
-                  className="group flex flex-col items-center gap-2 cursor-pointer"
-                >
-                  <div className="w-full aspect-square rounded-xl overflow-hidden bg-[#f4f2ec] border border-gray-100 group-hover:shadow-md transition-all duration-300">
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <span className="font-semibold text-xs text-[#2e3a2c] group-hover:text-[#d69a45] transition-colors line-clamp-1 text-center">
-                    {cat.name}
-                  </span>
-                </button>
-              ))}
+        <section className="py-12 bg-[#faf8f5]">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-7">
+              <div>
+                <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] tracking-tight">
+                  Shop By Category
+                </h2>
+                <div className="w-10 h-[2px] bg-[#d69a45] mt-2" />
+              </div>
+              <div className="flex items-center gap-2">
+                <NavBtn dir="prev" onClick={() => categorySwiper.current?.slidePrev()} />
+                <NavBtn dir="next" onClick={() => categorySwiper.current?.slideNext()} />
+              </div>
             </div>
+
+            {/* Swiper carousel */}
+            <Swiper
+              modules={[Navigation, Autoplay]}
+              onSwiper={(s) => { categorySwiper.current = s; }}
+              spaceBetween={14}
+              slidesPerView={2}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              breakpoints={{
+                480:  { slidesPerView: 3,   spaceBetween: 14 },
+                640:  { slidesPerView: 4,   spaceBetween: 16 },
+                1024: { slidesPerView: 5,   spaceBetween: 18 },
+                1280: { slidesPerView: 6,   spaceBetween: 20 },
+              }}
+              className="w-full overflow-hidden py-2 px-0.5"
+            >
+              {dynamicCategories.map((cat, index) => (
+                <SwiperSlide key={index}>
+                  <button
+                    onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
+                    className="group w-full cursor-pointer focus:outline-none"
+                  >
+                    {/* Card */}
+                    <div className="relative rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm group-hover:shadow-lg group-hover:-translate-y-1 transition-all duration-300">
+                      {/* Image area */}
+                      <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#f7f5f0]">
+                        <img
+                          src={cat.image}
+                          alt={cat.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        {/* Bottom overlay with category name */}
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#1e2a1e]/80 via-[#1e2a1e]/30 to-transparent pt-6 pb-2.5 px-3">
+                          <p className="text-white text-[11px] sm:text-xs font-bold line-clamp-1 text-center tracking-wide drop-shadow-sm">
+                            {cat.name}
+                          </p>
+                        </div>
+                        {/* Hover gold border ring */}
+                        <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-[#d69a45]/60 transition-all duration-300 pointer-events-none" />
+                      </div>
+                    </div>
+                  </button>
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
         </section>
       )}
@@ -367,31 +380,47 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 6. Make Your Space More Stylish & Functional ────── */}
-      <section className="py-14 bg-[#faf8f5]">
+      <section className="py-16 md:py-24 bg-[#faf8f5] overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div className="space-y-5">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2e3a2c] leading-tight">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="space-y-6 lg:pr-10 relative z-10">
+              <div className="inline-block px-3 py-1 bg-[#d69a45]/10 text-[#d69a45] text-[10px] font-bold uppercase tracking-widest rounded-sm mb-2">
+                Premium Collection
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] leading-[1.15] tracking-tight">
                 Make Your Space<br />More Stylish &amp; Functional
               </h2>
-              <p className="text-gray-500 text-sm leading-relaxed max-w-md">
-                From modern minimalism to classic elegance, find the perfect pieces to match your lifestyle.
+              <p className="text-gray-500 text-[15px] leading-relaxed max-w-md">
+                From modern minimalism to classic elegance, discover thoughtfully designed pieces that elevate your home's aesthetic while matching your daily lifestyle.
               </p>
-              <button
-                onClick={goToShop}
-                className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-all cursor-pointer shadow-sm"
-              >
-                Shop Collection
-              </button>
+              <div className="pt-2">
+                <button
+                  onClick={goToShop}
+                  className="group relative inline-flex items-center justify-center bg-[#d69a45] text-white text-[11px] font-bold uppercase tracking-[0.2em] px-8 py-4 rounded-sm overflow-hidden transition-all hover:shadow-[0_10px_20px_rgba(214,154,69,0.3)]"
+                >
+                  <span className="relative z-10">Shop Collection</span>
+                  <div className="absolute inset-0 h-full w-0 bg-[#c0873a] transition-all duration-300 ease-out group-hover:w-full z-0"></div>
+                </button>
+              </div>
             </div>
 
-            {/* Right: Chair image with gold circle backdrop */}
-            <div className="relative flex justify-center items-center h-[300px] sm:h-[380px] lg:h-[420px]">
-              <div className="absolute w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] bg-[#d69a45]/20 rounded-full" />
+            {/* Right: Elegant Arch Composition */}
+            <div className="relative flex justify-center items-end h-[400px] sm:h-[500px] lg:h-[600px] mt-10 lg:mt-0">
+              {/* Decorative Arch Background */}
+              <div className="absolute bottom-0 w-[85%] sm:w-[75%] h-[85%] bg-[#3a4739] rounded-t-full shadow-2xl overflow-hidden group">
+                <div className="absolute inset-0 opacity-20 bg-[url('/images/side.jpg')] bg-cover bg-center mix-blend-overlay transition-transform duration-700 group-hover:scale-105" />
+                {/* Subtle overlay gradient for depth */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
+              </div>
+              
+              {/* Warm glow accent */}
+              <div className="absolute -bottom-6 -left-6 lg:left-10 w-40 h-40 bg-[#d69a45]/30 rounded-full blur-3xl" />
+              
+              {/* Furniture Image */}
               <img
                 src="/images/julia-RuCVvjuyNeQ-unsplash.jpg"
                 alt="Stylish Armchair"
-                className="relative z-10 w-[75%] h-[90%] object-contain drop-shadow-xl"
+                className="relative z-10 w-[85%] sm:w-[80%] lg:w-[85%] object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.4)] transition-transform duration-700 hover:-translate-y-3"
               />
             </div>
           </div>

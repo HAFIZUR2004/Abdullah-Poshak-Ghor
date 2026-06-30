@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
-import CartSkeleton from "@/components/skeletons/CartSkeleton";
+import PremiumLoader from "@/components/PremiumLoader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -78,7 +78,7 @@ export default function CartPage() {
 
   // Loading state
   if (isLoading || !mounted) {
-    return <CartSkeleton variant="page" count={3} />;
+    return <PremiumLoader />;
   }
 
   // Empty Cart State
