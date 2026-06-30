@@ -380,31 +380,47 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 6. Make Your Space More Stylish & Functional ────── */}
-      <section className="py-14 bg-[#faf8f5]">
+      <section className="py-16 md:py-24 bg-[#faf8f5] overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div className="space-y-5">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2e3a2c] leading-tight">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="space-y-6 lg:pr-10 relative z-10">
+              <div className="inline-block px-3 py-1 bg-[#d69a45]/10 text-[#d69a45] text-[10px] font-bold uppercase tracking-widest rounded-sm mb-2">
+                Premium Collection
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] leading-[1.15] tracking-tight">
                 Make Your Space<br />More Stylish &amp; Functional
               </h2>
-              <p className="text-gray-500 text-sm leading-relaxed max-w-md">
-                From modern minimalism to classic elegance, find the perfect pieces to match your lifestyle.
+              <p className="text-gray-500 text-[15px] leading-relaxed max-w-md">
+                From modern minimalism to classic elegance, discover thoughtfully designed pieces that elevate your home's aesthetic while matching your daily lifestyle.
               </p>
-              <button
-                onClick={goToShop}
-                className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-all cursor-pointer shadow-sm"
-              >
-                Shop Collection
-              </button>
+              <div className="pt-2">
+                <button
+                  onClick={goToShop}
+                  className="group relative inline-flex items-center justify-center bg-[#d69a45] text-white text-[11px] font-bold uppercase tracking-[0.2em] px-8 py-4 rounded-sm overflow-hidden transition-all hover:shadow-[0_10px_20px_rgba(214,154,69,0.3)]"
+                >
+                  <span className="relative z-10">Shop Collection</span>
+                  <div className="absolute inset-0 h-full w-0 bg-[#c0873a] transition-all duration-300 ease-out group-hover:w-full z-0"></div>
+                </button>
+              </div>
             </div>
 
-            {/* Right: Chair image with gold circle backdrop */}
-            <div className="relative flex justify-center items-center h-[300px] sm:h-[380px] lg:h-[420px]">
-              <div className="absolute w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] bg-[#d69a45]/20 rounded-full" />
+            {/* Right: Elegant Arch Composition */}
+            <div className="relative flex justify-center items-end h-[400px] sm:h-[500px] lg:h-[600px] mt-10 lg:mt-0">
+              {/* Decorative Arch Background */}
+              <div className="absolute bottom-0 w-[85%] sm:w-[75%] h-[85%] bg-[#3a4739] rounded-t-full shadow-2xl overflow-hidden group">
+                <div className="absolute inset-0 opacity-20 bg-[url('/images/side.jpg')] bg-cover bg-center mix-blend-overlay transition-transform duration-700 group-hover:scale-105" />
+                {/* Subtle overlay gradient for depth */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
+              </div>
+              
+              {/* Warm glow accent */}
+              <div className="absolute -bottom-6 -left-6 lg:left-10 w-40 h-40 bg-[#d69a45]/30 rounded-full blur-3xl" />
+              
+              {/* Furniture Image */}
               <img
                 src="/images/julia-RuCVvjuyNeQ-unsplash.jpg"
                 alt="Stylish Armchair"
-                className="relative z-10 w-[75%] h-[90%] object-contain drop-shadow-xl"
+                className="relative z-10 w-[85%] sm:w-[80%] lg:w-[85%] object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.4)] transition-transform duration-700 hover:-translate-y-3"
               />
             </div>
           </div>

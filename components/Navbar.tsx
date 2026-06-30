@@ -140,10 +140,10 @@ export default function Navbar() {
             
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="relative w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center">
+              <div className="relative w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center overflow-hidden">
                 <Image
-                  src="/images/image.png" 
-                  alt="Sea Connecting Dots"
+                  src="/images/logo.webp" 
+                  alt="Sareng Furniture"
                   width={40}
                   height={40}
                   className="w-10 h-10 object-contain"
@@ -151,8 +151,8 @@ export default function Navbar() {
                 />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="text-xl font-bold tracking-wider leading-none text-white uppercase font-sans">sea</span>
-                <span className="text-[7px] uppercase tracking-widest text-white/80 font-sans">connecting dots</span>
+                <span className="text-xl font-bold tracking-wider leading-none text-white uppercase font-sans">Sareng</span>
+                <span className="text-[9px] uppercase tracking-widest text-[#d69a45] font-sans">Furniture</span>
               </div>
             </Link>
 

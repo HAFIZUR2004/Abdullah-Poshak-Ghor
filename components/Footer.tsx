@@ -133,18 +133,18 @@ export default function Footer() {
           {/* Col 1 — Brand */}
           <div className="sm:col-span-2 lg:col-span-1 space-y-5">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="relative w-11 h-11 bg-white rounded-full p-1 flex items-center justify-center shrink-0">
+              <div className="relative w-11 h-11 bg-white rounded-full p-1 flex items-center justify-center shrink-0 overflow-hidden">
                 <Image
-                  src="/images/image.png"
-                  alt="Sea Connecting Dots"
+                  src="/images/logo.webp"
+                  alt="Sareng Furniture"
                   width={36}
                   height={36}
                   className="w-9 h-9 object-contain"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-base font-bold tracking-wider leading-none text-white uppercase">sea</span>
-                <span className="text-[7px] uppercase tracking-widest text-white/60">connecting dots</span>
+                <span className="text-base font-bold tracking-wider leading-none text-white uppercase">Sareng</span>
+                <span className="text-[9px] uppercase tracking-widest text-[#d69a45]">Furniture</span>
               </div>
             </Link>
 
@@ -278,7 +278,7 @@ export default function Footer() {
       <div className="border-t border-white/5">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-white/35">
-            <p>© {new Date().getFullYear()} Sea Connecting Dots. All Rights Reserved.</p>
+            <p>© {new Date().getFullYear()} Sareng Furniture. All Rights Reserved.</p>
             <p className="flex items-center gap-1">
               Made with <FiHeart size={10} className="text-[#d69a45] fill-[#d69a45]" /> in Bangladesh
             </p>

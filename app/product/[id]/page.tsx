@@ -25,7 +25,7 @@ import {
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
-import ProductDetailsSkeleton from "@/components/skeletons/ProductDetailsSkeleton";
+import PremiumLoader from "@/components/PremiumLoader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
@@ -196,7 +196,7 @@ export default function ProductDetailsPage() {
 
   // Loading state
   if (loading) {
-    return <ProductDetailsSkeleton />;
+    return <PremiumLoader />;
   }
 
   // Not found
