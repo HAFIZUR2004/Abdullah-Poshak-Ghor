@@ -48,21 +48,21 @@ function useCountdown(targetDate: string | Date) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const getDefaultImageForCategory = (category: string) => {
-  const map: Record<string, string> = {
-    Electronics: "https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=400&auto=format&fit=crop",
-    Fashion: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=400&auto=format&fit=crop",
-    "Home & Living": "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=400&auto=format&fit=crop",
-    Beauty: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop",
-    Sports: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop",
-    "Toys & Kids": "https://images.unsplash.com/photo-1558060370-d644479a6d0b?q=80&w=400&auto=format&fit=crop",
-    Accessories: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=400&auto=format&fit=crop",
-    Grocery: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400&auto=format&fit=crop",
-    Footwear: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop",
-    Watches: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=400&auto=format&fit=crop",
-  };
-  return map[category] || "https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=400&auto=format&fit=crop";
-};
+// ✅ আপনার public/images ফোল্ডারে এই ১২টি PNG ইমেজ ফাইল রাখুন
+const staticCategories = [
+  { name: "Sofa", image: "/images/sofa.png" },
+  { name: "Bed", image: "/images/bed.png" },
+  { name: "Dining Table", image: "/images/dining.png" },
+  { name: "Chair", image: "/images/chair.png" },
+  { name: "Wardrobe", image: "/images/dresing-taible.png" },
+  { name: "Bookshelf", image: "/images/reaging-taible.png" },
+  { name: "Coffee Table", image: "/images/coffee-table.png" },
+  { name: "Lamp", image: "/images/lamp.png" },
+  { name: "Desk", image: "/images/desk.png" },
+  { name: "Mirror", image: "/images/mirror.png" },
+  { name: "Rug", image: "/images/rug.png" },
+  { name: "Cabinet", image: "/images/cabinet.png" },
+];
 
 const blogPosts = [
   {
@@ -108,12 +108,10 @@ export default function BeautyShopSectionsPage() {
   const router = useRouter();
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dynamicCategories, setDynamicCategories] = useState<
-    Array<{ name: string; count: number; image: string }>
-  >([]);
+  
+  const [dynamicCategories, setDynamicCategories] = useState(staticCategories);
 
   // Swiper refs
-  const categorySwiper  = useRef<SwiperType | null>(null);
   const bestSellerSwiper = useRef<SwiperType | null>(null);
   const newArrivalSwiper = useRef<SwiperType | null>(null);
   const topRatedSwiper = useRef<SwiperType | null>(null);
@@ -125,20 +123,6 @@ export default function BeautyShopSectionsPage() {
   }, []);
   const countdown = useCountdown(dealEndDate);
 
-  const generateCategories = (products: Product[]) => {
-    const map = new Map<string, { name: string; count: number; image: string }>();
-    products.forEach((p) => {
-      const name = p.category || "Uncategorized";
-      if (!map.has(name)) {
-        map.set(name, { name, count: 0, image: p.image || getDefaultImageForCategory(name) });
-      }
-      const e = map.get(name)!;
-      e.count++;
-      map.set(name, e);
-    });
-    setDynamicCategories(Array.from(map.values()));
-  };
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -147,7 +131,6 @@ export default function BeautyShopSectionsPage() {
           const data = await res.json();
           const active = (data as Product[]).filter((p: Product) => p.status === "Active");
           setDbProducts(active);
-          generateCategories(active);
         }
       } catch (e) {
         console.error("Error fetching products:", e);
@@ -181,68 +164,54 @@ export default function BeautyShopSectionsPage() {
       {/* ── 1. Custom Order Section ────────────────────────── */}
       <CustomOrderSection />
 
-      {/* ── 2. Shop By Category ──────────────────────────────── */}
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/* ── 2. Shop By Category (মোবাইলে ৩টি, ডেস্কটপে ৪টি) ─── */}
+      {/* ════════════════════════════════════════════════════════════ */}
       {dynamicCategories.length > 0 && (
-        <section className="py-12 bg-[#faf8f5]">
+        <section className="py-12 bg-white">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-7">
-              <div>
-                <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] tracking-tight">
-                  Shop By Category
-                </h2>
-                <div className="w-10 h-[2px] bg-[#d69a45] mt-2" />
-              </div>
-              <div className="flex items-center gap-2">
-                <NavBtn dir="prev" onClick={() => categorySwiper.current?.slidePrev()} />
-                <NavBtn dir="next" onClick={() => categorySwiper.current?.slideNext()} />
-              </div>
+            
+            {/* Header Section */}
+            <div className="flex flex-col items-center text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#333333] tracking-wide">
+                Shop By Category
+              </h2>
+              <div className="w-10 h-[1px] bg-[#d5a158] mt-3" />
             </div>
 
-            {/* Swiper carousel */}
-            <Swiper
-              modules={[Navigation, Autoplay]}
-              onSwiper={(s) => { categorySwiper.current = s; }}
-              spaceBetween={14}
-              slidesPerView={2}
-              autoplay={{ delay: 3000, disableOnInteraction: false }}
-              breakpoints={{
-                480:  { slidesPerView: 3,   spaceBetween: 14 },
-                640:  { slidesPerView: 4,   spaceBetween: 16 },
-                1024: { slidesPerView: 5,   spaceBetween: 18 },
-                1280: { slidesPerView: 6,   spaceBetween: 20 },
-              }}
-              className="w-full overflow-hidden py-2 px-0.5"
-            >
+            {/* ✅ হুবহু রেসপনসিভ গ্রিড সেটআপ */}
+            {/* মোবাইলে ৩টি (xs: 3) */}
+            {/* বড় মোবাইলে / ট্যাবলেটে ৪টি (sm: 4) */}
+            {/* ডেস্কটপে ৪টি (md, lg: 4) */}
+            {/* আল্ট্রা ওয়াইডে ৬টি (2xl: 6) */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
               {dynamicCategories.map((cat, index) => (
-                <SwiperSlide key={index}>
-                  <button
-                    onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
-                    className="group w-full cursor-pointer focus:outline-none"
-                  >
-                    {/* Card */}
-                    <div className="relative rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm group-hover:shadow-lg group-hover:-translate-y-1 transition-all duration-300">
-                      {/* Image area */}
-                      <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#f7f5f0]">
-                        <img
-                          src={cat.image}
-                          alt={cat.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        {/* Bottom overlay with category name */}
-                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#1e2a1e]/80 via-[#1e2a1e]/30 to-transparent pt-6 pb-2.5 px-3">
-                          <p className="text-white text-[11px] sm:text-xs font-bold line-clamp-1 text-center tracking-wide drop-shadow-sm">
-                            {cat.name}
-                          </p>
-                        </div>
-                        {/* Hover gold border ring */}
-                        <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-[#d69a45]/60 transition-all duration-300 pointer-events-none" />
-                      </div>
+                <button
+                  key={index}
+                  onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
+                  className="group w-full cursor-pointer focus:outline-none text-center"
+                >
+                  {/* ✅ অত্যন্ত ছোট ও মিনিমালিস্টিক কার্ড */}
+                  <div className="bg-[#f9f7f4] rounded-lg p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 min-h-[80px] sm:min-h-[100px] md:min-h-[120px]">
+                    
+                    {/* ✅ ছোট ইমেজ */}
+                    <div className="w-full aspect-[4/3] relative flex items-center justify-center mb-1 sm:mb-2 md:mb-3">
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        className="w-[75%] sm:w-[80%] h-[75%] sm:h-[80%] object-contain transition-transform duration-500 group-hover:scale-105"
+                      />
                     </div>
-                  </button>
-                </SwiperSlide>
+
+                    {/* ✅ ছোট টেক্সট */}
+                    <p className="text-[#555555] text-[9px] sm:text-[10px] md:text-xs font-medium tracking-wide">
+                      {cat.name}
+                    </p>
+                  </div>
+                </button>
               ))}
-            </Swiper>
+            </div>
+
           </div>
         </section>
       )}
@@ -250,7 +219,6 @@ export default function BeautyShopSectionsPage() {
       {/* ── 3. Our Best Sellers (Swiper Carousel) ──────────── */}
       <section className="py-10 bg-[#faf8f5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header row */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c]">Our Best Sellers</h2>
@@ -290,19 +258,17 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 4. "Crafted for Comfort. Designed for You." Banner ─ */}
-      {/* Reference: dark olive-green fill, left=golden title+desc+btn, right=rattan chair image full height */}
+      {/* ── 4. Banner ────────────────────────────────────────── */}
       <section className="py-0 bg-[#faf8f5] px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
           <div className="bg-[#3a4739] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_380px] min-h-[240px]">
-            {/* Left: Text */}
             <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center gap-4">
               <h3 className="text-2xl sm:text-3xl font-extrabold leading-snug">
                 <span className="block text-[#d69a45]">Crafted for Comfort.</span>
                 <span className="block text-[#d69a45]">Designed for You.</span>
               </h3>
               <p className="text-white/70 text-sm leading-relaxed max-w-sm">
-                Sustainable wood. Premium finish. Made to last for generations. Each piece is meticulously built to deliver both comfort and aesthetic value.
+                Sustainable wood. Premium finish. Made to last for generations.
               </p>
               <button
                 onClick={goToShop}
@@ -311,7 +277,6 @@ export default function BeautyShopSectionsPage() {
                 Discover More
               </button>
             </div>
-            {/* Right: Rattan chair image fills to bottom edge */}
             <div className="relative min-h-[200px] lg:min-h-0 hidden lg:block">
               <img
                 src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=700&auto=format&fit=crop"
@@ -323,7 +288,7 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 5. New Arrivals (Swiper Carousel) ────────────────── */}
+      {/* ── 5. New Arrivals ──────────────────────────────────── */}
       <section className="py-10 mt-4 bg-[#faf8f5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
@@ -359,7 +324,6 @@ export default function BeautyShopSectionsPage() {
             </Swiper>
           )}
 
-          {/* Trust highlights row below new arrivals */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-10 pt-8 border-t border-gray-100">
             {[
               { icon: FiGift, title: "Summer Sale", desc: "Up to 40% Off" },
@@ -379,7 +343,7 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 6. Make Your Space More Stylish & Functional ────── */}
+      {/* ── 6. Make Your Space ───────────────────────────────── */}
       <section className="py-16 md:py-24 bg-[#faf8f5] overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -391,7 +355,7 @@ export default function BeautyShopSectionsPage() {
                 Make Your Space<br />More Stylish &amp; Functional
               </h2>
               <p className="text-gray-500 text-[15px] leading-relaxed max-w-md">
-                From modern minimalism to classic elegance, discover thoughtfully designed pieces that elevate your home's aesthetic while matching your daily lifestyle.
+                From modern minimalism to classic elegance, discover thoughtfully designed pieces.
               </p>
               <div className="pt-2">
                 <button
@@ -404,19 +368,12 @@ export default function BeautyShopSectionsPage() {
               </div>
             </div>
 
-            {/* Right: Elegant Arch Composition */}
             <div className="relative flex justify-center items-end h-[400px] sm:h-[500px] lg:h-[600px] mt-10 lg:mt-0">
-              {/* Decorative Arch Background */}
               <div className="absolute bottom-0 w-[85%] sm:w-[75%] h-[85%] bg-[#3a4739] rounded-t-full shadow-2xl overflow-hidden group">
                 <div className="absolute inset-0 opacity-20 bg-[url('/images/side.jpg')] bg-cover bg-center mix-blend-overlay transition-transform duration-700 group-hover:scale-105" />
-                {/* Subtle overlay gradient for depth */}
                 <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
               </div>
-              
-              {/* Warm glow accent */}
               <div className="absolute -bottom-6 -left-6 lg:left-10 w-40 h-40 bg-[#d69a45]/30 rounded-full blur-3xl" />
-              
-              {/* Furniture Image */}
               <img
                 src="/images/julia-RuCVvjuyNeQ-unsplash.jpg"
                 alt="Stylish Armchair"
@@ -427,7 +384,7 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 7. Why Choose Sea Connecting Dots? ──────────────── */}
+      {/* ── 7. Why Choose ────────────────────────────────────── */}
       <section className="py-14 bg-[#faf8f5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] tracking-tight mb-10">
@@ -435,10 +392,10 @@ export default function BeautyShopSectionsPage() {
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: FiAward, title: "Premium Material", desc: "We use high-quality, durable & sustainable materials." },
-              { icon: FiHeart, title: "Thoughtful Design", desc: "Every piece is designed for comfort and style." },
-              { icon: FiUsers, title: "Trusted by Many", desc: "Thousands of happy customers trust our quality." },
-              { icon: FiThumbsUp, title: "Satisfaction Guaranteed", desc: "We stand by our promise of quality." },
+              { icon: FiAward, title: "Premium Material", desc: "High-quality, durable & sustainable." },
+              { icon: FiHeart, title: "Thoughtful Design", desc: "Designed for comfort and style." },
+              { icon: FiUsers, title: "Trusted by Many", desc: "Thousands of happy customers." },
+              { icon: FiThumbsUp, title: "Satisfaction Guaranteed", desc: "We stand by our promise." },
             ].map(({ icon: Icon, title, desc }, idx) => (
               <div key={idx} className="flex flex-col items-center text-center gap-3 p-6 bg-[#f4f2ec] rounded-xl">
                 <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-[#d69a45] shadow-sm">
@@ -487,7 +444,6 @@ export default function BeautyShopSectionsPage() {
             </div>
 
             <div className="bg-[#f4f2ec] rounded-xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 items-center">
-              {/* Image */}
               <div
                 className="bg-white rounded-xl flex items-center justify-center h-[220px] sm:h-[280px] cursor-pointer overflow-hidden"
                 onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
@@ -499,7 +455,6 @@ export default function BeautyShopSectionsPage() {
                 />
               </div>
 
-              {/* Details */}
               <div className="space-y-4">
                 <h3
                   className="text-xl sm:text-2xl font-extrabold text-[#2e3a2c] hover:text-[#d69a45] transition-colors cursor-pointer leading-snug"
@@ -508,7 +463,7 @@ export default function BeautyShopSectionsPage() {
                   {dealProduct.name}
                 </h3>
                 <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
-                  {dealProduct.description || "Premium quality piece built for comfort and aesthetic value."}
+                  {dealProduct.description || "Premium quality piece built for comfort."}
                 </p>
                 <div className="flex items-baseline gap-3">
                   <span className="text-2xl font-black text-[#d69a45]">৳{dealProduct.price}</span>
@@ -516,7 +471,6 @@ export default function BeautyShopSectionsPage() {
                     <span className="text-sm text-gray-400 line-through">৳{dealProduct.originalPrice}</span>
                   )}
                 </div>
-                {/* Countdown */}
                 <div className="flex gap-3">
                   {[
                     { value: countdown.days, label: "Days" },
@@ -544,7 +498,7 @@ export default function BeautyShopSectionsPage() {
         </section>
       )}
 
-      {/* ── 10. Top Rated Products (Swiper Carousel) ─────────── */}
+      {/* ── 10. Top Rated Products ───────────────────────────── */}
       <section className="py-10 bg-[#faf8f5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
@@ -586,8 +540,7 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 11. "Design That Defines Your Lifestyle" Banner ──── */}
-      {/* Reference: dark brown, left=white text+btn, right=room interior image */}
+      {/* ── 11. Banner ───────────────────────────────────────── */}
       <section className="py-0 bg-[#faf8f5] px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-[1400px] mx-auto">
           <div className="bg-[#2e3a2c] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_420px] min-h-[220px]">
@@ -616,7 +569,7 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 12. Latest From Our Blog ────────────────────────── */}
+      {/* ── 12. Blog ─────────────────────────────────────────── */}
       <section className="py-12 bg-[#faf8f5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] mb-8 text-center">
@@ -658,7 +611,7 @@ export default function BeautyShopSectionsPage() {
         </div>
       </section>
 
-      {/* ── 13. Bottom Highlight Badges ──────────────────────── */}
+      {/* ── 13. Badges ───────────────────────────────────────── */}
       <section className="py-8 bg-[#faf8f5] border-t border-gray-100">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

@@ -18,7 +18,6 @@ console.log('Firebase Config Status:', {
   hasProjectId: !!firebaseConfig.projectId
 });
 
-// Firebase initialize করুন
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
 const db = getFirestore(app);
