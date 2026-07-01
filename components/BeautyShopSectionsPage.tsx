@@ -18,9 +18,10 @@ import {
 } from "react-icons/fi";
 import CustomOrderSection from "@/components/CustomOrderSection";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay } from "swiper/modules";
+import { Navigation, Autoplay, Grid } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
+import "swiper/css/grid";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
 
@@ -48,7 +49,6 @@ function useCountdown(targetDate: string | Date) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// ✅ আপনার public/images ফোল্ডারে এই ১২টি PNG ইমেজ ফাইল রাখুন
 const staticCategories = [
   { name: "Sofa", image: "/images/sofa.png" },
   { name: "Bed", image: "/images/bed.png" },
@@ -60,8 +60,8 @@ const staticCategories = [
   { name: "Lamp", image: "/images/lamp.png" },
   { name: "Desk", image: "/images/desk.png" },
   { name: "Mirror", image: "/images/mirror.png" },
-  { name: "Rug", image: "/images/rug.png" },
-  { name: "Cabinet", image: "/images/cabinet.png" },
+  { name: "Rug", image: "/images/img1 (2).png" },
+  { name: "Cabinet", image: "/images/img33.png" },
 ];
 
 const blogPosts = [
@@ -90,11 +90,16 @@ const blogPosts = [
 
 // ─── Reusable Carousel Nav Button ────────────────────────────────────────────
 
-function NavBtn({ onClick, dir }: { onClick: () => void; dir: "prev" | "next" }) {
+function NavBtn({ onClick, dir, disabled = false }: { onClick: () => void; dir: "prev" | "next"; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-[#d69a45] hover:border-[#d69a45] hover:text-white transition-all cursor-pointer shrink-0`}
+      disabled={disabled}
+      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+        disabled 
+          ? "border-gray-200 text-gray-300 cursor-not-allowed" 
+          : "border-gray-300 text-gray-500 hover:bg-[#d69a45] hover:border-[#d69a45] hover:text-white"
+      }`}
       aria-label={dir === "prev" ? "Previous" : "Next"}
     >
       {dir === "prev" ? <FiChevronLeft size={15} /> : <FiChevronRight size={15} />}
@@ -109,9 +114,12 @@ export default function BeautyShopSectionsPage() {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [dynamicCategories, setDynamicCategories] = useState(staticCategories);
+  const [dynamicCategories] = useState(staticCategories);
+  
+  const categorySwiper = useRef<SwiperType | null>(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
 
-  // Swiper refs
   const bestSellerSwiper = useRef<SwiperType | null>(null);
   const newArrivalSwiper = useRef<SwiperType | null>(null);
   const topRatedSwiper = useRef<SwiperType | null>(null);
@@ -165,58 +173,88 @@ export default function BeautyShopSectionsPage() {
       <CustomOrderSection />
 
       {/* ════════════════════════════════════════════════════════════ */}
-      {/* ── 2. Shop By Category (মোবাইলে ৩টি, ডেস্কটপে ৪টি) ─── */}
+      {/* ── 2. Shop By Category (Swiper Grid - 2 Rows) ──────────── */}
       {/* ════════════════════════════════════════════════════════════ */}
       {dynamicCategories.length > 0 && (
         <section className="py-12 bg-white">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
             
-            {/* Header Section */}
-            <div className="flex flex-col items-center text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#333333] tracking-wide">
-                Shop By Category
-              </h2>
-              <div className="w-10 h-[1px] bg-[#d5a158] mt-3" />
+            {/* Header Section with Navigation */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#333333] tracking-wide">
+                  Shop By Category
+                </h2>
+                <div className="w-10 h-[1px] bg-[#d5a158] mt-3" />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <NavBtn 
+                  dir="prev" 
+                  onClick={() => categorySwiper.current?.slidePrev()} 
+                  disabled={isBeginning}
+                />
+                <NavBtn 
+                  dir="next" 
+                  onClick={() => categorySwiper.current?.slideNext()} 
+                  disabled={isEnd}
+                />
+              </div>
             </div>
 
-            {/* ✅ হুবহু রেসপনসিভ গ্রিড সেটআপ */}
-            {/* মোবাইলে ৩টি (xs: 3) */}
-            {/* বড় মোবাইলে / ট্যাবলেটে ৪টি (sm: 4) */}
-            {/* ডেস্কটপে ৪টি (md, lg: 4) */}
-            {/* আল্ট্রা ওয়াইডে ৬টি (2xl: 6) */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
+            {/* ✅ Swiper Grid (২ লাইন) */}
+            <Swiper
+              modules={[Grid, Navigation]}
+              onSwiper={(swiper) => {
+                categorySwiper.current = swiper;
+                setIsBeginning(swiper.isBeginning);
+                setIsEnd(swiper.isEnd);
+              }}
+              onSlideChange={(swiper) => {
+                setIsBeginning(swiper.isBeginning);
+                setIsEnd(swiper.isEnd);
+              }}
+              spaceBetween={10} // মোবাইলে গ্যাপ কমিয়ে 10 করা হয়েছে যাতে ৪টি ফিট হয়
+              slidesPerView={4} // ✅ মোবাইলে (সবচেয়ে ছোট স্ক্রিনে) ৪টি কলাম
+              grid={{ rows: 2, fill: "row" }}
+              breakpoints={{
+                // 640px এর উপরে ৩টি কলাম
+                640: { slidesPerView: 3, grid: { rows: 2 }, spaceBetween: 16 },
+                // 1024px এর উপরে ৬টি কলাম
+                1024: { slidesPerView: 6, grid: { rows: 2 }, spaceBetween: 16 },
+              }}
+              className="w-full overflow-hidden py-2"
+            >
               {dynamicCategories.map((cat, index) => (
-                <button
-                  key={index}
-                  onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
-                  className="group w-full cursor-pointer focus:outline-none text-center"
-                >
-                  {/* ✅ অত্যন্ত ছোট ও মিনিমালিস্টিক কার্ড */}
-                  <div className="bg-[#f9f7f4] rounded-lg p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 min-h-[80px] sm:min-h-[100px] md:min-h-[120px]">
-                    
-                    {/* ✅ ছোট ইমেজ */}
-                    <div className="w-full aspect-[4/3] relative flex items-center justify-center mb-1 sm:mb-2 md:mb-3">
-                      <img
-                        src={cat.image}
-                        alt={cat.name}
-                        className="w-[75%] sm:w-[80%] h-[75%] sm:h-[80%] object-contain transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
+                <SwiperSlide key={index} className="h-auto">
+                  <button
+                    onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
+                    className="group w-full cursor-pointer focus:outline-none text-center h-full"
+                  >
+                    <div className="bg-[#f9f7f4] rounded-lg p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 min-h-[80px] sm:min-h-[100px] md:min-h-[120px] h-full">
+                      
+                      <div className="w-full aspect-[4/3] relative flex items-center justify-center mb-1 sm:mb-2 md:mb-3">
+                        <img
+                          src={cat.image}
+                          alt={cat.name}
+                          className="w-[75%] sm:w-[80%] h-[75%] sm:h-[80%] object-contain transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
 
-                    {/* ✅ ছোট টেক্সট */}
-                    <p className="text-[#555555] text-[9px] sm:text-[10px] md:text-xs font-medium tracking-wide">
-                      {cat.name}
-                    </p>
-                  </div>
-                </button>
+                      <p className="text-[#555555] text-[9px] sm:text-[10px] md:text-xs font-medium tracking-wide">
+                        {cat.name}
+                      </p>
+                    </div>
+                  </button>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
 
           </div>
         </section>
       )}
 
-      {/* ── 3. Our Best Sellers (Swiper Carousel) ──────────── */}
+      {/* ── 3. Our Best Sellers ─────────────────────────────── */}
       <section className="py-10 bg-[#faf8f5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
