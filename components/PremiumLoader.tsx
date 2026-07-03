@@ -2,46 +2,51 @@ import Image from "next/image";
 
 export default function PremiumLoader() {
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#faf8f5] flex flex-col items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-[#faf8f5] flex flex-col items-center justify-center select-none">
       <div className="relative flex flex-col items-center">
-        {/* Pulsating Logo Container */}
-        <div className="relative w-24 h-24 mb-6">
-          <div className="absolute inset-0 bg-[#3a4739] rounded-full animate-ping opacity-20"></div>
-          <div className="relative w-full h-full bg-white rounded-full p-2 flex items-center justify-center shadow-lg overflow-hidden border border-[#d69a45]/20">
-            <Image
-              src="/images/logo.webp"
-              alt="Sareng Furniture Loading..."
-              width={80}
-              height={80}
-              className="object-contain animate-pulse"
-              priority
-            />
-          </div>
+        
+        {/* 1. Logo Area with Smooth Cinematic Drift */}
+        <div className="relative w-24 h-24 mb-2 flex items-center justify-center animate-[logoDrift_3s_ease-in-out_infinite]">
+          <Image
+            src="/images/logo.webp"
+            alt="Sareng Furniture Loading..."
+            width={96}
+            height={96}
+            className="object-contain filter drop-shadow-[0_4px_12px_rgba(58,71,57,0.08)]"
+            priority
+          />
         </div>
 
-        {/* Brand Name */}
-        <div className="flex flex-col items-center text-center animate-pulse">
-          <span className="text-2xl font-black tracking-wider text-[#3a4739] uppercase font-sans">
+        {/* 2. Brand Typography with Elegant Text Reveal */}
+        <div className="flex flex-col items-center text-center">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-[0.15em] text-[#3a4739] uppercase font-sans mix-blend-multiply animate-[textReveal_2.5s_ease-in-out_infinite] leading-none">
             Sareng
-          </span>
-          <span className="text-xs uppercase tracking-[0.2em] text-[#d69a45] font-sans mt-1">
+          </h1>
+          <p className="text-[9px] uppercase tracking-[0.3em] text-[#d69a45] font-semibold font-sans mt-1 ml-[0.3em] animate-[textReveal_2.5s_ease-in-out_infinite_0.2s] leading-none">
             Furniture
-          </span>
+          </p>
         </div>
 
-        {/* Elegant Loading Bar */}
-        <div className="mt-8 w-48 h-[2px] bg-gray-200 rounded-full overflow-hidden">
-          <div className="h-full bg-[#d69a45] w-full animate-[loading_1.5s_ease-in-out_infinite] origin-left"></div>
+        {/* 3. Premium Glaze Loading Line */}
+        <div className="mt-8 w-40 h-[2px] bg-[#3a4739]/10 rounded-full overflow-hidden relative">
+          <div className="absolute top-0 bottom-0 left-0 w-full bg-gradient-to-r from-transparent via-[#d69a45] to-transparent animate-[shimmerLine_1.6s_infinite_linear]"></div>
         </div>
+
       </div>
       
-      {/* Required keyframes for custom animation */}
+      {/* Required Optimized Styles */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes loading {
-          0% { transform: scaleX(0); transform-origin: left; }
-          50% { transform: scaleX(1); transform-origin: left; }
-          50.1% { transform: scaleX(1); transform-origin: right; }
-          100% { transform: scaleX(0); transform-origin: right; }
+        @keyframes logoDrift {
+          0%, 100% { transform: translateY(0px) scale(0.98); opacity: 0.85; }
+          50% { transform: translateY(-5px) scale(1.02); opacity: 1; }
+        }
+        @keyframes textReveal {
+          0%, 100% { opacity: 0.5; letter-spacing: 0.12em; filter: blur(0.5px); }
+          50% { opacity: 1; letter-spacing: 0.18em; filter: blur(0px); }
+        }
+        @keyframes shimmerLine {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}} />
     </div>
