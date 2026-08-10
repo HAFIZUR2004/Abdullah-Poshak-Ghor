@@ -22,7 +22,7 @@ import {
 import Image from "next/image";
 import CartIcon from "./CartIcon";
 import { useProducts } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/AuthContext";
 import { Product } from "@/types";
 import Swal from "sweetalert2";
 
@@ -264,15 +264,13 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          
           {/* Top Row: Logo, Search, Icons */}
           <div className="flex items-center justify-between h-[60px] gap-4">
-            
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0 group">
               <div className="relative w-12 h-12 bg-white rounded-full p-1 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
                 <Image
-                  src="/images/logo.webp" 
+                  src="/images/logo.webp"
                   alt="Sareng Furniture"
                   width={40}
                   height={40}
@@ -281,8 +279,12 @@ export default function Navbar() {
                 />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="text-xl font-bold tracking-wider leading-none text-white uppercase font-sans">Sareng</span>
-                <span className="text-[9px] uppercase tracking-widest text-[#d69a45] font-sans">Furniture</span>
+                <span className="text-xl font-bold tracking-wider leading-none text-white uppercase font-sans">
+                  Sareng
+                </span>
+                <span className="text-[9px] uppercase tracking-widest text-[#d69a45] font-sans">
+                  Furniture
+                </span>
               </div>
             </Link>
 
@@ -432,7 +434,7 @@ export default function Navbar() {
 
             {/* Right Side Icons */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <button 
+              <button
                 className="md:hidden w-9 h-9 flex items-center justify-center text-white/80 hover:text-white transition"
                 onClick={() => {
                   setIsSearchOpen(!isSearchOpen);
@@ -441,12 +443,18 @@ export default function Navbar() {
               >
                 <FiSearch size={20} />
               </button>
-              
-              <Link href="/wishlist" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition">
+
+              <Link
+                href="/wishlist"
+                className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition"
+              >
                 <FiHeart size={20} />
               </Link>
 
-              <Link href="/cart" className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition">
+              <Link
+                href="/cart"
+                className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-[#d69a45] transition"
+              >
                 <CartIcon />
               </Link>
 
@@ -511,7 +519,6 @@ export default function Navbar() {
 
           {/* Bottom Row: Nav Links & Help */}
           <div className="hidden lg:flex items-center justify-between py-2.5 border-t border-white/10">
-            
             <nav className="flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link
@@ -544,7 +551,10 @@ export default function Navbar() {
       {/* ── Mobile Search Bar ── */}
       {isSearchOpen && (
         <div className="md:hidden pb-3 border-t border-white/10 pt-3 bg-[#3a4739]">
-          <form onSubmit={handleSearch} className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <form
+            onSubmit={handleSearch}
+            className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"
+          >
             <div className="flex items-center bg-white rounded overflow-hidden shadow-sm h-9">
               <input
                 ref={mobileInputRef}
@@ -615,12 +625,18 @@ export default function Navbar() {
       {/* ── Mobile Menu Drawer ───────────────────────────────── */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsMenuOpen(false)}
+          />
           <div className="absolute top-0 left-0 h-full w-72 bg-[#3a4739] text-white shadow-2xl flex flex-col overflow-y-auto">
             {/* Drawer Header */}
             <div className="flex justify-between items-center px-5 py-4 border-b border-white/10">
               <span className="font-bold text-lg">Menu</span>
-              <button onClick={() => setIsMenuOpen(false)} className="p-1 hover:bg-white/10 rounded transition">
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="p-1 hover:bg-white/10 rounded transition"
+              >
                 <FiX size={24} />
               </button>
             </div>

@@ -1,269 +1,244 @@
-// app/api/users/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
+import { getSession } from "@/lib/auth";
+import bcryptjs from "bcryptjs";
+import crypto from "crypto";
 
-interface UserData {
-  uid: string;
-  name?: string;
-  email?: string;
-  mobile?: string;
-  provider?: string;
-  photoURL?: string;
-  role?: string;
-  adminSecret?: string;
-}
-
-// GET - সব ইউজার ফেচ করুন (Admin এর জন্য)
-export async function GET(request: Request) {
+// GET /api/users?role=admin&status=active&search=email@example.com
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const uid = searchParams.get("uid");
-    const email = searchParams.get("email");
-    const role = searchParams.get("role");
+    const session = await getSession(req);
+    if (!session) {
+      return NextResponse.json({ code: "NOT_AUTHENTICATED" }, { status: 401 });
+    }
 
     const client = await clientPromise;
     const db = client.db("sareng_furniture");
+    const usersCollection = db.collection("users");
 
-    const query: any = {};
-    if (uid) query.uid = uid;
-    if (email) query.email = email;
-    if (role) query.role = role;
+    const sessionUser = await usersCollection.findOne({ uid: session.uid });
+    if (
+      !sessionUser ||
+      (sessionUser.role !== "admin" && sessionUser.role !== "super_admin")
+    ) {
+      return NextResponse.json({ code: "FORBIDDEN" }, { status: 403 });
+    }
 
-    const users = await db
-      .collection("users")
-      .find(query)
+    const { searchParams } = new URL(req.url);
+    const role = searchParams.get("role");
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
+
+    const filter: Record<string, unknown> = {};
+
+    if (role) {
+      filter.role = role;
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [
+        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } },
+        { mobile: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const users = await usersCollection
+      .find(filter, {
+        projection: {
+          password: 0,
+        },
+      })
       .sort({ createdAt: -1 })
       .toArray();
 
-    const formattedUsers = users.map((user) => ({
-      ...user,
-      _id: user._id.toString(),
-      id: user._id.toString(),
-    }));
-
-    if (uid && formattedUsers.length === 1) {
-      return NextResponse.json(
-        { success: true, user: formattedUsers[0] },
-        { status: 200 },
-      );
-    }
-
-    return NextResponse.json(
-      { success: true, users: formattedUsers },
-      { status: 200 },
-    );
+    return NextResponse.json(users);
   } catch (error) {
-    console.error("GET Users Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch users" },
-      { status: 500 },
-    );
+    console.error("Get users error:", error);
+    return NextResponse.json({ code: "SERVER_ERROR" }, { status: 500 });
   }
 }
 
-// POST - নতুন ইউজার তৈরি বা আপডেট করুন
-export async function POST(request: Request) {
+// POST /api/users (Admin creates new user)
+export async function POST(req: NextRequest) {
   try {
-    const body: UserData = await request.json();
-    console.log("📦 Received body:", body);
-
-    const { uid, name, email, mobile, provider, photoURL } = body;
-
-    if (!uid) {
-      console.error("❌ UID missing");
-      return NextResponse.json(
-        { success: false, error: "User ID is required" },
-        { status: 400 },
-      );
+    const session = await getSession(req);
+    if (!session) {
+      return NextResponse.json({ code: "NOT_AUTHENTICATED" }, { status: 401 });
     }
 
     const client = await clientPromise;
-    const db = client.db("sareng_furniture"); // ✅ Correct database name
-    console.log("✅ Connected to Sareng_Furniture database");
+    const db = client.db("sareng_furniture");
+    const usersCollection = db.collection("users");
 
-    // Check if user already exists
-    const existingUser = await db.collection("users").findOne({ uid });
-    console.log("🔍 Existing user:", existingUser);
-
-    if (existingUser) {
-      // Update existing user
-      const updateData = {
-        $set: {
-          name: name || existingUser.name,
-          email: email || existingUser.email,
-          mobile: mobile || existingUser.mobile,
-          photoURL: photoURL || existingUser.photoURL,
-          provider: provider || existingUser.provider,
-          updatedAt: new Date(),
-          lastLogin: new Date(),
-        },
-      };
-
-      await db.collection("users").updateOne({ uid }, updateData);
-      console.log("✅ User updated");
-
-      const updatedUser = await db.collection("users").findOne({ uid });
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: "User updated successfully",
-          user: {
-            ...updatedUser,
-            _id: updatedUser?._id.toString(),
-            id: updatedUser?._id.toString(),
-            role: updatedUser?.role || "user",
-          },
-        },
-        { status: 200 },
-      );
+    const sessionUser = await usersCollection.findOne({ uid: session.uid });
+    if (!sessionUser || sessionUser.role !== "super_admin") {
+      return NextResponse.json({ code: "FORBIDDEN" }, { status: 403 });
     }
 
-    // Create new user
+    const { email, name, mobile, role, password } = await req.json();
+
+    if (!email || !name || !password) {
+      return NextResponse.json({ code: "MISSING_FIELDS" }, { status: 400 });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ code: "INVALID_EMAIL" }, { status: 400 });
+    }
+
+    if (mobile && !/^01[3-9]\d{8}$/.test(mobile)) {
+      return NextResponse.json({ code: "INVALID_MOBILE" }, { status: 400 });
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json({ code: "WEAK_PASSWORD" }, { status: 400 });
+    }
+
+    const existingUser = await usersCollection.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json({ code: "EMAIL_EXISTS" }, { status: 400 });
+    }
+
+    const hashedPassword = await bcryptjs.hash(password, 10);
+
     const newUser = {
-      uid,
-      name: name || "",
-      email: email || "",
+      uid: crypto.randomUUID(),
+      email,
+      name: name.trim(),
       mobile: mobile || "",
-      provider: provider || "email",
-      photoURL: photoURL || "",
-      role: "user", // Default role
+      password: hashedPassword,
+      role: role || "user",
       status: "active",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastLogin: new Date(),
-      address: {
-        division: "",
-        district: "",
-        thana: "",
-        address: "",
-      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    console.log("📝 Creating new user:", newUser);
-    await db.collection("users").insertOne(newUser);
-    console.log("✅ User created successfully");
+    await usersCollection.insertOne(newUser);
 
-    const createdUser = await db.collection("users").findOne({ uid });
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "User created successfully",
-        user: {
-          ...createdUser,
-          _id: createdUser?._id.toString(),
-          id: createdUser?._id.toString(),
-          role: createdUser?.role || "user",
-        },
+    return NextResponse.json({
+      code: "USER_CREATED",
+      user: {
+        uid: newUser.uid,
+        email: newUser.email,
+        name: newUser.name,
+        mobile: newUser.mobile,
+        role: newUser.role,
+        status: newUser.status,
       },
-      { status: 201 },
-    );
+    });
   } catch (error) {
-    console.error("❌ User creation error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: "Failed to create user",
-        details: errorMessage,
-      },
-      { status: 500 },
-    );
+    console.error("Create user error:", error);
+    return NextResponse.json({ code: "SERVER_ERROR" }, { status: 500 });
   }
 }
 
-// PUT - ইউজার আপডেট করুন
-export async function PUT(request: Request) {
+// PUT /api/users?uid=abc123 (Admin updates user status/role)
+export async function PUT(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { uid, role, name, email, mobile, status, photoURL } = body;
-
-    if (!uid) {
-      return NextResponse.json(
-        { success: false, error: "User ID is required" },
-        { status: 400 },
-      );
+    const session = await getSession(req);
+    if (!session) {
+      return NextResponse.json({ code: "NOT_AUTHENTICATED" }, { status: 401 });
     }
 
     const client = await clientPromise;
     const db = client.db("sareng_furniture");
+    const usersCollection = db.collection("users");
 
-    const updateFields: any = { updatedAt: new Date() };
-    if (role) updateFields.role = role;
-    if (name) updateFields.name = name;
-    if (email) updateFields.email = email;
-    if (mobile) updateFields.mobile = mobile;
-    if (status) updateFields.status = status;
-    if (photoURL) updateFields.photoURL = photoURL;
+    const sessionUser = await usersCollection.findOne({ uid: session.uid });
+    if (
+      !sessionUser ||
+      (sessionUser.role !== "admin" && sessionUser.role !== "super_admin")
+    ) {
+      return NextResponse.json({ code: "FORBIDDEN" }, { status: 403 });
+    }
 
-    const result = await db
-      .collection("users")
-      .updateOne({ uid }, { $set: updateFields });
+    const { searchParams } = new URL(req.url);
+    const targetUid = searchParams.get("uid");
+
+    if (!targetUid) {
+      return NextResponse.json({ code: "MISSING_FIELDS" }, { status: 400 });
+    }
+
+    const { role, status } = await req.json();
+
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (role) {
+      if (sessionUser.role !== "super_admin") {
+        return NextResponse.json({ code: "FORBIDDEN" }, { status: 403 });
+      }
+      updateData.role = role;
+    }
+
+    if (status) {
+      updateData.status = status;
+    }
+
+    const result = await usersCollection.updateOne(
+      { uid: targetUid },
+      { $set: updateData },
+    );
 
     if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ code: "USER_NOT_FOUND" }, { status: 404 });
     }
 
-    const updatedUser = await db.collection("users").findOne({ uid });
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "User updated successfully",
-        user: updatedUser
-          ? { ...updatedUser, _id: updatedUser._id.toString() }
-          : null,
-      },
-      { status: 200 },
-    );
+    return NextResponse.json({
+      code: "USER_UPDATED",
+      message: "User updated successfully",
+    });
   } catch (error) {
-    console.error("User update error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update user" },
-      { status: 500 },
-    );
+    console.error("Update user error:", error);
+    return NextResponse.json({ code: "SERVER_ERROR" }, { status: 500 });
   }
 }
 
-// DELETE - ইউজার ডিলিট করুন
-export async function DELETE(request: Request) {
+// DELETE /api/users?uid=abc123
+export async function DELETE(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const uid = searchParams.get("uid");
-
-    if (!uid) {
-      return NextResponse.json(
-        { success: false, error: "User ID is required" },
-        { status: 400 },
-      );
+    const session = await getSession(req);
+    if (!session) {
+      return NextResponse.json({ code: "NOT_AUTHENTICATED" }, { status: 401 });
     }
 
     const client = await clientPromise;
     const db = client.db("sareng_furniture");
+    const usersCollection = db.collection("users");
 
-    const result = await db.collection("users").deleteOne({ uid });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 },
-      );
+    const sessionUser = await usersCollection.findOne({ uid: session.uid });
+    if (!sessionUser || sessionUser.role !== "super_admin") {
+      return NextResponse.json({ code: "FORBIDDEN" }, { status: 403 });
     }
 
-    return NextResponse.json(
-      { success: true, message: "User deleted successfully" },
-      { status: 200 },
-    );
+    const { searchParams } = new URL(req.url);
+    const targetUid = searchParams.get("uid");
+
+    if (!targetUid) {
+      return NextResponse.json({ code: "MISSING_FIELDS" }, { status: 400 });
+    }
+
+    if (targetUid === session.uid) {
+      return NextResponse.json({ code: "CANNOT_DELETE_SELF" }, { status: 400 });
+    }
+
+    const result = await usersCollection.deleteOne({ uid: targetUid });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ code: "USER_NOT_FOUND" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      code: "USER_DELETED",
+      message: "User deleted successfully",
+    });
   } catch (error) {
-    console.error("User delete error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete user" },
-      { status: 500 },
-    );
+    console.error("Delete user error:", error);
+    return NextResponse.json({ code: "SERVER_ERROR" }, { status: 500 });
   }
 }

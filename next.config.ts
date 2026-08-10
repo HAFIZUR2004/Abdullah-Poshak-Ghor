@@ -2,39 +2,26 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
-      // ১. Unsplash
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        port: "",
-        pathname: "/**",
-      },
-      // ২. Cloudinary
+      // Cloudinary — main product images
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
         port: "",
         pathname: "/**",
       },
-      // ৩. ImgBB
+      // Unsplash — auth/hero background images
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      // ImgBB — legacy images (if any)
       {
         protocol: "https",
         hostname: "i.ibb.co",
-        port: "",
-        pathname: "/**",
-      },
-      // ৪. Firebase Storage
-      {
-        protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
-        port: "",
-        pathname: "/**",
-      },
-      // ৫. 🔥 Google User Photos (এটা যোগ করুন - আপনার error এর জন্য)
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
         port: "",
         pathname: "/**",
       },

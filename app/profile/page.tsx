@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -18,7 +18,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import Link from "next/link";
-import Image from "next/image";
+import Swal from "sweetalert2";
 
 interface Order {
   _id: string;
@@ -28,67 +28,77 @@ interface Order {
   createdAt: string;
 }
 
-interface UserData {
-  uid: string;
-  name: string;
-  email: string;
-  mobile?: string;
-  photoURL: string;
-  createdAt: string;
-  role: string;
-}
-
 export default function ProfilePage() {
-  const { user: authUser, loading: authLoading, logout, userRole } = useAuth();
+  const { user: authUser, loading: authLoading, logout, refetch } = useAuth();
   const router = useRouter();
-  const [user, setUser] = useState<UserData | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", mobile: "" });
   const [updating, setUpdating] = useState(false);
 
-  const fetchOrders = useCallback(async (userId: string) => {
-    try {
-      const response = await fetch(`/api/orders?userId=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setOrders(data);
-      }
-    } catch (err) {
-      console.error("Order fetch error:", err);
-    }
-  }, []);
-
   useEffect(() => {
     if (authUser) {
-      const userData: UserData = {
-        uid: authUser.uid,
-        name: authUser.displayName || "",
-        email: authUser.email || "",
-        mobile: authUser.phoneNumber || "",
-        photoURL: authUser.photoURL || "",
-        createdAt: new Date().toISOString(),
-        role: userRole || "user",
-      };
-      setUser(userData);
-
       setEditForm({
-        name: authUser.displayName || "",
-        mobile: authUser.phoneNumber || "",
+        name: authUser.name || "",
+        mobile: authUser.mobile || "",
       });
 
-      fetchOrders(authUser.uid);
+      const fetchOrders = async () => {
+        try {
+          const response = await fetch(`/api/orders?userId=${authUser.uid}`);
+          if (response.ok) {
+            const data = await response.json();
+            setOrders(data);
+          }
+        } catch (err) {
+          console.error("Order fetch error:", err);
+        }
+      };
+
+      fetchOrders();
     }
-  }, [authUser, userRole, fetchOrders]);
+  }, [authUser]);
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/");
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You want to logout?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#d69a45",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
+      await logout();
+      Swal.fire({
+        icon: "success",
+        title: "Logged out successfully",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      router.push("/");
+    }
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    const result = await Swal.fire({
+      title: "Cancel order?",
+      text: "This order will be cancelled",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, cancel it",
+      cancelButtonText: "No",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
 
     setCancellingOrder(orderId);
 
@@ -96,7 +106,7 @@ export default function ProfilePage() {
       const response = await fetch("/api/orders/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, userId: user?.uid }),
+        body: JSON.stringify({ orderId, userId: authUser?.uid }),
       });
 
       if (response.ok) {
@@ -107,46 +117,91 @@ export default function ProfilePage() {
               : order,
           ),
         );
-        alert("Order cancelled successfully!");
+        Swal.fire({
+          icon: "success",
+          title: "Order cancelled",
+          showConfirmButton: false,
+          timer: 1500,
+        });
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to cancel order");
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: data.error || "Could not cancel order",
+        });
       }
     } catch (error) {
       console.error("Cancel error:", error);
-      alert("An error occurred while cancelling the order");
+      Swal.fire({
+        icon: "error",
+        title: "Server error",
+        text: "Please try again later",
+      });
     } finally {
       setCancellingOrder(null);
     }
   };
 
   const handleUpdateProfile = async () => {
+    if (!editForm.name.trim()) {
+      Swal.fire({
+        icon: "error",
+        title: "Name required",
+        text: "Please enter your full name",
+      });
+      return;
+    }
+
+    if (editForm.mobile && !/^01[3-9]\d{8}$/.test(editForm.mobile)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid mobile number",
+        text: "Please enter a valid Bangladeshi mobile number (01XXXXXXXXX)",
+      });
+      return;
+    }
+
     setUpdating(true);
+
     try {
       const response = await fetch("/api/users/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
-          uid: user?.uid,
           name: editForm.name,
-          phone: editForm.mobile,
+          mobile: editForm.mobile,
         }),
       });
 
       if (response.ok) {
-        setUser((prev) =>
-          prev
-            ? { ...prev, name: editForm.name, mobile: editForm.mobile }
-            : null,
-        );
         setIsEditing(false);
-        alert("Profile updated successfully!");
+        await Swal.fire({
+          icon: "success",
+          title: "Profile updated!",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        refetch();
       } else {
-        alert("Failed to update profile");
+        const data = await response.json();
+        Swal.fire({
+          icon: "error",
+          title: "Update failed",
+          text:
+            data.code === "INVALID_MOBILE"
+              ? "Mobile number is invalid"
+              : "Could not update profile",
+        });
       }
     } catch (error) {
       console.error("Update error:", error);
-      alert("Failed to update profile");
+      Swal.fire({
+        icon: "error",
+        title: "Server error",
+        text: "Please try again later",
+      });
     } finally {
       setUpdating(false);
     }
@@ -162,7 +217,7 @@ export default function ProfilePage() {
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-BD", {
       style: "currency",
       currency: "BDT",
       minimumFractionDigits: 0,
@@ -186,35 +241,25 @@ export default function ProfilePage() {
       <Navbar />
       <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Profile Header */}
-          <div className="bg-linear-to-r from-primary-gold to-glow-gold rounded-xl p-5 md:p-6 mb-6 md:mb-8">
+          <div className="bg-gradient-to-r from-primary-gold to-highlight rounded-xl p-5 md:p-6 mb-6 md:mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center">
-                  {user?.photoURL ? (
-                    <Image
-                      src={user.photoURL}
-                      alt={user.name}
-                      width={64}
-                      height={64}
-                      className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center text-white text-xl md:text-2xl font-bold">
-                      {user?.name?.charAt(0) || "U"}
-                    </div>
-                  )}
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center text-white text-xl md:text-2xl font-bold">
+                  {authUser?.name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
                 <div>
                   <h1 className="text-xl md:text-2xl font-bold text-white">
-                    {user?.name || "User"}
+                    {authUser?.name || "User"}
                   </h1>
                   <p className="text-white/80 text-sm">
-                    {user?.email || "No email"}
+                    {authUser?.email || "No email"}
                   </p>
-                  {userRole === "admin" && (
+                  {(authUser?.role === "admin" ||
+                    authUser?.role === "super_admin") && (
                     <span className="inline-block mt-1 px-2 py-0.5 bg-white/20 rounded-full text-xs text-white">
-                      Admin
+                      {authUser.role === "super_admin"
+                        ? "Super Admin"
+                        : "Admin"}
                     </span>
                   )}
                 </div>
@@ -239,7 +284,6 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
-            {/* Profile Info */}
             <div className="bg-white rounded-xl p-5 md:p-6 shadow-sm">
               <h2 className="text-lg font-bold text-gray-800 mb-4">
                 Profile Information
@@ -270,7 +314,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setEditForm({ ...editForm, mobile: e.target.value })
                       }
-                      placeholder="Not provided"
+                      placeholder="01XXXXXXXXX"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-gold text-sm"
                     />
                   </div>
@@ -304,7 +348,7 @@ export default function ProfilePage() {
                       Full Name
                     </p>
                     <p className="text-gray-800 text-sm md:text-base">
-                      {user?.name || "N/A"}
+                      {authUser?.name || "N/A"}
                     </p>
                   </div>
                   <div>
@@ -313,7 +357,7 @@ export default function ProfilePage() {
                     </p>
                     <p className="text-gray-800 text-sm md:text-base flex items-center gap-2 break-all">
                       <FiMail size={14} className="text-gray-400 shrink-0" />
-                      {user?.email || "N/A"}
+                      {authUser?.email || "N/A"}
                     </p>
                   </div>
                   <div>
@@ -322,7 +366,7 @@ export default function ProfilePage() {
                     </p>
                     <p className="text-gray-800 text-sm md:text-base flex items-center gap-2">
                       <FiPhone size={14} className="text-gray-400" />
-                      {user?.mobile || "Not provided"}
+                      {authUser?.mobile || "Not provided"}
                     </p>
                   </div>
                   <div>
@@ -331,14 +375,13 @@ export default function ProfilePage() {
                     </p>
                     <p className="text-gray-800 text-sm md:text-base flex items-center gap-2">
                       <FiCalendar size={14} className="text-gray-400" />
-                      {formatDate(user?.createdAt)}
+                      {formatDate(authUser?.createdAt)}
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Delivery Address */}
             <div className="bg-white rounded-xl p-5 md:p-6 shadow-sm">
               <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <FiMapPin className="text-red-500" size={18} />
@@ -355,7 +398,6 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* Recent Orders */}
             <div className="bg-white rounded-xl p-5 md:p-6 shadow-sm">
               <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <FiShoppingBag className="text-primary-gold" size={18} />
