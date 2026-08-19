@@ -1,6 +1,7 @@
 // lib/auth.ts
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { NextRequest } from "next/server";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const COOKIE_NAME = "session_token";
@@ -38,7 +39,9 @@ export async function setSessionCookie(payload: SessionPayload) {
   });
 }
 
-export async function getSession(): Promise<SessionPayload | null> {
+export async function getSession(
+  req: NextRequest,
+): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
 

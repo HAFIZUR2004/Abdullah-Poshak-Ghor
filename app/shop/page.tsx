@@ -9,8 +9,6 @@ import { Product } from "@/types";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const categories = ["All", "Electronics", "Clothing", "Accessories", "Home & Living", "Beauty", "Sports", "Toys & Kids"];
-
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +26,9 @@ export default function ShopPage() {
         if (res.ok) {
           const data = await res.json();
           // শুধুমাত্র Active প্রোডাক্ট দেখাবো
-          const activeProducts = data.filter((p: Product) => p.status === "Active");
+          const activeProducts = data.filter(
+            (p: Product) => p.status === "Active",
+          );
           setProducts(activeProducts);
         }
       } catch (error) {
@@ -62,7 +62,10 @@ export default function ShopPage() {
   };
 
   // Get unique categories from products
-  const uniqueCategories = ["All", ...Array.from(new Set(products.map(p => p.category)))];
+  const uniqueCategories = [
+    "All",
+    ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
+  ];
 
   // Filter products
   const filteredProducts = products.filter((product) => {
@@ -80,55 +83,67 @@ export default function ShopPage() {
     if (sortBy === "price-low") return a.price - b.price;
     if (sortBy === "price-high") return b.price - a.price;
     if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
-    if (sortBy === "newest") return new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime();
+    if (sortBy === "newest")
+      return (
+        new Date(b.createdAt || Date.now()).getTime() -
+        new Date(a.createdAt || Date.now()).getTime()
+      );
     return 0;
   });
 
   // Loading State
   if (isLoading || !mounted) {
-    return <PremiumLoader />;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <PremiumLoader />
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   return (
-    <>
-    <Navbar/>
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="">
-          <h1 className="text-2xl md:text-3xl font-bold text-black mb-2">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Shop all Products
           </h1>
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white rounded-md p-2 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Search Input */}
-            <div className="flex-1 relative">
+            <div className="w-full md:flex-1 relative">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:border-primary-gold focus:ring-2 focus:ring-primary-gold/20 text-sm text-gray-500"
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:border-primary-gold focus:ring-2 focus:ring-primary-gold/20 text-sm text-gray-700"
               />
               <FiSearch
-                className="absolute left-3 top-5 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 size={18}
               />
             </div>
 
             {/* Category Filter */}
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="w-full md:w-auto flex gap-2 overflow-x-auto pb-2 md:pb-0">
               {uniqueCategories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`transition font-medium text-sm px-3 py-1.5 rounded-md ${
+                  className={`whitespace-nowrap transition font-medium text-sm px-3 py-1.5 rounded-md ${
                     selectedCategory === cat
                       ? "text-white bg-primary-gold"
-                      : "text-gray-700 hover:bg-primary-gold/50 border border-primary-gold/20"
+                      : "text-gray-700 hover:bg-primary-gold/10 border border-gray-200"
                   }`}
                 >
                   {cat}
@@ -137,11 +152,11 @@ export default function ShopPage() {
             </div>
 
             {/* Sort & View Options */}
-            <div className="flex gap-2">
+            <div className="w-full md:w-auto flex items-center justify-between md:justify-end gap-2">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="hidden md:flex px-3 py-2 text-gray-500 border border-primary-gold/20 rounded-md text-sm focus:outline-none focus:border-primary-gold"
+                className="px-3 py-2 text-gray-700 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-gold"
               >
                 <option value="featured">Featured</option>
                 <option value="newest">Newest</option>
@@ -150,24 +165,26 @@ export default function ShopPage() {
                 <option value="rating">Rating</option>
               </select>
 
-              <div className="hidden md:flex gap-1 border border-primary-gold/20 rounded-md p-1">
+              <div className="hidden md:flex gap-1 border border-gray-200 rounded-md p-1">
                 <button
                   onClick={() => handleViewModeChange("grid")}
-                  className={`p-2 rounded-full transition ${
+                  className={`p-2 rounded transition ${
                     viewMode === "grid"
                       ? "bg-primary-gold text-white"
                       : "text-gray-500 hover:bg-gray-100"
                   }`}
+                  aria-label="Grid view"
                 >
                   <FiGrid size={18} />
                 </button>
                 <button
                   onClick={() => handleViewModeChange("list")}
-                  className={`p-2 rounded-full transition ${
+                  className={`p-2 rounded transition ${
                     viewMode === "list"
                       ? "bg-primary-gold text-white"
                       : "text-gray-500 hover:bg-gray-100"
                   }`}
+                  aria-label="List view"
                 >
                   <FiList size={18} />
                 </button>
@@ -185,19 +202,19 @@ export default function ShopPage() {
 
         {/* Products Grid/List View */}
         {sortedProducts.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <FiSearch className="text-gray-400" size={32} />
+          <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
+            <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <FiSearch className="text-gray-400" size={28} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            <h3 className="text-lg font-semibold text-gray-800 mb-1">
               No products found
             </h3>
             <p className="text-gray-500 text-sm">
-              Try adjusting your search or filter
+              Try adjusting your search or category filters.
             </p>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {sortedProducts.map((product) => (
               <ProductCard key={product._id || product.id} product={product} />
             ))}
@@ -205,13 +222,16 @@ export default function ShopPage() {
         ) : (
           <div className="space-y-4">
             {sortedProducts.map((product) => (
-              <ProductListItem key={product._id || product.id} product={product} />
+              <ProductListItem
+                key={product._id || product.id}
+                product={product}
+              />
             ))}
           </div>
         )}
-      </div>
+      </main>
+
+      <Footer />
     </div>
-    <Footer/>
-    </>
   );
 }
