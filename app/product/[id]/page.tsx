@@ -14,10 +14,7 @@ import {
   ChevronDown,
   Package,
   HelpCircle,
-  ShieldCheck,
   Info,
-  RotateCcw,
-  Check,
 } from "lucide-react";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
@@ -58,8 +55,25 @@ export default function ProductDetailsPage() {
         const res = await fetch("/api/products");
         if (res.ok) {
           const data = await res.json();
+          console.log("📦 API Response:", data); // ডিবাগ করুন
+
+          let productArray: Product[] = [];
+
+          // ✅ ডেটা ফরম্যাট চেক করুন
+          if (Array.isArray(data)) {
+            productArray = data;
+          } else if (data?.success === true && Array.isArray(data.data)) {
+            productArray = data.data;
+          } else if (data?.data && Array.isArray(data.data)) {
+            productArray = data.data;
+          } else {
+            console.error("❌ Unexpected data format:", data);
+            setLoading(false);
+            return;
+          }
+
           const numericId = Number(productId);
-          const foundProduct = data.find(
+          const foundProduct = productArray.find(
             (p: Product) =>
               p._id === productId || (p.id !== undefined && p.id === numericId),
           );
@@ -75,7 +89,7 @@ export default function ProductDetailsPage() {
               setSelectedColor(foundProduct.colors[0]);
             if (foundProduct.sizes?.[0]) setSelectedSize(foundProduct.sizes[0]);
 
-            const related = data
+            const related = productArray
               .filter(
                 (p: Product) =>
                   p.category === foundProduct.category &&
@@ -192,7 +206,7 @@ export default function ProductDetailsPage() {
           )}
 
           <div className="grid lg:grid-cols-12 gap-8 items-start">
-            {/* ================= LEFT SIDE: Thumbnails, Main Image & Dynamic Note ================= */}
+            {/* LEFT SIDE: Thumbnails, Main Image & Dynamic Note */}
             <div className="lg:col-span-7 space-y-4">
               <div className="flex gap-4 items-start">
                 {/* Vertical Thumbnails List */}
@@ -239,7 +253,7 @@ export default function ProductDetailsPage() {
                 </div>
               </div>
 
-              {/* 📝 Dynamic Note */}
+              {/* Dynamic Note */}
               <div className="border border-gray-200 rounded bg-[#FAFAFA] p-3.5 flex items-start gap-2.5 text-gray-500 text-[11px] leading-relaxed">
                 <Info size={16} className="shrink-0 text-gray-400 mt-0.5" />
                 <p>
@@ -249,7 +263,7 @@ export default function ProductDetailsPage() {
               </div>
             </div>
 
-            {/* ================= RIGHT SIDE: Dropdowns, Price & Cart Actions ================= */}
+            {/* RIGHT SIDE: Dropdowns, Price & Cart Actions */}
             <div className="lg:col-span-5 space-y-4">
               {/* Product Title & Price Header */}
               <div className="border-b border-gray-200 pb-3">
@@ -454,9 +468,8 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* ================= AMAZON STYLE: "ABOUT THIS ITEM" & TECHNICAL SPECIFICATIONS ================= */}
+          {/* ABOUT THIS ITEM & TECHNICAL SPECIFICATIONS */}
           <div className="mt-16 border-t border-gray-200 pt-10 space-y-10">
-            {/* Section 1: About this item (Bullet Points like Amazon) */}
             <div>
               <h3 className="text-base font-bold text-gray-900 mb-3 uppercase tracking-wider">
                 About this item
@@ -493,7 +506,6 @@ export default function ProductDetailsPage() {
               </ul>
             </div>
 
-            {/* Section 2: Technical Details Table (Amazon Style Specifications) */}
             <div>
               <h3 className="text-base font-bold text-gray-900 mb-3 uppercase tracking-wider">
                 Product Information
@@ -551,7 +563,7 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* ================= RELATED PRODUCTS (Category Wise) ================= */}
+          {/* RELATED PRODUCTS */}
           {relatedProducts.length > 0 && (
             <div className="mt-16">
               <h2 className="text-base font-bold text-gray-900 mb-4">

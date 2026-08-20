@@ -23,16 +23,39 @@ export default function ShopPage() {
     const fetchProducts = async () => {
       try {
         const res = await fetch("/api/products");
-        if (res.ok) {
-          const data = await res.json();
-          // শুধুমাত্র Active প্রোডাক্ট দেখাবো
-          const activeProducts = data.filter(
-            (p: Product) => p.status === "Active",
-          );
-          setProducts(activeProducts);
+        const data = await res.json();
+
+        console.log("📦 API Response:", data); // ডিবাগ করুন
+
+        let productArray: Product[] = [];
+
+        // ✅ ডেটা ফরম্যাট চেক করুন
+        if (Array.isArray(data)) {
+          // যদি সরাসরি Array হয়
+          productArray = data;
+        } else if (data?.data && Array.isArray(data.data)) {
+          // যদি { data: [...] } ফরম্যাট হয়
+          productArray = data.data;
+        } else if (data?.success === true && Array.isArray(data.data)) {
+          // যদি { success: true, data: [...] } ফরম্যাট হয়
+          productArray = data.data;
+        } else {
+          console.error("❌ Unexpected data format:", data);
+          setProducts([]);
+          setIsLoading(false);
+          return;
         }
+
+        // ✅ শুধুমাত্র Active প্রোডাক্ট দেখাবো
+        const activeProducts = productArray.filter(
+          (p: Product) => p.status === "Active",
+        );
+
+        console.log(`✅ ${activeProducts.length} active products found`);
+        setProducts(activeProducts);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("❌ Error fetching products:", error);
+        setProducts([]);
       } finally {
         setIsLoading(false);
       }
