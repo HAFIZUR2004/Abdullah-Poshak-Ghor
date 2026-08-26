@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
 import { FaSearch, FaBell, FaUserCircle, FaSignOutAlt, FaBars } from "react-icons/fa";
 
 export default function DashboardNavbar() {
@@ -11,9 +10,16 @@ export default function DashboardNavbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  // JWT দিয়ে লগআউট করা
   const handleLogout = async () => {
     try {
-      await auth.signOut();
+      // JWT টোকেন মুছে ফেলা
+      localStorage.removeItem("token");
+      
+      // ইউজার সেশন তথ্য মুছে ফেলা
+      localStorage.removeItem("user");
+      
+      // রিডাইরেক্ট করা
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);

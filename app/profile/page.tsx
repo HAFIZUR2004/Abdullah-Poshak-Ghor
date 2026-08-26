@@ -375,7 +375,7 @@ export default function ProfilePage() {
                     </p>
                     <p className="text-gray-800 text-sm md:text-base flex items-center gap-2">
                       <FiCalendar size={14} className="text-gray-400" />
-                      {formatDate(authUser?.createdAt)}
+                      {formatDate((authUser as any)?.createdAt)}
                     </p>
                   </div>
                 </div>

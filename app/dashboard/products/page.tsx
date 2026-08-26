@@ -1,10 +1,52 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Plus, Trash2, Edit3, Image, X, Check, PackageOpen, Star, AlertCircle, Tag, Clock, TrendingUp, Flame } from "lucide-react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  AlertCircle,
+  Check,
+  ChevronDown,
+  Clock,
+  Edit3,
+  Flame,
+  Image as ImageIcon,
+  Layers,
+  PackageOpen,
+  Palette,
+  Plus,
+  PlusCircle,
+  Ruler,
+  Save,
+  ShieldCheck,
+  Star,
+  Trash2,
+  TrendingUp,
+  X,
+  Box,
+} from "lucide-react";
+
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
-// Product Data Type Definition
+// ======================================================
+// TYPES
+// ======================================================
+
+type ProductStatus =
+  | "Active"
+  | "Draft"
+  | "Trending"
+  | "Featured"
+  | "OutOfStock";
+
+type Unit = "M" | "FT" | "INC" | "CM" | "MM";
+
+type DimensionType = "width" | "depth" | "height";
+
 interface Product {
   _id?: string;
   id: string;
@@ -14,115 +56,1127 @@ interface Product {
   originalPrice?: number;
   category: string;
   image: string;
+  images?: string[];
   stock: number;
-  status: 'Active' | 'Draft' | 'Trending' | 'Featured' | 'OutOfStock';
+  status: ProductStatus;
   rating?: number;
   discount?: number;
+  materials?: string[];
+  colors?: string[];
+  sizes?: string[];
+  warrantyInfo?: string;
+  returnPolicy?: string;
+  note?: string;
   createdAt?: Date;
 }
 
-export default function ProductDashboard() {
+interface SizeValues {
+  M: string;
+  FT: string;
+  INC: string;
+  CM: string;
+  MM: string;
+}
+
+interface DimensionValues {
+  width: SizeValues;
+  depth: SizeValues;
+  height: SizeValues;
+}
+
+interface SizeOption {
+  id: string;
+  label: string;
+  primaryUnit: Unit;
+  dimensions: DimensionValues;
+  price: string;
+}
+
+interface MaterialOption {
+  id: string;
+  label: string;
+  description: string;
+  basePrice: string;
+  enabled: boolean;
+}
+
+// ======================================================
+// UNIT CONVERSION
+// ======================================================
+
+const unitConversions: Record<
+  Unit,
+  {
+    toMM: number;
+    label: string;
+  }
+> = {
+  M: {
+    toMM: 1000,
+    label: "Meter",
+  },
+  FT: {
+    toMM: 304.8,
+    label: "Feet",
+  },
+  INC: {
+    toMM: 25.4,
+    label: "Inch",
+  },
+  CM: {
+    toMM: 10,
+    label: "Centimeter",
+  },
+  MM: {
+    toMM: 1,
+    label: "Millimeter",
+  },
+};
+
+const unitOrder: Unit[] = [
+  "M",
+  "FT",
+  "INC",
+  "CM",
+  "MM",
+];
+
+const convertUnit = (
+  value: number,
+  from: Unit,
+  to: Unit
+): number => {
+  const mm = value * unitConversions[from].toMM;
+
+  return mm / unitConversions[to].toMM;
+};
+
+const formatNumber = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return value
+    .toFixed(2)
+    .replace(/\.?0+$/, "");
+};
+
+const createEmptySizeValues = (): SizeValues => ({
+  M: "",
+  FT: "",
+  INC: "",
+  CM: "",
+  MM: "",
+});
+
+const createEmptyDimensions = (): DimensionValues => ({
+  width: createEmptySizeValues(),
+  depth: createEmptySizeValues(),
+  height: createEmptySizeValues(),
+});
+
+// ======================================================
+// CATEGORIES
+// ======================================================
+
+const categories = [
+  "Sofa & Sectionals",
+  "Center & Coffee Tables",
+  "TV Units & Media Centers",
+  "Accent Chairs & Ottomans",
+  "Recliner & Rocking Chairs",
+  "Wall Shelves & Floating Shelves",
+  "Dining Tables & Chairs",
+  "Beds & Headboards",
+  "Wardrobes & Almirah",
+  "Office Chairs",
+  "Study & Computer Desks",
+  "Outdoor & Garden Furniture",
+  "Mattresses & Protectors",
+];
+
+// ======================================================
+// COLOR SAMPLES
+// ======================================================
+
+const colorOptions = [
+  {
+    name: "শ্যামল লোভ",
+    value: "শ্যামল লোভ",
+    hex: "#D0B798",
+  },
+  {
+    name: "রেড লোভ",
+    value: "রেড লোভ",
+    hex: "#D8CAC1",
+  },
+  {
+    name: "পার্ল হোয়াইট",
+    value: "পার্ল হোয়াইট",
+    hex: "#EEF0EA",
+  },
+  {
+    name: "দুধ সাদা",
+    value: "দুধ সাদা",
+    hex: "#ECF0F9",
+  },
+  {
+    name: "লেকার ১নং",
+    value: "লেকার ১নং",
+    hex: "#9F4010",
+  },
+  {
+    name: "লেকার ২নং",
+    value: "লেকার ২নং",
+    hex: "#421917",
+  },
+  {
+    name: "লেকার ২নং ডীপ",
+    value: "লেকার ২নং ডীপ",
+    hex: "#311919",
+  },
+  {
+    name: "লেকার ৩নং",
+    value: "লেকার ৩নং",
+    hex: "#1B1515",
+  },
+  {
+    name: "টিন: ১নং",
+    value: "টিন: ১নং",
+    hex: "#B06F2B",
+  },
+  {
+    name: "টিন: ২নং",
+    value: "টিন: ২নং",
+    hex: "#813B0A",
+  },
+  {
+    name: "টিন: ৩নং",
+    value: "টিন: ৩নং",
+    hex: "#360D09",
+  },
+  {
+    name: "MDF ও টিন: ১নং",
+    value: "MDF ও টিন: ১নং",
+    hex: "#320C01",
+  },
+];
+
+// ======================================================
+// MATERIAL OPTIONS
+// ======================================================
+
+const defaultMaterials: MaterialOption[] = [
+  {
+    id: "mdf",
+    label: "MDF",
+    description: "Medium Density Fiberboard",
+    basePrice: "",
+    enabled: false,
+  },
+  {
+    id: "vnr",
+    label: "VNR",
+    description: "Veneer",
+    basePrice: "",
+    enabled: false,
+  },
+  {
+    id: "pvc",
+    label: "PVC",
+    description: "Polyvinyl Chloride",
+    basePrice: "",
+    enabled: false,
+  },
+];
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+const createEmptySize = (
+  id: string
+): SizeOption => ({
+  id,
+  label: "",
+  primaryUnit: "M",
+  dimensions: createEmptyDimensions(),
+  price: "",
+});
+
+const calculateDiscount = (
+  currentPrice: number,
+  originalPrice: number
+) => {
+  if (
+    !currentPrice ||
+    !originalPrice ||
+    originalPrice <= currentPrice
+  ) {
+    return 0;
+  }
+
+  return Math.round(
+    ((originalPrice - currentPrice) / originalPrice) *
+      100
+  );
+};
+
+// ======================================================
+// INPUT COMPONENT
+// ======================================================
+
+interface TextInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  required?: boolean;
+}
+
+const FormInput = React.memo(
+  function FormInput({
+    label,
+    required,
+    className = "",
+    ...props
+  }: TextInputProps) {
+    return (
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+          {label}
+          {required && (
+            <span className="ml-1 text-red-500">*</span>
+          )}
+        </label>
+
+        <input
+          {...props}
+          className={`w-full rounded-xl border border-[#E7D9CC] bg-[#FFFCF8] px-4 py-3 text-sm text-[#30231E] outline-none transition placeholder:text-[#B6A79E] focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10 ${className}`}
+        />
+      </div>
+    );
+  }
+);
+
+FormInput.displayName = "FormInput";
+
+// ======================================================
+// DIMENSION INPUT
+// ======================================================
+
+interface DimensionInputProps {
+  label: string;
+  dimensionType: DimensionType;
+  values: SizeValues;
+  primaryUnit: Unit;
+  onChange: (dimensionType: DimensionType, values: SizeValues) => void;
+}
+
+const DimensionInput = React.memo(
+  function DimensionInput({
+    label,
+    dimensionType,
+    values,
+    primaryUnit,
+    onChange,
+  }: DimensionInputProps) {
+    const handleValueChange = (
+      unit: Unit,
+      value: string
+    ) => {
+      const nextValues: SizeValues = {
+        ...values,
+        [unit]: value,
+      };
+
+      if (value === "") {
+        const emptyValues = createEmptySizeValues();
+        emptyValues[unit] = "";
+
+        onChange(dimensionType, emptyValues);
+        return;
+      }
+
+      const numericValue = Number(value);
+
+      if (
+        !Number.isFinite(numericValue) ||
+        numericValue <= 0
+      ) {
+        onChange(dimensionType, nextValues);
+        return;
+      }
+
+      const converted = createEmptySizeValues();
+      converted[unit] = value;
+
+      unitOrder.forEach((targetUnit) => {
+        if (targetUnit === unit) return;
+
+        converted[targetUnit] = formatNumber(
+          convertUnit(numericValue, unit, targetUnit)
+        );
+      });
+
+      onChange(dimensionType, converted);
+    };
+
+    return (
+      <div className="rounded-xl border border-[#E7D9CC] bg-white p-3">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+            <Ruler size={12} className="text-[#B98A5A]" />
+          </div>
+
+          <p className="text-xs font-bold text-[#49352D]">{label}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {unitOrder.map((unit) => {
+            const isPrimary = unit === primaryUnit;
+
+            return (
+              <div key={unit}>
+                <label className="mb-1 block text-[9px] font-bold text-[#6A584E]">
+                  {unit}
+                </label>
+
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={values[unit]}
+                  onChange={(e) =>
+                    handleValueChange(unit, e.target.value)
+                  }
+                  placeholder="0"
+                  className={`h-8 w-full rounded-lg border px-2 text-[10px] font-semibold outline-none transition ${
+                    isPrimary
+                      ? "border-[#B98A5A] bg-[#FFF7ED] text-[#4A3021]"
+                      : "border-[#E7D9CC] bg-gray-50 text-[#514139] focus:border-[#B98A5A]"
+                  }`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+);
+
+DimensionInput.displayName = "DimensionInput";
+
+// ======================================================
+// SIZE ROW
+// ======================================================
+
+interface SizeOptionRowProps {
+  size: SizeOption;
+  onChange: (
+    id: string,
+    field: keyof SizeOption,
+    value: string | DimensionValues
+  ) => void;
+  onRemove: (id: string) => void;
+  canRemove: boolean;
+}
+
+const SizeOptionRow = React.memo(
+  function SizeOptionRow({
+    size,
+    onChange,
+    onRemove,
+    canRemove,
+  }: SizeOptionRowProps) {
+    const [label, setLabel] = useState(size.label);
+    const [primaryUnit, setPrimaryUnit] =
+      useState<Unit>(size.primaryUnit);
+    const [dimensions, setDimensions] =
+      useState<DimensionValues>(size.dimensions);
+    const [price, setPrice] = useState(size.price);
+
+    useEffect(() => {
+      setLabel(size.label);
+    }, [size.label]);
+
+    useEffect(() => {
+      setPrimaryUnit(size.primaryUnit);
+    }, [size.primaryUnit]);
+
+    useEffect(() => {
+      setDimensions(size.dimensions);
+    }, [size.dimensions]);
+
+    useEffect(() => {
+      setPrice(size.price);
+    }, [size.price]);
+
+    const handleLabelChange = (
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const nextValue = e.target.value;
+      setLabel(nextValue);
+      onChange(size.id, "label", nextValue);
+    };
+
+    const handleUnitChange = (
+      e: React.ChangeEvent<HTMLSelectElement>
+    ) => {
+      const nextUnit = e.target.value as Unit;
+      setPrimaryUnit(nextUnit);
+      onChange(size.id, "primaryUnit", nextUnit);
+    };
+
+    const handleDimensionChange = (
+      dimensionType: DimensionType,
+      values: SizeValues
+    ) => {
+      const nextDimensions = {
+        ...dimensions,
+        [dimensionType]: values,
+      };
+
+      setDimensions(nextDimensions);
+      onChange(size.id, "dimensions", nextDimensions);
+    };
+
+    const handlePriceChange = (
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const nextValue = e.target.value;
+      setPrice(nextValue);
+      onChange(size.id, "price", nextValue);
+    };
+
+    return (
+      <div className="rounded-2xl border border-[#E7D9CC] bg-gradient-to-br from-[#FFFCF8] to-[#FBF5EE] p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+              <Ruler size={15} className="text-[#B98A5A]" />
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-[#4A342A]">
+                Size Option
+              </p>
+
+              <p className="text-[10px] text-[#9B8C82]">
+                Width × Depth × Height - সব unit auto convert
+              </p>
+            </div>
+          </div>
+
+          {canRemove && (
+            <button
+              type="button"
+              onClick={() => onRemove(size.id)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-red-100 bg-white text-red-400 transition hover:bg-red-50 hover:text-red-600"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
+              Size Name
+            </label>
+
+            <input
+              type="text"
+              value={label}
+              onChange={handleLabelChange}
+              placeholder="e.g. Large, 3 Seater"
+              className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white px-3 text-xs text-[#30231E] outline-none transition placeholder:text-[#B6A79E] focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
+              Primary Unit
+            </label>
+
+            <div className="relative">
+              <select
+                value={primaryUnit}
+                onChange={handleUnitChange}
+                className="h-10 w-full appearance-none rounded-xl border border-[#E7D9CC] bg-white px-3 pr-9 text-xs font-semibold text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+              >
+                <option value="M">M — Meter</option>
+                <option value="FT">FT — Feet</option>
+                <option value="INC">INC — Inch</option>
+                <option value="CM">CM — Centimeter</option>
+                <option value="MM">MM — Millimeter</option>
+              </select>
+
+              <ChevronDown
+                size={14}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8A7D]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Width × Depth × Height */}
+        <div className="mt-4 space-y-3">
+          <DimensionInput
+            label="Width (প্রস্থ)"
+            dimensionType="width"
+            values={dimensions.width}
+            primaryUnit={primaryUnit}
+            onChange={handleDimensionChange}
+          />
+
+          <DimensionInput
+            label="Depth (গভীরতা)"
+            dimensionType="depth"
+            values={dimensions.depth}
+            primaryUnit={primaryUnit}
+            onChange={handleDimensionChange}
+          />
+
+          <DimensionInput
+            label="Height (উচ্চতা)"
+            dimensionType="height"
+            values={dimensions.height}
+            primaryUnit={primaryUnit}
+            onChange={handleDimensionChange}
+          />
+        </div>
+
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2">
+          <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
+
+          <p className="text-[10px] leading-relaxed text-[#89776C]">
+            যেকোনো একটি unit-এ value লিখলেই অন্যগুলো automatically convert হবে।
+            Width, Depth, Height - তিনটাই আলাদা করে দিন।
+          </p>
+        </div>
+
+        <div className="mt-4">
+          <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
+            Extra Size Price
+          </label>
+
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9A806D]">
+              ৳
+            </span>
+
+            <input
+              type="text"
+              inputMode="decimal"
+              value={price}
+              onChange={handlePriceChange}
+              placeholder="Optional"
+              className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white pl-8 pr-3 text-xs text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+SizeOptionRow.displayName = "SizeOptionRow";
+
+// ======================================================
+// STATUS BADGE
+// ======================================================
+
+function StatusBadge({
+  status,
+}: {
+  status: ProductStatus;
+}) {
+  const badges: Record<
+    ProductStatus,
+    {
+      className: string;
+      icon: React.ReactNode;
+    }
+  > = {
+    Active: {
+      className: "bg-green-50 text-green-700 border-green-200",
+      icon: <Check size={12} />,
+    },
+    Draft: {
+      className: "bg-gray-50 text-gray-600 border-gray-200",
+      icon: <Clock size={12} />,
+    },
+    Trending: {
+      className: "bg-orange-50 text-orange-700 border-orange-200",
+      icon: <TrendingUp size={12} />,
+    },
+    Featured: {
+      className: "bg-purple-50 text-purple-700 border-purple-200",
+      icon: <Flame size={12} />,
+    },
+    OutOfStock: {
+      className: "bg-red-50 text-red-700 border-red-200",
+      icon: <AlertCircle size={12} />,
+    },
+  };
+
+  const badge = badges[status] || badges.Active;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold ${badge.className}`}
+    >
+      {badge.icon}
+      {status}
+    </span>
+  );
+}
+
+// ======================================================
+// MAIN COMPONENT
+// ======================================================
+
+export default function ProductEntryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
-  // Form States
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
-  const [category, setCategory] = useState("Electronics");
+  const [category, setCategory] = useState("Sofa & Sectionals");
   const [stock, setStock] = useState("10");
-  const [status, setStatus] = useState<Product['status']>("Active");
+  const [status, setStatus] = useState<ProductStatus>("Active");
   const [rating, setRating] = useState("5");
-  const [image, setImage] = useState("");
-  const [uploading, setUploading] = useState(false);
 
-  // Edit State
+  const [image, setImage] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+
+  const [materials, setMaterials] = useState("");
+  const [solidWoodPrice, setSolidWoodPrice] = useState("");
+  const [materialOptions, setMaterialOptions] =
+    useState<MaterialOption[]>(defaultMaterials);
+
+  const [colors, setColors] = useState("");
+  const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([
+    createEmptySize("size-1"),
+  ]);
+
+  const [warrantyInfo, setWarrantyInfo] = useState("1 Year Service Warranty");
+  const [returnPolicy, setReturnPolicy] = useState("3 Days Easy Return & Replacement");
+  const [note, setNote] = useState("");
+
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // File Input Ref for Image Upload
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const multiFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch products from MongoDB
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await fetch("/api/products");
       const data = await res.json();
-      if (res.ok) {
-        const formattedProducts = data.map((p: any) => ({
-          ...p,
-          id: p._id,
-        }));
-        setProducts(formattedProducts);
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to fetch products");
       }
-    } catch (err) {
-      console.error("Fetch error:", err);
+
+      const formatted: Product[] = Array.isArray(data)
+        ? data.map((product: Product) => ({
+            ...product,
+            id: product._id || product.id,
+          }))
+        : [];
+
+      setProducts(formatted);
+    } catch (error) {
+      console.error("Fetch products error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
-  // Handle Image Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMultipleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const available = Math.max(0, 5 - images.length);
+    const selected = files.slice(0, available);
+
+    const readers = selected.map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        })
+    );
+
+    Promise.all(readers).then((newImages) => {
+      setImages((prev) => [...prev, ...newImages]);
+    });
+
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addSize = () => {
+    setSizeOptions((prev) => [
+      ...prev,
+      createEmptySize(`size-${Date.now()}`),
+    ]);
+  };
+
+  const removeSize = (id: string) => {
+    setSizeOptions((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updateSize = (
+    id: string,
+    field: keyof SizeOption,
+    value: string | DimensionValues
+  ) => {
+    setSizeOptions((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const toggleMaterial = (id: string) => {
+    setMaterialOptions((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, enabled: !item.enabled } : item
+      )
+    );
+  };
+
+  const updateMaterialPrice = (id: string, value: string) => {
+    setMaterialOptions((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, basePrice: value } : item
+      )
+    );
+  };
+
+  const getSelectedColors = () => {
+    return colors.split(",").map((item) => item.trim()).filter(Boolean);
+  };
+
+  const toggleColor = (color: string) => {
+    const selected = getSelectedColors();
+
+    if (selected.includes(color)) {
+      setColors(selected.filter((item) => item !== color).join(", "));
+    } else {
+      setColors([...selected, color].join(", "));
     }
   };
 
-  // Calculate discount percentage
-  const calculateDiscount = (price: number, originalPrice: number) => {
-    if (originalPrice > price) {
-      return Math.round(((originalPrice - price) / originalPrice) * 100);
-    }
-    return 0;
+  const removeSelectedColor = (color: string) => {
+    setColors(
+      getSelectedColors()
+        .filter((item) => item !== color)
+        .join(", ")
+    );
   };
 
-  // Add or Update Product in MongoDB
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setPrice("");
+    setOriginalPrice("");
+    setCategory("Sofa & Sectionals");
+    setStock("10");
+    setStatus("Active");
+    setRating("5");
+
+    setImage("");
+    setImages([]);
+
+    setMaterials("");
+    setColors("");
+    setSolidWoodPrice("");
+
+    setMaterialOptions(
+      defaultMaterials.map((item) => ({
+        ...item,
+        basePrice: "",
+        enabled: false,
+      }))
+    );
+
+    setSizeOptions([createEmptySize("size-1")]);
+
+    setWarrantyInfo("1 Year Service Warranty");
+    setReturnPolicy("3 Days Easy Return & Replacement");
+    setNote("");
+
+    setEditingId(null);
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (multiFileInputRef.current) multiFileInputRef.current.value = "";
+  };
+
+  const startEdit = (product: Product) => {
+    setEditingId(product.id);
+
+    setName(product.name || "");
+    setDescription(product.description || "");
+    setPrice(product.price?.toString() || "");
+    setOriginalPrice(product.originalPrice?.toString() || "");
+    setCategory(product.category || "Sofa & Sectionals");
+    setStock(product.stock?.toString() || "0");
+    setStatus(product.status || "Active");
+    setRating(product.rating?.toString() || "5");
+
+    setImage(product.image || "");
+    setImages(product.images || []);
+
+    setMaterials(product.materials?.join(", ") || "");
+    setColors(product.colors?.join(", ") || "");
+
+    setWarrantyInfo(product.warrantyInfo || "1 Year Service Warranty");
+    setReturnPolicy(product.returnPolicy || "3 Days Easy Return & Replacement");
+    setNote(product.note || "");
+
+    // Parse sizes
+    if (product.sizes && product.sizes.length) {
+      const parsedSizes = product.sizes.map((sizeText, index) => {
+        const match = sizeText.match(
+          /^(.+?):\s*(.*?)\s+(M|FT|INC|CM|MM)/
+        );
+
+        if (match) {
+          const label = match[1]?.trim() || "";
+          const value = match[2]?.trim() || "";
+          const unit = match[3] as Unit;
+
+          const numeric = Number(value);
+
+          const values: SizeValues = createEmptySizeValues();
+
+          if (Number.isFinite(numeric)) {
+            unitOrder.forEach((target) => {
+              values[target] = formatNumber(
+                convertUnit(numeric, unit, target)
+              );
+            });
+          }
+
+          return {
+            id: `edit-${index}`,
+            label,
+            primaryUnit: unit,
+            dimensions: {
+              width: { ...values },
+              depth: { ...values },
+              height: { ...values },
+            },
+            price: sizeText.match(/-\s*৳([\d.]+)/)?.[1] || "",
+          };
+        }
+
+        return createEmptySize(`edit-${index}`);
+      });
+
+      setSizeOptions(parsedSizes);
+    } else {
+      setSizeOptions([createEmptySize("size-1")]);
+    }
+  };
+
+  const deleteProduct = async (id: string) => {
+    const confirmed = window.confirm("Are you sure you want to delete this product?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/products?id=${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      setProducts((prev) => prev.filter((product) => product.id !== id));
+
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Failed to delete product.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !price || !image) return alert("Please fill all fields and upload an image!");
+
+    if (!name.trim() || !price || (!image && images.length === 0)) {
+      alert("Please fill required fields and upload an image.");
+      return;
+    }
 
     setUploading(true);
 
     try {
       let finalImageUrl = image;
 
-      if (image.startsWith('data:')) {
-        const response = await fetch(image);
+      if (!finalImageUrl && images.length) {
+        finalImageUrl = images[0];
+      }
+
+      if (finalImageUrl.startsWith("data:")) {
+        const response = await fetch(finalImageUrl);
         const blob = await response.blob();
-        const file = new File([blob], 'product-image.jpg', { type: blob.type });
+        const file = new File([blob], "product-main-image.jpg", {
+          type: blob.type,
+        });
         finalImageUrl = await uploadImageToCloudinary(file);
+      }
+
+      let finalImages = [...images];
+
+      if (finalImages.some((img) => img.startsWith("data:"))) {
+        finalImages = await Promise.all(
+          finalImages.map(async (img) => {
+            if (!img.startsWith("data:")) {
+              return img;
+            }
+
+            const response = await fetch(img);
+            const blob = await response.blob();
+            const file = new File([blob], "product-gallery-image.jpg", {
+              type: blob.type,
+            });
+            return await uploadImageToCloudinary(file);
+          })
+        );
       }
 
       const finalPrice = parseFloat(price);
       const finalOriginalPrice = originalPrice ? parseFloat(originalPrice) : undefined;
-      const discount = finalOriginalPrice && finalOriginalPrice > finalPrice
-        ? calculateDiscount(finalPrice, finalOriginalPrice)
-        : 0;
+      const discount =
+        finalOriginalPrice && finalOriginalPrice > finalPrice
+          ? calculateDiscount(finalPrice, finalOriginalPrice)
+          : 0;
+
+      // SIZES FORMAT - Width × Depth × Height
+// SIZES FORMAT - L x W x H (mm, cm, m, in, ft) আলাদা লাইনে
+const formattedSizes = sizeOptions
+  .filter((size) => {
+    const widthValue = size.dimensions.width[size.primaryUnit];
+    return widthValue && Number(widthValue) > 0;
+  })
+  .map((size) => {
+    const getDimensionValues = (dimensionType: DimensionType) => {
+      const primaryValue = size.dimensions[dimensionType][size.primaryUnit];
+      const numeric = Number(primaryValue);
+
+      if (!primaryValue || !Number.isFinite(numeric) || numeric <= 0) {
+        return null;
+      }
+
+      return {
+        mm: formatNumber(convertUnit(numeric, size.primaryUnit, "MM")),
+        cm: formatNumber(convertUnit(numeric, size.primaryUnit, "CM")),
+        m: formatNumber(convertUnit(numeric, size.primaryUnit, "M")),
+        in: formatNumber(convertUnit(numeric, size.primaryUnit, "INC")),
+        ft: formatNumber(convertUnit(numeric, size.primaryUnit, "FT")),
+      };
+    };
+
+    const L = getDimensionValues("depth");   // Length (দৈর্ঘ্য)
+    const W = getDimensionValues("width");   // Width (প্রস্থ)
+    const H = getDimensionValues("height");  // Height (উচ্চতা)
+
+    if (!L || !W || !H) return "";
+
+    // 🔥 ফরম্যাট: L... X W... X H... (প্রতিটি ইউনিট আলাদা লাইনে)
+    const sizeString = 
+`${size.label ? size.label + ": " : ""}
+L${L.mm} X W${W.mm} X H${H.mm} mm
+L${L.cm} X W${W.cm} X H${H.cm} cm
+L${L.m} X W${W.m} X H${H.m} m
+L${L.in} X W${W.in} X H${H.in} in
+L${L.ft} X W${W.ft} X H${H.ft} ft`;
+
+    return size.price ? `${sizeString} - ৳${size.price}` : sizeString;
+  })
+  .filter(Boolean); // খালি স্ট্রিং বাদ
+
+      // MATERIALS - সঠিকভাবে array বানান
+      const materialStrings: string[] = [];
+
+      // "Other Materials" ইনপুট থেকে কমা দিয়ে আলাদা করা ম্যাটেরিয়ালগুলো array তে push করবে
+      if (materials.trim()) {
+        const customMaterials = materials
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+        
+        materialStrings.push(...customMaterials);
+      }
+
+      // Material Options (MDF, VNR, PVC) checkboxes থেকে
+      materialOptions.forEach((material) => {
+        if (material.enabled) {
+          const priceStr = material.basePrice ? ` (৳${material.basePrice})` : "";
+          materialStrings.push(`${material.label}${priceStr}`);
+        }
+      });
+
+      // COLORS - Store with hex code
+      const selectedColorObjects = getSelectedColors().map((colorName) => {
+        const colorOption = colorOptions.find((c) => c.value === colorName);
+        return colorOption ? `${colorName} (${colorOption.hex})` : colorName;
+      });
 
       const payload = {
-        name,
-        description: description || "",
+        name: name.trim(),
+        description: description.trim(),
         price: finalPrice,
         originalPrice: finalOriginalPrice,
         category,
         image: finalImageUrl,
+        images: finalImages,
         stock: parseInt(stock) || 0,
         status,
         rating: parseFloat(rating) || 0,
         discount,
+        materials: materialStrings,
+        colors: selectedColorObjects,
+        sizes: formattedSizes,
+        warrantyInfo: warrantyInfo.trim(),
+        returnPolicy: returnPolicy.trim(),
+        note: note.trim(),
       };
 
-      let res;
+      let res: Response;
+
       if (editingId) {
         res = await fetch("/api/products", {
           method: "PUT",
@@ -137,416 +1191,851 @@ export default function ProductDashboard() {
         });
       }
 
-      if (res.ok) {
-        await fetchProducts();
-        resetForm();
-      } else {
-        const errorData = await res.json();
-        alert(`Failed to save product: ${errorData.error || 'Unknown error'}`);
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result?.error || "Failed to save product");
       }
-    } catch (err) {
-      console.error("Submit error:", err);
-      alert("Something went wrong, please try again.");
+
+      await fetchProducts();
+
+      alert(editingId ? "Product updated successfully!" : "Product added successfully!");
+      resetForm();
+    } catch (error) {
+      console.error("Submit error:", error);
+      alert(error instanceof Error ? error.message : "Something went wrong.");
     } finally {
       setUploading(false);
     }
   };
 
-  // Start Edit
-  const startEdit = (product: Product) => {
-    setEditingId(product.id);
-    setName(product.name);
-    setDescription(product.description || "");
-    setPrice(product.price.toString());
-    setOriginalPrice(product.originalPrice?.toString() || "");
-    setCategory(product.category);
-    setStock(product.stock.toString());
-    setStatus(product.status);
-    setRating(product.rating?.toString() || "5");
-    setImage(product.image);
-  };
+  const liveDiscount =
+    price && originalPrice
+      ? calculateDiscount(parseFloat(price) || 0, parseFloat(originalPrice) || 0)
+      : 0;
 
-  // Delete Product from MongoDB
-  const deleteProduct = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    try {
-      const res = await fetch(`/api/products?id=${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setProducts(products.filter((p) => p.id !== id));
-      } else {
-        alert("Failed to delete product from database");
-      }
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
-  };
-
-  // Reset Form Fields
-  const resetForm = () => {
-    setName("");
-    setDescription("");
-    setPrice("");
-    setOriginalPrice("");
-    setCategory("Electronics");
-    setStock("10");
-    setStatus("Active");
-    setRating("5");
-    setImage("");
-    setEditingId(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  // Status Badge Component
-  const StatusBadge = ({ status }: { status: Product['status'] }) => {
-    const badges = {
-      Active: { color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <Check className="w-3 h-3" /> },
-      Draft: { color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: <Clock className="w-3 h-3" /> },
-      Trending: { color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <TrendingUp className="w-3 h-3" /> },
-      Featured: { color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <Flame className="w-3 h-3" /> },
-      OutOfStock: { color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: <AlertCircle className="w-3 h-3" /> },
-    };
-    const badge = badges[status] || badges.Active;
-    return (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${badge.color}`}>
-        {badge.icon} {status}
-      </span>
-    );
-  };
+  const selectedColors = getSelectedColors();
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 p-6 md:p-10 font-sans">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* ================= LEFT: FORM (ADD / UPDATE) ================= */}
-        <div className="lg:col-span-1 bg-[#151D30] border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md h-fit">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-white">
-            {editingId ? (
-              <>
-                <Edit3 className="w-5 h-5 text-indigo-400" /> Update Product
-              </>
-            ) : (
-              <>
-                <Plus className="w-5 h-5 text-emerald-400" /> Add New Product
-              </>
-            )}
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Image Upload Area */}
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Product Image *</label>
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition bg-[#0E1524] group relative overflow-hidden h-40"
-              >
-                {image ? (
-                  <>
-                    <img src={image} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-lg">
-                      <Image className="w-6 h-6 text-white" />
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center">
-                    <Image className="w-8 h-8 text-slate-500 mx-auto mb-2 group-hover:text-indigo-400 transition" />
-                    <span className="text-xs text-slate-400">Click to upload image</span>
-                  </div>
-                )}
+    <div className="min-h-screen bg-[#F7F2EC] px-4 py-6 text-[#30231E] md:px-8 md:py-8">
+      <div className="mx-auto max-w-[1500px]">
+        <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B98A5A] text-white shadow-md">
+                <Box size={20} />
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
 
-            {/* Product Name */}
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Product Name *</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Mechanical Keyboard"
-                className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
-                required
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter product description..."
-                className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm min-h-[80px] resize-y"
-                rows={3}
-              />
-            </div>
-
-            {/* Price & Original Price Grid */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Price ($) *</label>
-                <input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="99"
-                  className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Original Price</label>
-                <input
-                  type="number"
-                  value={originalPrice}
-                  onChange={(e) => setOriginalPrice(e.target.value)}
-                  placeholder="129"
-                  className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
-                />
+                <h1 className="text-2xl font-black tracking-tight text-[#402B22] md:text-3xl">
+                  Product Entry
+                </h1>
+
+                <p className="text-xs text-[#8C7A6D] md:text-sm">
+                  Add and manage your furniture products
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Category & Stock Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-3 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm appearance-none"
-                >
-                  <option value="Sofa & Sectionals">Sofa & Sectionals (সোফা ও সেকশনাল)</option>
-                  <option value="Center & Coffee Tables">Center & Coffee Tables (সেন্টার ও কফি টেবিল)</option>
-                  <option value="TV Units & Media Centers">TV Units & Media Centers (টিভি ইউনিট ও মিডিয়া সেন্টার)</option>
-                  <option value="Accent Chairs & Ottomans">Accent Chairs & Ottomans (এক্সেন্ট চেয়ার ও অটোম্যান)</option>
-                  <option value="Recliner & Rocking Chairs">Recliner & Rocking Chairs (রেকলাইনার ও রকিং চেয়ার)</option>
-                  <option value="Wall Shelves & Floating Shelves">Wall Shelves & Floating Shelves (ওয়াল শেল্ভ ও ফ্লোটিং শেল্ভ)</option>
-                  <option value="Dining Tables & Chairs">Dining Tables & Chairs (ডাইনিং টেবিল ও চেয়ার)</option>
-                  <option value="Beds & Headboards">Beds & Headboards (বেড ও হেডবোর্ড)</option>
-                  <option value="Wardrobes & Almirah">Wardrobes & Almirah (ওয়ার্ডরোব ও আলমারি)</option>
-                  <option value="Office Chairs">Office Chairs (অফিস চেয়ার)</option>
-                  <option value="Study & Computer Desks">Study & Computer Desks (স্টাডি ও কম্পিউটার ডেস্ক)</option>
-                  <option value="Outdoor & Garden Furniture">Outdoor & Garden Furniture (আউটডোর ও গার্ডেন ফার্নিচার)</option>
-                  <option value="Mattresses & Protectors">Mattresses & Protectors (ম্যাট্রেস ও প্রোটেক্টর)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Stock</label>
-                <input
-                  type="number"
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value)}
-                  placeholder="10"
-                  className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
-                />
-              </div>
-            </div>
+          <div className="flex items-center gap-2 rounded-xl border border-[#E5D8CB] bg-white px-4 py-2 shadow-sm">
+            <PackageOpen size={17} className="text-[#B98A5A]" />
+            <span className="text-sm font-bold text-[#57443A]">{products.length}</span>
+            <span className="text-xs text-[#99897E]">Products</span>
+          </div>
+        </div>
 
-            {/* Status & Rating Grid */}
-            <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-7 xl:grid-cols-[480px_minmax(0,1fr)]">
+          <div className="rounded-3xl border border-[#E6D8CB] bg-white p-5 shadow-[0_15px_50px_rgba(75,50,30,0.08)] md:p-6">
+            <div className="mb-6 flex items-center justify-between border-b border-[#EEE4DC] pb-5">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Status</label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as Product['status'])}
-                  className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-3 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm appearance-none"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Draft">Draft</option>
-                  <option value="Trending">Trending</option>
-                  <option value="Featured">Featured</option>
-                  <option value="OutOfStock">Out of Stock</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Rating (1-5)</label>
-                <input
-                  type="number"
-                  value={rating}
-                  onChange={(e) => setRating(e.target.value)}
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  placeholder="5"
-                  className="w-full bg-[#0E1524] border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
-                />
-              </div>
-            </div>
+                <div className="flex items-center gap-2">
+                  {editingId ? (
+                    <Edit3 size={19} className="text-[#B98A5A]" />
+                  ) : (
+                    <Plus size={19} className="text-[#B98A5A]" />
+                  )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={uploading}
-                className={`flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 shadow-lg transition duration-200 ${editingId
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20"
-                  : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
-                  }`}
-              >
-                {uploading ? (
-                  "Processing..."
-                ) : editingId ? (
-                  <>
-                    <Check className="w-4 h-4" /> Update Product
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" /> Add Product
-                  </>
-                )}
-              </button>
+                  <h2 className="text-lg font-black text-[#432E25]">
+                    {editingId ? "Update Product" : "Add New Product"}
+                  </h2>
+                </div>
+
+                <p className="mt-1 text-[11px] text-[#9C8A7E]">
+                  Fill in the product details below
+                </p>
+              </div>
 
               {editingId && (
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition flex items-center justify-center"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F0E9] text-[#8D7768] transition hover:bg-red-50 hover:text-red-500"
                 >
-                  <X className="w-4 h-4" />
+                  <X size={15} />
                 </button>
               )}
             </div>
-          </form>
-        </div>
 
-        {/* ================= RIGHT: PRODUCT LIST / TABLE ================= */}
-        <div className="lg:col-span-2 bg-[#151D30] border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-white">Products Inventory</h2>
-              <p className="text-xs text-slate-400 mt-1">Manage, update, or remove products effortlessly.</p>
-            </div>
-            <span className="bg-[#1E2943] text-indigo-400 px-3 py-1 rounded-full text-xs font-semibold border border-indigo-500/20">
-              Total: {products.length}
-            </span>
-          </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* IMAGE */}
+              <div>
+                <label className="mb-2 block text-sm font-bold text-[#49352D]">
+                  Main Product Image
+                  <span className="ml-1 text-red-500">*</span>
+                </label>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent mb-3"></div>
-              <p className="text-sm">Loading products...</p>
-            </div>
-          ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-800 rounded-xl bg-[#0E1524]">
-              <PackageOpen className="w-12 h-12 text-slate-600 mb-3" />
-              <p className="text-slate-400 text-sm">No products added yet.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
-                    <th className="pb-4 font-medium pl-2">Product Info</th>
-                    <th className="pb-4 font-medium">Category</th>
-                    <th className="pb-4 font-medium">Price</th>
-                    <th className="pb-4 font-medium">Stock</th>
-                    <th className="pb-4 font-medium">Status</th>
-                    <th className="pb-4 font-medium text-right pr-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {products.map((product) => {
-                    const discount = product.originalPrice && product.originalPrice > product.price
-                      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-                      : 0;
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="group relative h-52 cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-[#DECDBC] bg-[#FCF8F3] transition hover:border-[#B98A5A]"
+                >
+                  {image ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image}
+                        alt="Product preview"
+                        className="h-full w-full object-cover"
+                      />
+
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+                        <div className="rounded-full bg-white p-3 text-[#6D503D]">
+                          <ImageIcon size={20} />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center">
+                      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#B98A5A]/10">
+                        <ImageIcon size={26} className="text-[#B98A5A]" />
+                      </div>
+
+                      <p className="text-sm font-bold text-[#695247]">
+                        Upload Main Image
+                      </p>
+
+                      <p className="mt-1 text-[10px] text-[#A7988E]">
+                        PNG, JPG or WEBP
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </div>
+
+              {/* GALLERY */}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-sm font-bold text-[#49352D]">
+                    Gallery Images
+                  </label>
+
+                  <span className="text-[10px] font-semibold text-[#A08E81]">
+                    {images.length}/5
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {images.map((img, index) => (
+                    <div
+                      key={`${img}-${index}`}
+                      className="group relative h-16 w-16 overflow-hidden rounded-xl border border-[#E5D8CB] bg-[#FCF8F3]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img}
+                        alt={`Gallery ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition group-hover:opacity-100"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {images.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={() => multiFileInputRef.current?.click()}
+                      className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-dashed border-[#DECDBC] bg-[#FCF8F3] text-[#B98A5A] transition hover:border-[#B98A5A] hover:bg-[#FFF7ED]"
+                    >
+                      <Plus size={21} />
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  ref={multiFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleMultipleImagesChange}
+                  className="hidden"
+                />
+              </div>
+
+              {/* BASIC INFO */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+                    <Layers size={15} className="text-[#B98A5A]" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-black text-[#49352D]">
+                      Basic Information
+                    </h3>
+
+                    <p className="text-[9px] text-[#A09289]">
+                      Product identity and pricing
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <FormInput
+                    label="Product Name"
+                    required
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Modern Luxury Sofa"
+                  />
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                      Description
+                    </label>
+
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter product description..."
+                      rows={4}
+                      className="w-full resize-y rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm text-[#30231E] outline-none transition placeholder:text-[#B6A79E] focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                    />
+                  </div>
+
+                  {/* Price & Original Price */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                        Price
+                        <span className="ml-1 text-red-500">*</span>
+                      </label>
+
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#A0836E]">
+                          ৳
+                        </span>
+
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={price}
+                          onChange={(e) => setPrice(e.target.value)}
+                          placeholder="15000"
+                          className="w-full rounded-xl border border-[#E7D9CC] bg-white py-3 pl-8 pr-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                        Original Price
+                      </label>
+
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#A0836E]">
+                          ৳
+                        </span>
+
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={originalPrice}
+                          onChange={(e) => setOriginalPrice(e.target.value)}
+                          placeholder="18000"
+                          className="w-full rounded-xl border border-[#E7D9CC] bg-white py-3 pl-8 pr-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* MATERIALS - ইনপুট ফিল্ড */}
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                      Materials
+                    </label>
+
+                    <input
+                      type="text"
+                      value={materials}
+                      onChange={(e) => setMaterials(e.target.value)}
+                      placeholder="e.g. Solid Wood, Fabric, Glass..."
+                      className="w-full rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                    />
+                  </div>
+
+                  {liveDiscount > 0 && (
+                    <div className="rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-xs font-bold text-green-700">
+                      🎉 Discount: {liveDiscount}%
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                      Category
+                    </label>
+
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                    >
+                      {categories.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* MATERIAL OPTIONS */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+                    <Layers size={15} className="text-[#B98A5A]" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-black text-[#49352D]">
+                      Material Options
+                    </h3>
+
+                    <p className="text-[9px] text-[#A09289]">
+                      Select materials with optional prices
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {materialOptions.map((material) => (
+                    <div
+                      key={material.id}
+                      className={`rounded-xl border p-3 transition ${
+                        material.enabled
+                          ? "border-[#C8A77F] bg-[#FFF8EF]"
+                          : "border-[#E7D9CC] bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="flex min-w-0 cursor-pointer items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={material.enabled}
+                            onChange={() => toggleMaterial(material.id)}
+                            className="h-4 w-4 accent-[#B98A5A]"
+                          />
+
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-[#4A352B]">
+                              {material.label}
+                            </p>
+
+                            <p className="truncate text-[9px] text-[#9D8C81]">
+                              {material.description}
+                            </p>
+                          </div>
+                        </label>
+
+                        {material.enabled && (
+                          <div className="relative w-28 shrink-0">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#9A806D]">
+                              ৳
+                            </span>
+
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={material.basePrice}
+                              onChange={(e) =>
+                                updateMaterialPrice(material.id, e.target.value)
+                              }
+                              placeholder="Price"
+                              className="w-full rounded-lg border border-[#E7D9CC] bg-white py-2 pl-6 pr-2 text-[11px] outline-none focus:border-[#B98A5A]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COLORS */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+                      <Palette size={15} className="text-[#B98A5A]" />
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-black text-[#49352D]">
+                        Color & Finish
+                      </h3>
+
+                      <p className="text-[9px] text-[#A09289]">
+                        Click a sample to select
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="rounded-full bg-[#F7EEE5] px-2 py-1 text-[9px] font-bold text-[#96785F]">
+                    {selectedColors.length} Selected
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {colorOptions.map((color) => {
+                    const selected = selectedColors.includes(color.value);
 
                     return (
-                      <tr key={product.id} className="group hover:bg-[#1E2943]/30 transition">
-                        {/* Image & Title */}
-                        <td className="py-4 pl-2">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#0E1524] border border-slate-700 flex-shrink-0">
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium text-white group-hover:text-indigo-400 transition line-clamp-1">
-                                {product.name}
-                              </h4>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-slate-500 font-mono">ID: {product.id.slice(-6)}</span>
-                                {product.rating && (
-                                  <div className="flex items-center gap-0.5">
-                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-[10px] text-slate-400">{product.rating}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() => toggleColor(color.value)}
+                        className={`group relative overflow-hidden rounded-xl border-2 bg-white text-left transition ${
+                          selected
+                            ? "border-[#B98A5A] shadow-md ring-2 ring-[#B98A5A]/15"
+                            : "border-[#E8DDD4] hover:border-[#C9AA8B]"
+                        }`}
+                      >
+                        <div
+                          className="h-16 w-full transition group-hover:scale-[1.02]"
+                          style={{ backgroundColor: color.hex }}
+                        />
 
-                        {/* Category */}
-                        <td className="py-4">
-                          <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">
-                            {product.category}
+                        <div className="flex min-h-[42px] items-center justify-between gap-1 px-2 py-1.5">
+                          <span className="text-[9px] font-bold leading-tight text-[#514139]">
+                            {color.name}
                           </span>
-                        </td>
 
-                        {/* Price */}
-                        <td className="py-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-emerald-400 font-mono">
-                              ${product.price.toFixed(2)}
+                          {selected && (
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#B98A5A] text-white">
+                              <Check size={11} />
                             </span>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] text-slate-500 line-through">
-                                  ${product.originalPrice.toFixed(2)}
-                                </span>
-                                <span className="text-[10px] text-red-400 font-medium">
-                                  -{discount}%
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Stock */}
-                        <td className="py-4">
-                          <span className={`text-xs font-medium ${product.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {product.stock > 0 ? `${product.stock} in stock` : 'Out of Stock'}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td className="py-4">
-                          <StatusBadge status={product.status} />
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-4 text-right pr-2">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => startEdit(product)}
-                              className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition"
-                              title="Edit Product"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteProduct(product.id)}
-                              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"
-                              title="Delete Product"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                          )}
+                        </div>
+                      </button>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                </div>
 
+                {selectedColors.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-[#E7D9CC] bg-white p-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-[#9A8779]">
+                      Selected Colors
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedColors.map((color) => {
+                        const option = colorOptions.find((item) => item.value === color);
+
+                        return (
+                          <button
+                            type="button"
+                            key={color}
+                            onClick={() => removeSelectedColor(color)}
+                            className="flex items-center gap-1.5 rounded-full border border-[#E7D9CC] bg-[#FCF8F3] px-2 py-1 text-[9px] font-bold text-[#5C493F]"
+                          >
+                            <span
+                              className="h-3 w-3 rounded-full border border-black/10"
+                              style={{ backgroundColor: option?.hex || "#ddd" }}
+                            />
+
+                            {color}
+
+                            <X size={10} className="text-red-400" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  <label className="mb-2 block text-[10px] font-bold text-[#6A584E]">
+                    Custom Color
+                  </label>
+
+                  <input
+                    type="text"
+                    value={colors}
+                    onChange={(e) => setColors(e.target.value)}
+                    placeholder="Or type custom colors..."
+                    className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-xs outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                  />
+                </div>
+              </div>
+
+              {/* SIZES */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+                      <Ruler size={15} className="text-[#B98A5A]" />
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-black text-[#49352D]">
+                        Size Options
+                      </h3>
+
+                      <p className="text-[9px] text-[#A09289]">
+                        Width × Depth × Height - সব unit auto convert
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addSize}
+                    className="flex items-center gap-1 rounded-lg bg-[#B98A5A] px-3 py-2 text-[10px] font-bold text-white transition hover:bg-[#9F754B]"
+                  >
+                    <Plus size={12} />
+                    Add Size
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {sizeOptions.map((size) => (
+                    <SizeOptionRow
+                      key={size.id}
+                      size={size}
+                      onChange={updateSize}
+                      onRemove={removeSize}
+                      canRemove={sizeOptions.length > 1}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* POLICIES */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+                    <ShieldCheck size={15} className="text-[#B98A5A]" />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-black text-[#49352D]">
+                      Product Policies
+                    </h3>
+
+                    <p className="text-[9px] text-[#A09289]">
+                      Warranty, return and notes
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <FormInput
+                    label="Warranty Information"
+                    type="text"
+                    value={warrantyInfo}
+                    onChange={(e) => setWarrantyInfo(e.target.value)}
+                    placeholder="1 Year Service Warranty"
+                  />
+
+                  <FormInput
+                    label="Return Policy"
+                    type="text"
+                    value={returnPolicy}
+                    onChange={(e) => setReturnPolicy(e.target.value)}
+                    placeholder="3 Days Easy Return & Replacement"
+                  />
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                      Note
+                    </label>
+
+                    <textarea
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      rows={3}
+                      placeholder="Additional product information..."
+                      className="w-full resize-y rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* STOCK STATUS */}
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput
+                  label="Stock"
+                  type="text"
+                  inputMode="numeric"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  placeholder="10"
+                />
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-[#49352D]">
+                    Status
+                  </label>
+
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as ProductStatus)}
+                    className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Trending">Trending</option>
+                    <option value="Featured">Featured</option>
+                    <option value="OutOfStock">Out of Stock</option>
+                  </select>
+                </div>
+              </div>
+
+              <FormInput
+                label="Rating"
+                type="text"
+                inputMode="decimal"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                placeholder="5"
+              />
+
+              {/* SUBMIT */}
+              <div className="border-t border-[#EEE4DC] pt-5">
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    editingId
+                      ? "bg-[#49332A] hover:bg-[#38251E]"
+                      : "bg-[#B98A5A] hover:bg-[#9F754B]"
+                  }`}
+                >
+                  {uploading ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Processing...
+                    </>
+                  ) : editingId ? (
+                    <>
+                      <Check size={17} />
+                      Update Product
+                    </>
+                  ) : (
+                    <>
+                      <Save size={17} />
+                      Add Product
+                    </>
+                  )}
+                </button>
+
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="mt-2 w-full rounded-2xl border border-[#E7D9CC] bg-white py-3 text-xs font-bold text-[#735F53] transition hover:bg-[#FCF7F2]"
+                  >
+                    Cancel Editing
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* INVENTORY */}
+          <div className="min-w-0 rounded-3xl border border-[#E6D8CB] bg-white p-5 shadow-[0_15px_50px_rgba(75,50,30,0.08)] md:p-6">
+            <div className="mb-6 flex flex-col justify-between gap-3 border-b border-[#EEE4DC] pb-5 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-xl font-black text-[#432E25]">
+                  Products Inventory
+                </h2>
+
+                <p className="mt-1 text-xs text-[#9B8B80]">
+                  Manage your furniture products
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-[#B98A5A]/10 px-3 py-1.5 text-xs font-black text-[#A1784E]">
+                  Total: {products.length}
+                </span>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="flex min-h-[400px] flex-col items-center justify-center">
+                <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#B98A5A] border-t-transparent" />
+
+                <p className="mt-3 text-sm text-[#96857A]">
+                  Loading products...
+                </p>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D8CB] bg-[#FCF8F3]">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#B98A5A]/10">
+                  <PackageOpen size={30} className="text-[#B98A5A]" />
+                </div>
+
+                <h3 className="text-sm font-black text-[#57443A]">
+                  No Products Yet
+                </h3>
+
+                <p className="mt-1 text-xs text-[#9A8A80]">
+                  Add your first product using the form.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-[#EEE4DC]">
+                <table className="w-full min-w-[850px] border-collapse text-left">
+                  <thead>
+                    <tr className="bg-[#FCF8F3] text-[10px] uppercase tracking-wide text-[#89786D]">
+                      <th className="px-4 py-4 font-bold">Product</th>
+                      <th className="px-4 py-4 font-bold">Category</th>
+                      <th className="px-4 py-4 font-bold">Price</th>
+                      <th className="px-4 py-4 font-bold">Stock</th>
+                      <th className="px-4 py-4 font-bold">Status</th>
+                      <th className="px-4 py-4 text-right font-bold">Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-[#EEE4DC]">
+                    {products.map((product) => {
+                      const discount =
+                        product.originalPrice && product.originalPrice > product.price
+                          ? calculateDiscount(product.price, product.originalPrice)
+                          : 0;
+
+                      return (
+                        <tr key={product.id} className="group transition hover:bg-[#FFFCF8]">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#E5D8CB] bg-[#FCF8F3]">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+
+                              <div className="min-w-0">
+                                <h4 className="max-w-[220px] truncate text-sm font-bold text-[#49342B]">
+                                  {product.name}
+                                </h4>
+
+                                <div className="mt-1 flex items-center gap-2">
+                                  <span className="text-[9px] font-mono text-[#A29389]">
+                                    ID: {product.id.slice(-6)}
+                                  </span>
+
+                                  {product.rating !== undefined && (
+                                    <span className="flex items-center gap-0.5 text-[9px] text-[#806F63]">
+                                      <Star size={10} className="fill-yellow-400 text-yellow-400" />
+                                      {product.rating}
+                                    </span>
+                                  )}
+
+                                  {discount > 0 && (
+                                    <span className="rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-500">
+                                      -{discount}%
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span className="rounded-lg border border-[#E7D9CC] bg-[#FCF8F3] px-2.5 py-1.5 text-[9px] font-bold text-[#766459]">
+                              {product.category}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <div>
+                              <p className="text-sm font-black text-[#49332A]">
+                                ৳{product.price?.toLocaleString()}
+                              </p>
+
+                              {product.originalPrice && product.originalPrice > product.price && (
+                                <p className="text-[9px] text-[#A29389] line-through">
+                                  ৳{product.originalPrice.toLocaleString()}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`text-xs font-bold ${
+                                product.stock > 0 ? "text-green-600" : "text-red-500"
+                              }`}
+                            >
+                              {product.stock > 0 ? `${product.stock} in stock` : "Out of Stock"}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <StatusBadge status={product.status} />
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(product)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#9A887B] transition hover:bg-[#B98A5A]/10 hover:text-[#B98A5A]"
+                                title="Edit"
+                              >
+                                <Edit3 size={15} />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => deleteProduct(product.id)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#9A887B] transition hover:bg-red-50 hover:text-red-500"
+                                title="Delete"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

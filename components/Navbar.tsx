@@ -196,7 +196,7 @@ export default function Navbar() {
   };
 
   const getUserName = (): string => {
-    if (user?.displayName) return user.displayName.split(" ")[0];
+    if ((user as any)?.displayName) return (user as any).displayName.split(" ")[0];
     if (user?.email) return user.email?.split("@")[0] || "User";
     return "User";
   };
@@ -480,7 +480,7 @@ export default function Navbar() {
                         >
                           <UserAvatar
                             photoURL={user.photoURL}
-                            name={user.displayName}
+                            name={(user as any)?.displayName || user.name}
                           />
                           <span className="text-sm font-semibold text-white hidden sm:block max-w-[80px] truncate">
                             {getUserName()}
@@ -644,7 +644,7 @@ export default function Navbar() {
             {/* User section in drawer */}
             {!loading && user && (
               <div className="mx-4 mt-4 p-3 bg-white/10 border border-white/20 rounded-xl flex items-center gap-3">
-                <UserAvatar photoURL={user.photoURL} name={user.displayName} />
+                <UserAvatar photoURL={user.photoURL} name={(user as any)?.displayName || user.name} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">
                     {getUserName()}

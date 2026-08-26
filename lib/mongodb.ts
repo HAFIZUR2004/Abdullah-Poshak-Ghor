@@ -1,27 +1,23 @@
 // lib/mongodb.ts
+
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI as string;
+const uri = process.env.MONGODB_URI;
 
 if (!uri) {
-  throw new Error("❌ MONGODB_URI not found in .env.local");
+  throw new Error("❌ MONGODB_URI is missing in .env.local");
 }
 
-// ✅ পুরানো ড্রাইভারের জন্য অপশন
 const options = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  // ⚠️ গুরুত্বপূর্ণ: SSL সার্টিফিকেট ভ্যালিডেশন বন্ধ
-  tlsAllowInvalidCertificates: true,
-  tlsAllowInvalidHostnames: true,
+  serverSelectionTimeoutMS: 10000,
+  connectTimeoutMS: 10000,
 };
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
 declare global {
+  // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
@@ -30,6 +26,7 @@ if (process.env.NODE_ENV === "development") {
     client = new MongoClient(uri, options);
     global._mongoClientPromise = client.connect();
   }
+
   clientPromise = global._mongoClientPromise;
 } else {
   client = new MongoClient(uri, options);

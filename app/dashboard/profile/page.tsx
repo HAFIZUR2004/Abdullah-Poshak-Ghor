@@ -22,8 +22,6 @@ import {
   FiCamera,
   FiLogOut,
 } from "react-icons/fi";
-import { auth } from "@/lib/firebase";
-import { updateProfile } from "firebase/auth";
 
 interface AdminProfileData {
   uid: string;
@@ -92,6 +90,7 @@ export default function DashboardProfilePage() {
     thana: "",
   });
 
+  // JWT থেকে ইউজার ডাটা লোড করা
   useEffect(() => {
     const loadUserData = async () => {
       if (!user?.uid) {
@@ -100,7 +99,11 @@ export default function DashboardProfilePage() {
       }
 
       try {
-        const response = await fetch(`/api/users?uid=${user.uid}`);
+        const response = await fetch(`/api/users?uid=${user.uid}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           const userData = data.user || data;
@@ -108,7 +111,7 @@ export default function DashboardProfilePage() {
             setProfile((prev) => ({
               ...prev,
               uid: userData.uid || "",
-              name: userData.name || user?.displayName || "",
+              name: userData.name || user?.name || "",
               email: userData.email || user?.email || "",
               mobile: userData.mobile || "",
               photoURL: userData.photoURL || user?.photoURL || "",
@@ -125,7 +128,7 @@ export default function DashboardProfilePage() {
             }));
 
             setEditForm({
-              name: userData.name || user?.displayName || "",
+              name: userData.name || user?.name || "",
               mobile: userData.mobile || "",
               address: userData.address?.address || "",
               division: userData.address?.division || "",
@@ -144,15 +147,20 @@ export default function DashboardProfilePage() {
     loadUserData();
   }, [user]);
 
+  // JWT দিয়ে প্রোফাইল আপডেট করা
   const handleUpdateProfile = async () => {
     setSaving(true);
     setError("");
     setSuccess("");
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/users", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           uid: profile.uid,
           name: editForm.name,
@@ -167,12 +175,7 @@ export default function DashboardProfilePage() {
       });
 
       if (response.ok) {
-        if (auth.currentUser) {
-          await updateProfile(auth.currentUser, {
-            displayName: editForm.name,
-          });
-        }
-
+        // Firebase updateProfile বাদ, শুধু লোকাল স্টেট আপডেট
         setProfile((prev) => ({
           ...prev,
           name: editForm.name,
@@ -213,6 +216,8 @@ export default function DashboardProfilePage() {
     });
 
     if (result.isConfirmed) {
+      // JWT টোকেন মুছে ফেলা
+      localStorage.removeItem("token");
       await logout();
       router.push("/login");
 

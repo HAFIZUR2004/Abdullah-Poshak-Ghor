@@ -15,6 +15,11 @@ import {
   Package,
   HelpCircle,
   Info,
+  Palette,
+  Layers,
+  Ruler,
+  ShieldCheck,
+   Copy,
 } from "lucide-react";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
@@ -23,6 +28,62 @@ import PremiumLoader from "@/components/PremiumLoader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+
+// Helper: Parse dimensions string into W, L, H values across different units
+const parseDimensions = (sizeStr: string) => {
+  if (!sizeStr) return null;
+
+  // Expected format example: "W: 1200mm, L: 600mm, H: 750mm" or plain text fallback
+  const wMatch = sizeStr.match(/W:\s*([\d.]+)\s*(mm|cm|m|in|ft)?/i);
+  const lMatch = sizeStr.match(/L:\s*([\d.]+)\s*(mm|cm|m|in|ft)?/i);
+  const hMatch = sizeStr.match(/H:\s*([\d.]+)\s*(mm|cm|m|in|ft)?/i);
+
+  if (!wMatch) return null;
+
+  const extractVals = (match: RegExpMatchArray | null) => {
+    if (!match) return null;
+    const val = parseFloat(match[1]);
+    const unit = (match[2] || "mm").toLowerCase();
+
+    let mm = val;
+    if (unit === "cm") mm = val * 10;
+    if (unit === "m") mm = val * 1000;
+    if (unit === "in" || unit === "inc") mm = val * 25.4;
+    if (unit === "ft") mm = val * 304.8;
+
+    return {
+      mm: Math.round(mm),
+      ft: (mm / 304.8).toFixed(1),
+      inc: Math.round(mm / 25.4),
+      cm: Math.round(mm / 10),
+      m: (mm / 1000).toFixed(2),
+    };
+  };
+
+  return {
+    w: extractVals(wMatch),
+    l: extractVals(lMatch),
+    h: extractVals(hMatch),
+  };
+};
+
+// Helper: Parse color from "Name (#Hex)" format
+const parseColor = (colorStr: string) => {
+  const match = colorStr.match(/^(.+?)\s*\((#\w+)\)$/);
+  if (match) {
+    return { name: match[1].trim(), hex: match[2] };
+  }
+  return { name: colorStr, hex: "#CCCCCC" };
+};
+
+// Helper: Parse size
+const parseSize = (sizeStr: string) => {
+  const match = sizeStr.match(/^(.+?):\s*(.+?)$/);
+  if (match) {
+    return { label: match[1].trim(), details: match[2].trim() };
+  }
+  return { label: sizeStr, details: "" };
+};
 
 export default function ProductDetailsPage() {
   const params = useParams();
@@ -37,13 +98,12 @@ export default function ProductDetailsPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Variant States & Dropdowns
   const [selectedMaterial, setSelectedMaterial] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [currentPrice, setCurrentPrice] = useState(0);
 
-  // Right Side Accordions
+  const [openOption, setOpenOption] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -55,11 +115,8 @@ export default function ProductDetailsPage() {
         const res = await fetch("/api/products");
         if (res.ok) {
           const data = await res.json();
-          console.log("📦 API Response:", data); // ডিবাগ করুন
-
           let productArray: Product[] = [];
 
-          // ✅ ডেটা ফরম্যাট চেক করুন
           if (Array.isArray(data)) {
             productArray = data;
           } else if (data?.success === true && Array.isArray(data.data)) {
@@ -67,7 +124,6 @@ export default function ProductDetailsPage() {
           } else if (data?.data && Array.isArray(data.data)) {
             productArray = data.data;
           } else {
-            console.error("❌ Unexpected data format:", data);
             setLoading(false);
             return;
           }
@@ -75,8 +131,8 @@ export default function ProductDetailsPage() {
           const numericId = Number(productId);
           const foundProduct = productArray.find(
             (p: Product) =>
-              p._id === productId || (p.id !== undefined && p.id === numericId),
-          );
+              p._id === productId || (p.id !== undefined && p.id === numericId)
+          ) as any; // 🔥 টাইপ কাস্ট করা হয়েছে
 
           if (foundProduct) {
             setProduct(foundProduct);
@@ -94,13 +150,13 @@ export default function ProductDetailsPage() {
                 (p: Product) =>
                   p.category === foundProduct.category &&
                   p._id !== productId &&
-                  !(p.id !== undefined && p.id === numericId),
+                  !(p.id !== undefined && p.id === numericId)
               )
               .slice(0, 4);
             setRelatedProducts(related);
           }
         }
-      } catch (error) {
+     } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
         setLoading(false);
@@ -138,16 +194,18 @@ export default function ProductDetailsPage() {
 
   const handleMaterialChange = (material: string) => {
     setSelectedMaterial(material);
+
     if (product) {
-      let priceAdjustment = 0;
-      if (
-        material.toLowerCase().includes("premium") ||
-        material.toLowerCase().includes("sheesham")
-      ) {
-        priceAdjustment = 5000;
+      const priceMatch = material.match(/৳\s*([\d,]+)/);
+
+      if (priceMatch && priceMatch[1]) {
+        setCurrentPrice(parseFloat(priceMatch[1].replace(/,/g, "")));
+      } else {
+        setCurrentPrice(product.price);
       }
-      setCurrentPrice(product.price + priceAdjustment);
     }
+
+    setOpenOption(null);
   };
 
   const handleAddToCart = () => {
@@ -170,56 +228,72 @@ export default function ProductDetailsPage() {
     }
   };
 
-  if (loading) {
-    return <PremiumLoader />;
-  }
+  if (loading) return <PremiumLoader />;
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-        <h1 className="text-xl font-semibold text-gray-800 mb-2">
+      <div className="min-h-screen bg-[#F9F6F0] flex flex-col items-center justify-center">
+        <h1 className="text-xl font-semibold text-[#1E293B] mb-2">
           Product Not Found
         </h1>
-        <Link href="/shop" className="text-red-600 underline text-sm">
+        <Link href="/shop" className="text-[#0D9488] underline text-sm">
           Back to Shop
         </Link>
       </div>
     );
   }
 
-  const imagesList =
-    product.images && product.images.length > 0
-      ? product.images
-      : product.image
-        ? [product.image]
+  // 🔥 product কে any হিসেবে কাস্ট করা
+  const productAny = product as any;
+
+  const imagesList: string[] =
+    productAny.images && productAny.images.length > 0
+      ? productAny.images
+      : productAny.image
+        ? [productAny.image]
         : ["/placeholder.jpg"];
+
+  const materialsList: string[] = productAny.materials?.length
+    ? productAny.materials
+    : ["VNR Finish", "PVC Finish", "Veneered Red Oak"];
+
+  const colorsList: { name: string; hex: string }[] = productAny.colors?.length
+    ? productAny.colors.map(parseColor)
+    : [
+        { name: "Antique Walnut", hex: "#8B4513" },
+        { name: "Natural Teak", hex: "#D2B48C" },
+        { name: "Dark Brown", hex: "#654321" },
+      ];
+
+  const sizesList: string[] = productAny.sizes?.length
+    ? productAny.sizes
+    : ["Standard Size", "King Size"];
 
   return (
     <>
       <Navbar />
-      <div className="bg-white min-h-screen pb-16">
+      <div className="bg-[#F9F6F0] min-h-screen pb-16">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {showSuccess && (
-            <div className="fixed top-20 right-5 z-50 bg-red-600 text-white px-6 py-2.5 rounded shadow-lg text-sm">
+            <div className="fixed top-20 right-5 z-50 bg-[#0D9488] text-white px-6 py-2.5 rounded shadow-lg text-sm">
               Added to cart successfully! 🛒
             </div>
           )}
 
           <div className="grid lg:grid-cols-12 gap-8 items-start">
-            {/* LEFT SIDE: Thumbnails, Main Image & Dynamic Note */}
+            {/* LEFT SIDE */}
             <div className="lg:col-span-7 space-y-4">
               <div className="flex gap-4 items-start">
-                {/* Vertical Thumbnails List */}
                 {imagesList.length > 0 && (
                   <div className="flex flex-col gap-2.5 w-20 flex-shrink-0">
-                    {imagesList.map((img, idx) => (
+                    {imagesList.map((img: string, idx: number) => (
                       <button
                         key={idx}
                         onClick={() => setActiveImage(idx)}
                         className={`h-20 w-full rounded border overflow-hidden transition-all ${
                           activeImage === idx
-                            ? "border-red-600 ring-1 ring-red-600"
-                            : "border-gray-200 opacity-70 hover:opacity-100"
+                            ? "border-[#0D9488] ring-1 ring-[#0D9488]"
+                            : "border-[#E2DCD3] opacity-70 hover:opacity-100"
                         }`}
                       >
                         <Image
@@ -234,8 +308,7 @@ export default function ProductDetailsPage() {
                   </div>
                 )}
 
-                {/* Main Big Image Box */}
-                <div className="flex-1 bg-[#F9F9F9] border border-gray-200 rounded h-[460px] md:h-[540px] relative flex items-center justify-center group">
+                <div className="flex-1 bg-[#F0EBE3] border border-[#E2DCD3] rounded h-[460px] md:h-[540px] relative flex items-center justify-center group">
                   <Image
                     src={imagesList[activeImage]}
                     alt={product.name}
@@ -245,140 +318,282 @@ export default function ProductDetailsPage() {
                   />
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="absolute top-3 right-3 bg-white border border-gray-200 hover:bg-gray-50 p-2 rounded shadow-sm text-gray-700 transition"
-                    title="Zoom image"
+                    className="absolute top-3 right-3 bg-white border border-[#E2DCD3] hover:bg-gray-50 p-2 rounded shadow-sm text-[#1E293B] transition"
                   >
                     <Maximize2 size={16} />
                   </button>
                 </div>
               </div>
 
-              {/* Dynamic Note */}
-              <div className="border border-gray-200 rounded bg-[#FAFAFA] p-3.5 flex items-start gap-2.5 text-gray-500 text-[11px] leading-relaxed">
-                <Info size={16} className="shrink-0 text-gray-400 mt-0.5" />
+              <div className="border border-[#E2DCD3] rounded lg:ml-24 bg-[#F0EBE3] p-3.5 flex items-start gap-2.5 text-[#64748B] text-[11px] leading-relaxed">
+                <Info size={16} className="shrink-0 text-[#0D9488] mt-0.5" />
                 <p>
-                  {product.note ||
-                    "Please note: Actual product color, fabric, finish, texture, and appearance may slightly differ from the images shown due to photography, lighting, device display settings, and natural material variations."}
+                  "Please note: Actual product color, fabric, finish, texture, and appearance may slightly differ from the images shown due to photography, lighting, device display settings, and natural material variations."
                 </p>
               </div>
             </div>
 
-            {/* RIGHT SIDE: Dropdowns, Price & Cart Actions */}
+            {/* RIGHT SIDE */}
             <div className="lg:col-span-5 space-y-4">
-              {/* Product Title & Price Header */}
-              <div className="border-b border-gray-200 pb-3">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+              <div className="border-b border-[#E2DCD3] pb-3">
+                <h1 className="text-xl md:text-2xl font-bold text-[#1E293B]">
                   {product.name}
                 </h1>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  HCL-{product._id?.slice(-8).toUpperCase()}
+                <p className="text-xs text-[#94A3B8] mt-0.5 uppercase tracking-wider">
+                  SARENG-{product._id?.slice(-8)}
                 </p>
-                <p className="text-lg font-bold text-gray-900 mt-1.5">
+                <p className="text-lg font-bold text-[#0D9488] mt-1.5">
                   {currentPrice.toLocaleString()} BDT
                 </p>
               </div>
 
-              {/* 1. Material Dropdown */}
-              <div className="border border-gray-200 rounded p-3 bg-white">
-                <div className="text-xs font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                  <Package size={15} className="text-gray-400" /> Material
-                </div>
-                <select
-                  value={selectedMaterial}
-                  onChange={(e) => handleMaterialChange(e.target.value)}
-                  className="w-full text-xs text-gray-600 bg-transparent focus:outline-none cursor-pointer mt-1"
-                >
-                  {product.materials && product.materials.length > 0 ? (
-                    product.materials.map((m, i) => (
-                      <option key={i} value={m}>
-                        {m}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="Kiln-dried imported beech wood and veneered engineered wood">
-                      Kiln-dried imported beech wood & veneered wood
-                    </option>
-                  )}
-                </select>
-              </div>
+              {/* COLLAPSIBLE OPTIONS */}
+              <div className="border border-[#E2DCD3] rounded divide-y divide-[#EEE8E0] bg-white">
+                {/* 1. Material Collapsible */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setOpenOption(openOption === "material" ? null : "material")}
+                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
+                        <Layers size={16} className="text-[#0D9488]" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[#1E293B]">Material</div>
+                        <div className="text-[11px] text-[#64748B] font-medium">
+                          {selectedMaterial ? selectedMaterial.split("(")[0].trim() : "Select Material"}
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                        openOption === "material" ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-              {/* 2. Color Dropdown */}
-              <div className="border border-gray-200 rounded p-3 bg-white">
-                <div className="text-xs font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-sm bg-amber-800 inline-block"></span>{" "}
-                  Color Finish
-                </div>
-                <select
-                  value={selectedColor}
-                  onChange={(e) => setSelectedColor(e.target.value)}
-                  className="w-full text-xs text-gray-600 bg-transparent focus:outline-none cursor-pointer mt-1"
-                >
-                  {product.colors && product.colors.length > 0 ? (
-                    product.colors.map((c, i) => (
-                      <option key={i} value={c}>
-                        {c}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="Antique / Natural Finish">
-                      Antique / Natural Finish
-                    </option>
-                  )}
-                </select>
-              </div>
+                  {openOption === "material" && (
+                    <div className="p-3 bg-[#F9F6F0] border-t border-[#EEE8E0] flex flex-wrap gap-2">
+                      {materialsList.map((m, i) => {
+                        const cleanName = m.split("(")[0].trim();
+                        const isSelected = selectedMaterial === m;
 
-              {/* 3. Size Dropdown */}
-              <div className="border border-gray-200 rounded p-3 bg-white">
-                <div className="text-xs font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border border-gray-400 rounded-sm inline-block"></span>{" "}
-                  Size Options
-                </div>
-                <select
-                  value={selectedSize}
-                  onChange={(e) => setSelectedSize(e.target.value)}
-                  className="w-full text-xs text-gray-600 bg-transparent focus:outline-none cursor-pointer mt-1"
-                >
-                  {product.sizes && product.sizes.length > 0 ? (
-                    product.sizes.map((s, i) => (
-                      <option key={i} value={s}>
-                        {s}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="Standard Queen / King Size">
-                      Standard Queen / King Size
-                    </option>
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => handleMaterialChange(m)}
+                            className={`px-3 py-1.5 rounded text-xs transition border ${
+                              isSelected
+                                ? "bg-[#0D9488] text-white border-[#0D9488] font-semibold shadow-sm"
+                                : "bg-white text-[#1E293B] border-[#E2DCD3] hover:border-[#0D9488] hover:text-[#0D9488]"
+                            }`}
+                          >
+                            {cleanName}
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
-                </select>
+                </div>
+
+                {/* 2. Color Collapsible */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenOption(openOption === "color" ? null : "color")
+                    }
+                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
+                        <Palette size={16} className="text-[#0D9488]" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[#1E293B]">Color</div>
+                        
+                      </div>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                        openOption === "color" ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {openOption === "color" && (
+                    <div className="p-3 bg-[#F9F6F0] border-t border-[#EEE8E0]">
+                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                        {colorsList.map((c: { name: string; hex: string }, i: number) => {
+                          const isSelected = selectedColor.includes(c.name);
+
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              title={c.name}
+                              aria-label={c.name}
+                              onClick={() => {
+                                const originalColor = productAny.colors?.find((col: string) =>
+                                  col.includes(c.name)
+                                );
+
+                                setSelectedColor(originalColor || c.name);
+                                setOpenOption(null);
+                              }}
+                              className={`group overflow-hidden rounded-lg bg-white border text-left transition-all duration-200 flex items-center justify-center p-1 ${
+                                isSelected
+                                  ? "border-[#0D9488] ring-1 ring-[#0D9488] shadow-sm"
+                                  : "border-[#E2DCD3] hover:border-[#0D9488]"
+                              }`}
+                            >
+                              <div
+                                className="w-full h-9 rounded-md border border-black/5"
+                                style={{
+                                  backgroundColor: c.hex,
+                                }}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Size Collapsible */}
+<div>
+  <button
+    type="button"
+    onClick={() => setOpenOption(openOption === "size" ? null : "size")}
+    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
+  >
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
+        <Ruler size={16} className="text-[#0D9488]" />
+      </div>
+      <div>
+        <div className="text-xs font-bold text-[#1E293B]">Size</div>
+        <div className="text-[11px] text-[#64748B] font-medium truncate max-w-[200px]">
+          {selectedSize ? selectedSize.split("\n")[0].trim() : "Select Size"}
+        </div>
+      </div>
+    </div>
+    <ChevronDown
+      size={16}
+      className={`text-[#94A3B8] transition-transform duration-200 ${
+        openOption === "size" ? "rotate-180" : ""
+      }`}
+    />
+  </button>
+
+  {openOption === "size" && (
+    <div className="p-4 bg-[#F9F6F0] border-t border-[#EEE8E0] space-y-2">
+      {sizesList.map((sz, index) => {
+        const isSelected = selectedSize === sz;
+
+        // 🔥 লাইনগুলো আলাদা করা
+        let lines: string[] = [];
+        if (typeof sz === "string") {
+          lines = sz.split("\n").filter(Boolean);
+          
+          // যদি নতুন লাইন না থাকে, "|" দিয়ে ভাগ
+          if (lines.length <= 1 && sz.includes("|")) {
+            lines = sz.split("|").filter(Boolean);
+          }
+        }
+
+        // Label (যদি থাকে)
+        const label = sz.includes(":") ? sz.split(":")[0].trim() : "";
+
+        return (
+          <div
+            key={index}
+            className={`rounded-xl border p-3 transition ${
+              isSelected
+                ? "border-[#0D9488] bg-[#0D9488]/5"
+                : "border-[#E2DCD3] bg-white"
+            }`}
+          >
+            {/* Size Label */}
+            {label && (
+              <p className="text-xs font-bold text-[#1E293B] mb-2">
+                {label}
+              </p>
+            )}
+
+            {/* প্রতিটি লাইন আলাদা বক্সে */}
+            <div className="space-y-1.5">
+              {lines.map((line, lineIndex) => {
+                const trimmedLine = line.trim();
+                
+                return (
+                  <div
+                    key={lineIndex}
+                    className="flex items-center justify-between bg-[#F9F6F0] rounded-lg px-3 py-2 border border-[#E2DCD3]"
+                  >
+                    <span className="text-xs font-medium text-[#1E293B]">
+                      {trimmedLine}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(trimmedLine);
+                        toast.success("Copied!");
+                      }}
+                      className="text-[#94A3B8] hover:text-[#0D9488] transition"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* সাইজ সিলেক্ট করার বাটন */}
+           
+          </div>
+        );
+      })}
+    </div>
+  )}
+</div>
+
+
               </div>
 
               {/* Quantity Counter */}
-              <div className="flex items-center justify-between border border-gray-200 rounded p-2.5 bg-white">
-                <span className="text-xs font-semibold text-gray-700">
-                  Quantity
-                </span>
-                <div className="flex items-center border border-gray-200 rounded overflow-hidden w-28 h-8">
+              <div className="flex items-center justify-between border border-[#E2DCD3] rounded p-2.5 bg-white">
+                <span className="text-xs font-semibold text-[#1E293B]">Quantity</span>
+                <div className="flex items-center border border-[#E2DCD3] rounded overflow-hidden w-28 h-8">
                   <button
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600"
+                    className="w-8 h-full flex items-center justify-center hover:bg-[#F9F6F0] text-[#1E293B]"
                   >
                     <Minus size={14} />
                   </button>
-                  <span className="flex-1 text-center text-xs font-semibold text-gray-800">
+                  <span className="flex-1 text-center text-xs font-semibold text-[#1E293B]">
                     {quantity}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600"
+                    className="w-8 h-full flex items-center justify-center hover:bg-[#F9F6F0] text-[#1E293B]"
                   >
                     <Plus size={14} />
                   </button>
                 </div>
               </div>
 
-              {/* Split Red Action Bar */}
-              <div className="bg-[#E61F26] rounded text-white flex items-center overflow-hidden shadow-sm h-12">
-                <div className="flex-1 px-3 text-center border-r border-red-500">
+              {/* Action Buttons */}
+              <div className="bg-[#1E293B] rounded text-white flex items-center overflow-hidden shadow-sm h-12">
+                <div className="flex-1 px-3 text-center border-r border-[#334155]">
                   <div className="text-xs font-bold">
                     {(currentPrice * quantity).toLocaleString()} BDT
                   </div>
@@ -388,18 +603,19 @@ export default function ProductDetailsPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-1.5 font-semibold text-xs h-full hover:bg-black/10 transition"
+                  className="flex-1 flex items-center justify-center gap-1.5 font-semibold text-xs h-full hover:bg-[#0D9488] transition"
                 >
                   <ShoppingBag size={15} /> Add to Cart
                 </button>
 
                 <button
+                  type="button"
                   onClick={toggleWishlist}
-                  className={`px-3.5 h-full flex items-center justify-center border-l border-red-500 hover:bg-black/10 transition ${
-                    liked ? "bg-red-700" : ""
+                  className={`px-3.5 h-full flex items-center justify-center border-l border-[#334155] hover:bg-[#0D9488] transition ${
+                    liked ? "bg-[#0D9488]" : ""
                   }`}
-                  title="Add to Wishlist"
                 >
                   <Heart
                     size={18}
@@ -409,7 +625,7 @@ export default function ProductDetailsPage() {
               </div>
 
               {/* EMI Banner */}
-              <div className="bg-[#FCE8E8] border border-[#F5C2C2] text-[#D32F2F] rounded p-2.5 text-center text-xs font-bold">
+              <div className="bg-[#0D9488]/10 border border-[#0D9488]/20 text-[#0D9488] rounded p-2.5 text-center text-xs font-bold">
                 EMI starts from{" "}
                 {Math.round((currentPrice * quantity) / 12).toLocaleString()}{" "}
                 BDT/month
@@ -417,16 +633,14 @@ export default function ProductDetailsPage() {
 
               {/* Right Side Accordions */}
               <div className="space-y-2 pt-2">
-                <div className="border border-gray-200 rounded bg-white">
+                <div className="border border-[#E2DCD3] rounded bg-white">
                   <button
-                    onClick={() =>
-                      setOpenAccordion(openAccordion === "pkg" ? null : "pkg")
-                    }
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-gray-700"
+                    type="button"
+                    onClick={() => setOpenAccordion(openAccordion === "pkg" ? null : "pkg")}
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
                   >
                     <span className="flex items-center gap-2">
-                      <Package size={14} className="text-gray-400" /> Packaging
-                      Information
+                      <Package size={14} className="text-[#0D9488]" /> Packaging Information
                     </span>
                     <ChevronDown
                       size={14}
@@ -434,23 +648,20 @@ export default function ProductDetailsPage() {
                     />
                   </button>
                   {openAccordion === "pkg" && (
-                    <div className="px-3.5 pb-3 text-xs text-gray-500 border-t border-gray-100 pt-2">
-                      Flat-pack delivery with heavy-duty corrugated cardboard
-                      protection.
+                    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
+                      Flat-pack delivery with heavy-duty corrugated cardboard protection.
                     </div>
                   )}
                 </div>
 
-                <div className="border border-gray-200 rounded bg-white">
+                <div className="border border-[#E2DCD3] rounded bg-white">
                   <button
-                    onClick={() =>
-                      setOpenAccordion(openAccordion === "help" ? null : "help")
-                    }
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-gray-700"
+                    type="button"
+                    onClick={() => setOpenAccordion(openAccordion === "help" ? null : "help")}
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
                   >
                     <span className="flex items-center gap-2">
-                      <HelpCircle size={14} className="text-gray-400" /> Need
-                      Help?
+                      <HelpCircle size={14} className="text-[#0D9488]" /> Need Help?
                     </span>
                     <ChevronDown
                       size={14}
@@ -458,115 +669,65 @@ export default function ProductDetailsPage() {
                     />
                   </button>
                   {openAccordion === "help" && (
-                    <div className="px-3.5 pb-3 text-xs text-gray-500 border-t border-gray-100 pt-2">
-                      Contact our support hotline or visit our nearest showroom
-                      for assistance.
+                    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
+                      Contact our support hotline or visit our nearest showroom for assistance.
                     </div>
                   )}
                 </div>
+
+               {/* Warranty Section - Dynamic */}
+<div className="border border-[#E2DCD3] rounded bg-white">
+  <button
+    type="button"
+    onClick={() => setOpenAccordion(openAccordion === "war" ? null : "war")}
+    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
+  >
+    <span className="flex items-center gap-2">
+      <ShieldCheck size={14} className="text-[#0D9488]" /> 
+      Warranty
+    </span>
+    <ChevronDown
+      size={14}
+      className={`transition-transform ${openAccordion === "war" ? "rotate-180" : ""}`}
+    />
+  </button>
+  
+  {openAccordion === "war" && (
+    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
+      {productAny.warrantyInfo || "Includes 1-year service warranty covering manufacturing defects."}
+    </div>
+  )}
+</div>
+
+
+
+
               </div>
             </div>
           </div>
 
-          {/* ABOUT THIS ITEM & TECHNICAL SPECIFICATIONS */}
-          <div className="mt-16 border-t border-gray-200 pt-10 space-y-10">
+          {/* ABOUT THIS ITEM */}
+          <div className="mt-16 border-t border-[#E2DCD3] pt-10 space-y-10">
             <div>
-              <h3 className="text-base font-bold text-gray-900 mb-3 uppercase tracking-wider">
+              <h3 className="text-base font-bold text-[#1E293B] mb-3 uppercase tracking-wider">
                 About this item
               </h3>
-              <ul className="space-y-2 text-sm text-gray-700 leading-relaxed">
+              <ul className="space-y-2 text-sm text-[#1E293B] leading-relaxed">
                 <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mt-2 shrink-0"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488] mt-2 shrink-0"></span>
                   <span>
                     {product.description ||
                       "Crafted with precision using top-tier sustainable materials to ensure superior structural stability and long-lasting durability."}
                   </span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mt-2 shrink-0"></span>
-                  <span>
-                    Ergonomically designed to blend modern elegance with
-                    everyday practicality for home or office environments.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mt-2 shrink-0"></span>
-                  <span>
-                    Features high-grade protective finishing that resists
-                    scratches and simplifies daily maintenance.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mt-2 shrink-0"></span>
-                  <span>
-                    Eco-friendly raw materials compliant with international
-                    safety and quality standards.
-                  </span>
-                </li>
               </ul>
-            </div>
-
-            <div>
-              <h3 className="text-base font-bold text-gray-900 mb-3 uppercase tracking-wider">
-                Product Information
-              </h3>
-              <div className="border border-gray-200 rounded-lg overflow-hidden max-w-3xl text-xs">
-                <div className="grid grid-cols-2 border-b border-gray-200 bg-gray-50">
-                  <div className="p-3 font-semibold text-gray-700 border-r border-gray-200">
-                    Brand / Manufacturer
-                  </div>
-                  <div className="p-3 text-gray-600">
-                    Grow Business Solutions / Premium Line
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 border-b border-gray-200">
-                  <div className="p-3 font-semibold text-gray-700 border-r border-gray-200">
-                    Item Category
-                  </div>
-                  <div className="p-3 text-gray-600 capitalize">
-                    {product.category || "General Furniture"}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 border-b border-gray-200 bg-gray-50">
-                  <div className="p-3 font-semibold text-gray-700 border-r border-gray-200">
-                    Material & Finish
-                  </div>
-                  <div className="p-3 text-gray-600">
-                    {selectedMaterial || "Standard Grade Material"}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 border-b border-gray-200">
-                  <div className="p-3 font-semibold text-gray-700 border-r border-gray-200">
-                    Color Variant
-                  </div>
-                  <div className="p-3 text-gray-600">
-                    {selectedColor || "Standard Finish"}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 border-b border-gray-200 bg-gray-50">
-                  <div className="p-3 font-semibold text-gray-700 border-r border-gray-200">
-                    Warranty Coverage
-                  </div>
-                  <div className="p-3 text-gray-600">
-                    {product.warrantyInfo || "1 Year Service Warranty"}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2">
-                  <div className="p-3 font-semibold text-gray-700 border-r border-gray-200">
-                    Return Policy
-                  </div>
-                  <div className="p-3 text-gray-600">
-                    {product.returnPolicy || "3 Days Easy Return & Replacement"}
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* RELATED PRODUCTS */}
           {relatedProducts.length > 0 && (
             <div className="mt-16">
-              <h2 className="text-base font-bold text-gray-900 mb-4">
+              <h2 className="text-base font-bold text-[#1E293B] mb-4">
                 Related Products in {product.category || "Same Category"}
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -583,6 +744,7 @@ export default function ProductDetailsPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <button
+            type="button"
             onClick={() => setIsModalOpen(false)}
             className="absolute top-5 right-5 text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition"
           >
