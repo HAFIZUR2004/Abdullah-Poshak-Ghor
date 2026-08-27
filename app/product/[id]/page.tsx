@@ -19,7 +19,7 @@ import {
   Layers,
   Ruler,
   ShieldCheck,
-   Copy,
+  Copy,
 } from "lucide-react";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
@@ -29,60 +29,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
-// Helper: Parse dimensions string into W, L, H values across different units
-const parseDimensions = (sizeStr: string) => {
-  if (!sizeStr) return null;
-
-  // Expected format example: "W: 1200mm, L: 600mm, H: 750mm" or plain text fallback
-  const wMatch = sizeStr.match(/W:\s*([\d.]+)\s*(mm|cm|m|in|ft)?/i);
-  const lMatch = sizeStr.match(/L:\s*([\d.]+)\s*(mm|cm|m|in|ft)?/i);
-  const hMatch = sizeStr.match(/H:\s*([\d.]+)\s*(mm|cm|m|in|ft)?/i);
-
-  if (!wMatch) return null;
-
-  const extractVals = (match: RegExpMatchArray | null) => {
-    if (!match) return null;
-    const val = parseFloat(match[1]);
-    const unit = (match[2] || "mm").toLowerCase();
-
-    let mm = val;
-    if (unit === "cm") mm = val * 10;
-    if (unit === "m") mm = val * 1000;
-    if (unit === "in" || unit === "inc") mm = val * 25.4;
-    if (unit === "ft") mm = val * 304.8;
-
-    return {
-      mm: Math.round(mm),
-      ft: (mm / 304.8).toFixed(1),
-      inc: Math.round(mm / 25.4),
-      cm: Math.round(mm / 10),
-      m: (mm / 1000).toFixed(2),
-    };
-  };
-
-  return {
-    w: extractVals(wMatch),
-    l: extractVals(lMatch),
-    h: extractVals(hMatch),
-  };
-};
-
-// Helper: Parse color from "Name (#Hex)" format
 const parseColor = (colorStr: string) => {
   const match = colorStr.match(/^(.+?)\s*\((#\w+)\)$/);
   if (match) {
     return { name: match[1].trim(), hex: match[2] };
   }
   return { name: colorStr, hex: "#CCCCCC" };
-};
-
-// Helper: Parse size
-const parseSize = (sizeStr: string) => {
-  const match = sizeStr.match(/^(.+?):\s*(.+?)$/);
-  if (match) {
-    return { label: match[1].trim(), details: match[2].trim() };
-  }
-  return { label: sizeStr, details: "" };
 };
 
 export default function ProductDetailsPage() {
@@ -132,7 +84,7 @@ export default function ProductDetailsPage() {
           const foundProduct = productArray.find(
             (p: Product) =>
               p._id === productId || (p.id !== undefined && p.id === numericId)
-          ) as any; // 🔥 টাইপ কাস্ট করা হয়েছে
+          ) as any;
 
           if (foundProduct) {
             setProduct(foundProduct);
@@ -156,7 +108,7 @@ export default function ProductDetailsPage() {
             setRelatedProducts(related);
           }
         }
-     } catch (error) {
+      } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
         setLoading(false);
@@ -243,7 +195,6 @@ export default function ProductDetailsPage() {
     );
   }
 
-  // 🔥 product কে any হিসেবে কাস্ট করা
   const productAny = product as any;
 
   const imagesList: string[] =
@@ -280,12 +231,29 @@ export default function ProductDetailsPage() {
             </div>
           )}
 
+          {/* MOBILE ONLY TITLE & PRICE HEADER */}
+          <div className="lg:hidden border-b border-[#E2DCD3] pb-3 mb-4">
+            <h1 className="text-xl font-bold text-[#1E293B]">
+              {product.name}
+            </h1>
+            <p className="text-xs text-[#94A3B8] mt-0.5 uppercase tracking-wider">
+              SARENG-{product._id?.slice(-8)}
+            </p>
+            <p className="text-lg font-bold text-[#0D9488] mt-1.5">
+              {currentPrice.toLocaleString()} BDT
+            </p>
+          </div>
+
           <div className="grid lg:grid-cols-12 gap-8 items-start">
-            {/* LEFT SIDE */}
+            {/* LEFT SIDE (PRODUCT IMAGES & DISCLAIMER) */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="flex gap-4 items-start">
+              
+              {/* Image Container Wrap */}
+              <div className="flex flex-col lg:flex-row gap-4 items-start">
+                
+                {/* Desktop Vertical Thumbnails */}
                 {imagesList.length > 0 && (
-                  <div className="flex flex-col gap-2.5 w-20 flex-shrink-0">
+                  <div className="hidden lg:flex flex-col gap-2.5 w-20 shrink-0">
                     {imagesList.map((img: string, idx: number) => (
                       <button
                         key={idx}
@@ -308,7 +276,8 @@ export default function ProductDetailsPage() {
                   </div>
                 )}
 
-                <div className="flex-1 bg-[#F0EBE3] border border-[#E2DCD3] rounded h-[460px] md:h-[540px] relative flex items-center justify-center group">
+                {/* Main Big Image - Explicit Width Fix */}
+                <div className="w-full bg-[#F0EBE3] border border-[#E2DCD3] rounded h-[320px] sm:h-[460px] md:h-[540px] relative flex items-center justify-center group overflow-hidden">
                   <Image
                     src={imagesList[activeImage]}
                     alt={product.name}
@@ -318,24 +287,51 @@ export default function ProductDetailsPage() {
                   />
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="absolute top-3 right-3 bg-white border border-[#E2DCD3] hover:bg-gray-50 p-2 rounded shadow-sm text-[#1E293B] transition"
+                    className="absolute top-3 right-3 bg-white/90 border border-[#E2DCD3] hover:bg-white p-2 rounded shadow-sm text-[#1E293B] transition"
                   >
                     <Maximize2 size={16} />
                   </button>
                 </div>
               </div>
 
+              {/* Disclaimer Info Box */}
               <div className="border border-[#E2DCD3] rounded lg:ml-24 bg-[#F0EBE3] p-3.5 flex items-start gap-2.5 text-[#64748B] text-[11px] leading-relaxed">
                 <Info size={16} className="shrink-0 text-[#0D9488] mt-0.5" />
                 <p>
-                  "Please note: Actual product color, fabric, finish, texture, and appearance may slightly differ from the images shown due to photography, lighting, device display settings, and natural material variations."
+                  Please note: Actual product color, fabric, finish, texture, and appearance may slightly differ from the images shown due to photography, lighting, device display settings, and natural material variations.
                 </p>
               </div>
+
+              {/* Mobile Horizontal Thumbnails */}
+              {imagesList.length > 0 && (
+                <div className="lg:hidden bg-[#F0EBE3] border border-[#E2DCD3] p-2.5 rounded flex gap-2.5 overflow-x-auto scrollbar-none">
+                  {imagesList.map((img: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImage(idx)}
+                      className={`h-16 w-16 rounded border overflow-hidden shrink-0 transition-all ${
+                        activeImage === idx
+                          ? "border-[#0D9488] ring-2 ring-[#0D9488]/30"
+                          : "border-white opacity-80 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Thumbnail ${idx}`}
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* RIGHT SIDE */}
+            {/* RIGHT SIDE (OPTIONS & DETAILS) */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="border-b border-[#E2DCD3] pb-3">
+              {/* DESKTOP ONLY TITLE & PRICE HEADER */}
+              <div className="hidden lg:block border-b border-[#E2DCD3] pb-3">
                 <h1 className="text-xl md:text-2xl font-bold text-[#1E293B]">
                   {product.name}
                 </h1>
@@ -415,7 +411,6 @@ export default function ProductDetailsPage() {
                       </div>
                       <div>
                         <div className="text-xs font-bold text-[#1E293B]">Color</div>
-                        
                       </div>
                     </div>
                     <ChevronDown
@@ -467,104 +462,93 @@ export default function ProductDetailsPage() {
                 </div>
 
                 {/* 3. Size Collapsible */}
-<div>
-  <button
-    type="button"
-    onClick={() => setOpenOption(openOption === "size" ? null : "size")}
-    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
-  >
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
-        <Ruler size={16} className="text-[#0D9488]" />
-      </div>
-      <div>
-        <div className="text-xs font-bold text-[#1E293B]">Size</div>
-        <div className="text-[11px] text-[#64748B] font-medium truncate max-w-[200px]">
-          {selectedSize ? selectedSize.split("\n")[0].trim() : "Select Size"}
-        </div>
-      </div>
-    </div>
-    <ChevronDown
-      size={16}
-      className={`text-[#94A3B8] transition-transform duration-200 ${
-        openOption === "size" ? "rotate-180" : ""
-      }`}
-    />
-  </button>
-
-  {openOption === "size" && (
-    <div className="p-4 bg-[#F9F6F0] border-t border-[#EEE8E0] space-y-2">
-      {sizesList.map((sz, index) => {
-        const isSelected = selectedSize === sz;
-
-        // 🔥 লাইনগুলো আলাদা করা
-        let lines: string[] = [];
-        if (typeof sz === "string") {
-          lines = sz.split("\n").filter(Boolean);
-          
-          // যদি নতুন লাইন না থাকে, "|" দিয়ে ভাগ
-          if (lines.length <= 1 && sz.includes("|")) {
-            lines = sz.split("|").filter(Boolean);
-          }
-        }
-
-        // Label (যদি থাকে)
-        const label = sz.includes(":") ? sz.split(":")[0].trim() : "";
-
-        return (
-          <div
-            key={index}
-            className={`rounded-xl border p-3 transition ${
-              isSelected
-                ? "border-[#0D9488] bg-[#0D9488]/5"
-                : "border-[#E2DCD3] bg-white"
-            }`}
-          >
-            {/* Size Label */}
-            {label && (
-              <p className="text-xs font-bold text-[#1E293B] mb-2">
-                {label}
-              </p>
-            )}
-
-            {/* প্রতিটি লাইন আলাদা বক্সে */}
-            <div className="space-y-1.5">
-              {lines.map((line, lineIndex) => {
-                const trimmedLine = line.trim();
-                
-                return (
-                  <div
-                    key={lineIndex}
-                    className="flex items-center justify-between bg-[#F9F6F0] rounded-lg px-3 py-2 border border-[#E2DCD3]"
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setOpenOption(openOption === "size" ? null : "size")}
+                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
                   >
-                    <span className="text-xs font-medium text-[#1E293B]">
-                      {trimmedLine}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(trimmedLine);
-                        toast.success("Copied!");
-                      }}
-                      className="text-[#94A3B8] hover:text-[#0D9488] transition"
-                    >
-                      <Copy size={14} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
+                        <Ruler size={16} className="text-[#0D9488]" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[#1E293B]">Size</div>
+                        <div className="text-[11px] text-[#64748B] font-medium truncate max-w-[200px]">
+                          {selectedSize ? selectedSize.split("\n")[0].trim() : "Select Size"}
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                        openOption === "size" ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-            {/* সাইজ সিলেক্ট করার বাটন */}
-           
-          </div>
-        );
-      })}
-    </div>
-  )}
-</div>
+                  {openOption === "size" && (
+                    <div className="p-4 bg-[#F9F6F0] border-t border-[#EEE8E0] space-y-2">
+                      {sizesList.map((sz, index) => {
+                        const isSelected = selectedSize === sz;
 
+                        let lines: string[] = [];
+                        if (typeof sz === "string") {
+                          lines = sz.split("\n").filter(Boolean);
+                          if (lines.length <= 1 && sz.includes("|")) {
+                            lines = sz.split("|").filter(Boolean);
+                          }
+                        }
 
+                        const label = sz.includes(":") ? sz.split(":")[0].trim() : "";
+
+                        return (
+                          <div
+                            key={index}
+                            className={`rounded-xl border p-3 transition ${
+                              isSelected
+                                ? "border-[#0D9488] bg-[#0D9488]/5"
+                                : "border-[#E2DCD3] bg-white"
+                            }`}
+                          >
+                            {label && (
+                              <p className="text-xs font-bold text-[#1E293B] mb-2">
+                                {label}
+                              </p>
+                            )}
+
+                            <div className="space-y-1.5">
+                              {lines.map((line, lineIndex) => {
+                                const trimmedLine = line.trim();
+                                
+                                return (
+                                  <div
+                                    key={lineIndex}
+                                    className="flex items-center justify-between bg-[#F9F6F0] rounded-lg px-3 py-2 border border-[#E2DCD3]"
+                                  >
+                                    <span className="text-xs font-medium text-[#1E293B]">
+                                      {trimmedLine}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(trimmedLine);
+                                        toast.success("Copied!");
+                                      }}
+                                      className="text-[#94A3B8] hover:text-[#0D9488] transition"
+                                    >
+                                      <Copy size={14} />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Quantity Counter */}
@@ -675,33 +659,29 @@ export default function ProductDetailsPage() {
                   )}
                 </div>
 
-               {/* Warranty Section - Dynamic */}
-<div className="border border-[#E2DCD3] rounded bg-white">
-  <button
-    type="button"
-    onClick={() => setOpenAccordion(openAccordion === "war" ? null : "war")}
-    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
-  >
-    <span className="flex items-center gap-2">
-      <ShieldCheck size={14} className="text-[#0D9488]" /> 
-      Warranty
-    </span>
-    <ChevronDown
-      size={14}
-      className={`transition-transform ${openAccordion === "war" ? "rotate-180" : ""}`}
-    />
-  </button>
-  
-  {openAccordion === "war" && (
-    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
-      {productAny.warrantyInfo || "Includes 1-year service warranty covering manufacturing defects."}
-    </div>
-  )}
-</div>
-
-
-
-
+                {/* Warranty Section */}
+                <div className="border border-[#E2DCD3] rounded bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setOpenAccordion(openAccordion === "war" ? null : "war")}
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck size={14} className="text-[#0D9488]" /> 
+                      Warranty
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform ${openAccordion === "war" ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  
+                  {openAccordion === "war" && (
+                    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
+                      {productAny.warrantyInfo || "Includes 1-year service warranty covering manufacturing defects."}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
