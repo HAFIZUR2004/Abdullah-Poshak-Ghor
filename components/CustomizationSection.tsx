@@ -36,14 +36,17 @@ export default function CustomizationSection() {
         </div>
 
         {/* Main Customization Grid / Banner Image */}
-        <div className="relative w-full h-[350px] sm:h-[450px] lg:h-[550px] rounded-2xl overflow-hidden shadow-md ">
+        <div className="relative w-full h-[350px] sm:h-[450px] lg:h-[550px] rounded-2xl overflow-hidden shadow-md border border-[#E5D3B3]/30">
           <Image
             src="/images/custom.jpeg"
             alt="Custom Furniture Craftsmanship"
             fill
             priority
-            className="object-cover object-center transition-transform duration-500 "
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+            className="object-cover object-center"
           />
+          {/* Gradient Overlay for better text readability if needed */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </div>
 
       </div>
