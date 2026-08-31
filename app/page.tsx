@@ -7,6 +7,8 @@ import PremiumLoader from "@/components/PremiumLoader";
 import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CategoriesPage from "@/components/categories";
+import Categories from "@/components/categories";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +29,7 @@ export default function Home() {
     <>
     <Navbar/>
       <Hero />
+      <Categories/>
       <BeautyShopSectionsPage />
       <Reviews />
       <Footer/>

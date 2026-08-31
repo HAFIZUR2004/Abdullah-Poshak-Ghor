@@ -20,6 +20,8 @@ import {
   Ruler,
   ShieldCheck,
   Copy,
+  Phone,
+  Star,
 } from "lucide-react";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
@@ -54,12 +56,20 @@ export default function ProductDetailsPage() {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [currentPrice, setCurrentPrice] = useState(0);
-
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [openOption, setOpenOption] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"description" | "specs" | "reviews">("description");
 
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const productId = params.id as string;
+
+  // Mock review data
+  const mockReviews = [
+    { name: "Rahim Ahmed", rating: 5, date: "2024-12-15", comment: "Excellent quality! The wood finish is beautiful and installation was easy." },
+    { name: "Nusrat Jahan", rating: 4, date: "2024-11-28", comment: "Very good product for the price. Delivery was slightly delayed though." },
+    { name: "Tanvir Hasan", rating: 5, date: "2024-10-10", comment: "Premium feel and finish. Highly recommended for anyone looking for quality furniture." },
+  ];
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -184,11 +194,11 @@ export default function ProductDetailsPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#F9F6F0] flex flex-col items-center justify-center">
-        <h1 className="text-xl font-semibold text-[#1E293B] mb-2">
+      <div className="min-h-screen bg-[#FDF6EE] flex flex-col items-center justify-center">
+        <h1 className="text-xl font-semibold text-[#0B2523] mb-2">
           Product Not Found
         </h1>
-        <Link href="/shop" className="text-[#0D9488] underline text-sm">
+        <Link href="/shop" className="text-[#0F3D39] underline text-sm">
           Back to Shop
         </Link>
       </div>
@@ -223,23 +233,23 @@ export default function ProductDetailsPage() {
   return (
     <>
       <Navbar />
-      <div className="bg-[#F9F6F0] min-h-screen pb-16">
+      <div className="bg-[#FDF6EE] min-h-screen pb-16">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {showSuccess && (
-            <div className="fixed top-20 right-5 z-50 bg-[#0D9488] text-white px-6 py-2.5 rounded shadow-lg text-sm">
+            <div className="fixed top-20 right-5 z-50 bg-[#0F3D39] text-[#E5D3B3] px-6 py-2.5 rounded shadow-lg text-sm">
               Added to cart successfully! 🛒
             </div>
           )}
 
           {/* MOBILE ONLY TITLE & PRICE HEADER */}
-          <div className="lg:hidden border-b border-[#E2DCD3] pb-3 mb-4">
-            <h1 className="text-xl font-bold text-[#1E293B]">
+          <div className="lg:hidden border-b border-[#E5D3B3]/30 pb-3 mb-4">
+            <h1 className="text-xl font-bold text-[#0B2523]">
               {product.name}
             </h1>
-            <p className="text-xs text-[#94A3B8] mt-0.5 uppercase tracking-wider">
+            <p className="text-xs text-[#0B2523]/50 mt-0.5 uppercase tracking-wider">
               SARENG-{product._id?.slice(-8)}
             </p>
-            <p className="text-lg font-bold text-[#0D9488] mt-1.5">
+            <p className="text-lg font-bold text-[#0F3D39] mt-1.5">
               {currentPrice.toLocaleString()} BDT
             </p>
           </div>
@@ -260,8 +270,8 @@ export default function ProductDetailsPage() {
                         onClick={() => setActiveImage(idx)}
                         className={`h-20 w-full rounded border overflow-hidden transition-all ${
                           activeImage === idx
-                            ? "border-[#0D9488] ring-1 ring-[#0D9488]"
-                            : "border-[#E2DCD3] opacity-70 hover:opacity-100"
+                            ? "border-2 border-[#0F3D39]"
+                            : "border-[#E5D3B3]/30 opacity-70 hover:opacity-100"
                         }`}
                       >
                         <Image
@@ -276,8 +286,8 @@ export default function ProductDetailsPage() {
                   </div>
                 )}
 
-                {/* Main Big Image - Explicit Width Fix */}
-                <div className="w-full bg-[#F0EBE3] border border-[#E2DCD3] rounded h-[320px] sm:h-[460px] md:h-[540px] relative flex items-center justify-center group overflow-hidden">
+                {/* Main Big Image */}
+                <div className="w-full bg-[#FDF6EE] border border-[#E5D3B3]/30 rounded h-[320px] sm:h-[460px] md:h-[540px] relative flex items-center justify-center group overflow-hidden">
                   <Image
                     src={imagesList[activeImage]}
                     alt={product.name}
@@ -287,7 +297,7 @@ export default function ProductDetailsPage() {
                   />
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="absolute top-3 right-3 bg-white/90 border border-[#E2DCD3] hover:bg-white p-2 rounded shadow-sm text-[#1E293B] transition"
+                    className="absolute top-3 right-3 bg-white/90 border border-[#E5D3B3]/30 hover:bg-white p-2 rounded shadow-sm text-[#0B2523] transition"
                   >
                     <Maximize2 size={16} />
                   </button>
@@ -295,8 +305,8 @@ export default function ProductDetailsPage() {
               </div>
 
               {/* Disclaimer Info Box */}
-              <div className="border border-[#E2DCD3] rounded lg:ml-24 bg-[#F0EBE3] p-3.5 flex items-start gap-2.5 text-[#64748B] text-[11px] leading-relaxed">
-                <Info size={16} className="shrink-0 text-[#0D9488] mt-0.5" />
+              <div className="border border-[#E5D3B3]/30 rounded lg:ml-24 bg-[#FDF6EE] p-3.5 flex items-start gap-2.5 text-[#0B2523]/60 text-[11px] leading-relaxed">
+                <Info size={16} className="shrink-0 text-[#0F3D39] mt-0.5" />
                 <p>
                   Please note: Actual product color, fabric, finish, texture, and appearance may slightly differ from the images shown due to photography, lighting, device display settings, and natural material variations.
                 </p>
@@ -304,14 +314,14 @@ export default function ProductDetailsPage() {
 
               {/* Mobile Horizontal Thumbnails */}
               {imagesList.length > 0 && (
-                <div className="lg:hidden bg-[#F0EBE3] border border-[#E2DCD3] p-2.5 rounded flex gap-2.5 overflow-x-auto scrollbar-none">
+                <div className="lg:hidden bg-[#FDF6EE] border border-[#E5D3B3]/30 p-2.5 rounded flex gap-2.5 overflow-x-auto scrollbar-none">
                   {imagesList.map((img: string, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => setActiveImage(idx)}
                       className={`h-16 w-16 rounded border overflow-hidden shrink-0 transition-all ${
                         activeImage === idx
-                          ? "border-[#0D9488] ring-2 ring-[#0D9488]/30"
+                          ? "border-2 border-[#0F3D39]"
                           : "border-white opacity-80 hover:opacity-100"
                       }`}
                     >
@@ -331,48 +341,48 @@ export default function ProductDetailsPage() {
             {/* RIGHT SIDE (OPTIONS & DETAILS) */}
             <div className="lg:col-span-5 space-y-4">
               {/* DESKTOP ONLY TITLE & PRICE HEADER */}
-              <div className="hidden lg:block border-b border-[#E2DCD3] pb-3">
-                <h1 className="text-xl md:text-2xl font-bold text-[#1E293B]">
+              <div className="hidden lg:block border-b border-[#E5D3B3]/30 pb-3">
+                <h1 className="text-xl md:text-2xl font-bold text-[#0B2523]">
                   {product.name}
                 </h1>
-                <p className="text-xs text-[#94A3B8] mt-0.5 uppercase tracking-wider">
+                <p className="text-xs text-[#0B2523]/50 mt-0.5 uppercase tracking-wider">
                   SARENG-{product._id?.slice(-8)}
                 </p>
-                <p className="text-lg font-bold text-[#0D9488] mt-1.5">
+                <p className="text-lg font-bold text-[#0F3D39] mt-1.5">
                   {currentPrice.toLocaleString()} BDT
                 </p>
               </div>
 
               {/* COLLAPSIBLE OPTIONS */}
-              <div className="border border-[#E2DCD3] rounded divide-y divide-[#EEE8E0] bg-white">
+              <div className="border border-[#E5D3B3]/30 rounded divide-y divide-[#E5D3B3]/20 bg-white">
                 {/* 1. Material Collapsible */}
                 <div>
                   <button
                     type="button"
                     onClick={() => setOpenOption(openOption === "material" ? null : "material")}
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
+                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
-                        <Layers size={16} className="text-[#0D9488]" />
+                      <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
+                        <Layers size={16} className="text-[#0F3D39]" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-[#1E293B]">Material</div>
-                        <div className="text-[11px] text-[#64748B] font-medium">
+                        <div className="text-xs font-bold text-[#0B2523]">Material</div>
+                        <div className="text-[11px] text-[#0B2523]/60 font-medium">
                           {selectedMaterial ? selectedMaterial.split("(")[0].trim() : "Select Material"}
                         </div>
                       </div>
                     </div>
                     <ChevronDown
                       size={16}
-                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                      className={`text-[#0B2523]/40 transition-transform duration-200 ${
                         openOption === "material" ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
                   {openOption === "material" && (
-                    <div className="p-3 bg-[#F9F6F0] border-t border-[#EEE8E0] flex flex-wrap gap-2">
+                    <div className="p-3 bg-[#FDF6EE] border-t border-[#E5D3B3]/20 flex flex-wrap gap-2">
                       {materialsList.map((m, i) => {
                         const cleanName = m.split("(")[0].trim();
                         const isSelected = selectedMaterial === m;
@@ -384,8 +394,8 @@ export default function ProductDetailsPage() {
                             onClick={() => handleMaterialChange(m)}
                             className={`px-3 py-1.5 rounded text-xs transition border ${
                               isSelected
-                                ? "bg-[#0D9488] text-white border-[#0D9488] font-semibold shadow-sm"
-                                : "bg-white text-[#1E293B] border-[#E2DCD3] hover:border-[#0D9488] hover:text-[#0D9488]"
+                                ? "bg-[#0F3D39] text-[#E5D3B3] border-[#0F3D39] font-semibold shadow-sm"
+                                : "bg-white text-[#0B2523] border-[#E5D3B3]/40 hover:border-[#0F3D39] hover:text-[#0F3D39]"
                             }`}
                           >
                             {cleanName}
@@ -403,26 +413,26 @@ export default function ProductDetailsPage() {
                     onClick={() =>
                       setOpenOption(openOption === "color" ? null : "color")
                     }
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
+                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
-                        <Palette size={16} className="text-[#0D9488]" />
+                      <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
+                        <Palette size={16} className="text-[#0F3D39]" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-[#1E293B]">Color</div>
+                        <div className="text-xs font-bold text-[#0B2523]">Color</div>
                       </div>
                     </div>
                     <ChevronDown
                       size={16}
-                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                      className={`text-[#0B2523]/40 transition-transform duration-200 ${
                         openOption === "color" ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
                   {openOption === "color" && (
-                    <div className="p-3 bg-[#F9F6F0] border-t border-[#EEE8E0]">
+                    <div className="p-3 bg-[#FDF6EE] border-t border-[#E5D3B3]/20">
                       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                         {colorsList.map((c: { name: string; hex: string }, i: number) => {
                           const isSelected = selectedColor.includes(c.name);
@@ -443,8 +453,8 @@ export default function ProductDetailsPage() {
                               }}
                               className={`group overflow-hidden rounded-lg bg-white border text-left transition-all duration-200 flex items-center justify-center p-1 ${
                                 isSelected
-                                  ? "border-[#0D9488] ring-1 ring-[#0D9488] shadow-sm"
-                                  : "border-[#E2DCD3] hover:border-[#0D9488]"
+                                  ? "border-2 border-[#0F3D39] shadow-sm"
+                                  : "border-[#E5D3B3]/30 hover:border-[#0F3D39]"
                               }`}
                             >
                               <div
@@ -466,29 +476,29 @@ export default function ProductDetailsPage() {
                   <button
                     type="button"
                     onClick={() => setOpenOption(openOption === "size" ? null : "size")}
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition"
+                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#0D9488]/10 flex items-center justify-center">
-                        <Ruler size={16} className="text-[#0D9488]" />
+                      <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
+                        <Ruler size={16} className="text-[#0F3D39]" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-[#1E293B]">Size</div>
-                        <div className="text-[11px] text-[#64748B] font-medium truncate max-w-[200px]">
+                        <div className="text-xs font-bold text-[#0B2523]">Size</div>
+                        <div className="text-[11px] text-[#0B2523]/60 font-medium truncate max-w-[200px]">
                           {selectedSize ? selectedSize.split("\n")[0].trim() : "Select Size"}
                         </div>
                       </div>
                     </div>
                     <ChevronDown
                       size={16}
-                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                      className={`text-[#0B2523]/40 transition-transform duration-200 ${
                         openOption === "size" ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
                   {openOption === "size" && (
-                    <div className="p-4 bg-[#F9F6F0] border-t border-[#EEE8E0] space-y-2">
+                    <div className="p-4 bg-[#FDF6EE] border-t border-[#E5D3B3]/20 space-y-2">
                       {sizesList.map((sz, index) => {
                         const isSelected = selectedSize === sz;
 
@@ -507,12 +517,12 @@ export default function ProductDetailsPage() {
                             key={index}
                             className={`rounded-xl border p-3 transition ${
                               isSelected
-                                ? "border-[#0D9488] bg-[#0D9488]/5"
-                                : "border-[#E2DCD3] bg-white"
+                                ? "border-[#0F3D39] bg-[#0F3D39]/5"
+                                : "border-[#E5D3B3]/30 bg-white"
                             }`}
                           >
                             {label && (
-                              <p className="text-xs font-bold text-[#1E293B] mb-2">
+                              <p className="text-xs font-bold text-[#0B2523] mb-2">
                                 {label}
                               </p>
                             )}
@@ -524,9 +534,9 @@ export default function ProductDetailsPage() {
                                 return (
                                   <div
                                     key={lineIndex}
-                                    className="flex items-center justify-between bg-[#F9F6F0] rounded-lg px-3 py-2 border border-[#E2DCD3]"
+                                    className="flex items-center justify-between bg-[#FDF6EE] rounded-lg px-3 py-2 border border-[#E5D3B3]/20"
                                   >
-                                    <span className="text-xs font-medium text-[#1E293B]">
+                                    <span className="text-xs font-medium text-[#0B2523]">
                                       {trimmedLine}
                                     </span>
                                     <button
@@ -535,7 +545,7 @@ export default function ProductDetailsPage() {
                                         navigator.clipboard.writeText(trimmedLine);
                                         toast.success("Copied!");
                                       }}
-                                      className="text-[#94A3B8] hover:text-[#0D9488] transition"
+                                      className="text-[#0B2523]/40 hover:text-[#0F3D39] transition"
                                     >
                                       <Copy size={14} />
                                     </button>
@@ -552,64 +562,60 @@ export default function ProductDetailsPage() {
               </div>
 
               {/* Quantity Counter */}
-              <div className="flex items-center justify-between border border-[#E2DCD3] rounded p-2.5 bg-white">
-                <span className="text-xs font-semibold text-[#1E293B]">Quantity</span>
-                <div className="flex items-center border border-[#E2DCD3] rounded overflow-hidden w-28 h-8">
+              <div className="flex items-center justify-between bg-white border border-[#E5D3B3]/30 rounded px-4 py-3">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-full flex items-center justify-center hover:bg-[#F9F6F0] text-[#1E293B]"
+                    className="w-8 h-8 bg-[#FDF6EE] border border-[#E5D3B3]/30 rounded flex items-center justify-center text-[#0B2523] hover:bg-[#0F3D39] hover:text-[#E5D3B3] transition"
                   >
                     <Minus size={14} />
                   </button>
-                  <span className="flex-1 text-center text-xs font-semibold text-[#1E293B]">
-                    {quantity}
-                  </span>
+                  <span className="text-sm font-bold text-[#0B2523] w-8 text-center">{quantity}</span>
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-full flex items-center justify-center hover:bg-[#F9F6F0] text-[#1E293B]"
+                    className="w-8 h-8 bg-[#FDF6EE] border border-[#E5D3B3]/30 rounded flex items-center justify-center text-[#0B2523] hover:bg-[#0F3D39] hover:text-[#E5D3B3] transition"
                   >
                     <Plus size={14} />
                   </button>
                 </div>
+                <div className="text-xs text-[#0B2523]/60 font-medium">Quantity</div>
               </div>
 
               {/* Action Buttons */}
-              <div className="bg-[#1E293B] rounded text-white flex items-center overflow-hidden shadow-sm h-12">
-                <div className="flex-1 px-3 text-center border-r border-[#334155]">
+              <div className="bg-[#0F3D39] rounded text-[#E5D3B3] flex items-center overflow-hidden shadow-sm h-12">
+                <div className="flex-1 px-3 text-center border-r border-[#E5D3B3]/20">
                   <div className="text-xs font-bold">
                     {(currentPrice * quantity).toLocaleString()} BDT
-                  </div>
-                  <div className="text-[9px] opacity-90">
-                    {currentPrice.toLocaleString()} x {quantity}
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-1.5 font-semibold text-xs h-full hover:bg-[#0D9488] transition"
+                  className="flex-1 h-full flex items-center justify-center gap-2 hover:bg-[#0B2523] transition"
                 >
-                  <ShoppingBag size={15} /> Add to Cart
+                  <ShoppingBag size={16} />
+                  <span className="text-xs font-bold uppercase tracking-wider">Add to Cart</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={toggleWishlist}
-                  className={`px-3.5 h-full flex items-center justify-center border-l border-[#334155] hover:bg-[#0D9488] transition ${
-                    liked ? "bg-[#0D9488]" : ""
+                  className={`px-3.5 h-full flex items-center justify-center border-l border-[#E5D3B3]/20 hover:bg-[#0B2523] transition ${
+                    liked ? "bg-[#0B2523]" : ""
                   }`}
                 >
                   <Heart
                     size={18}
-                    className={liked ? "fill-white text-white" : "text-white"}
+                    className={liked ? "fill-[#E5D3B3] text-[#E5D3B3]" : "text-[#E5D3B3]"}
                   />
                 </button>
               </div>
 
               {/* EMI Banner */}
-              <div className="bg-[#0D9488]/10 border border-[#0D9488]/20 text-[#0D9488] rounded p-2.5 text-center text-xs font-bold">
+              <div className="bg-[#FF7A00]/10 border border-[#FF7A00]/30 text-[#0B2523] rounded p-2.5 text-center text-xs font-bold">
                 EMI starts from{" "}
                 {Math.round((currentPrice * quantity) / 12).toLocaleString()}{" "}
                 BDT/month
@@ -617,14 +623,14 @@ export default function ProductDetailsPage() {
 
               {/* Right Side Accordions */}
               <div className="space-y-2 pt-2">
-                <div className="border border-[#E2DCD3] rounded bg-white">
+                <div className="border border-[#E5D3B3]/30 rounded bg-white">
                   <button
                     type="button"
                     onClick={() => setOpenAccordion(openAccordion === "pkg" ? null : "pkg")}
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
                   >
                     <span className="flex items-center gap-2">
-                      <Package size={14} className="text-[#0D9488]" /> Packaging Information
+                      <Package size={14} className="text-[#0F3D39]" /> Packaging Information
                     </span>
                     <ChevronDown
                       size={14}
@@ -632,42 +638,91 @@ export default function ProductDetailsPage() {
                     />
                   </button>
                   {openAccordion === "pkg" && (
-                    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
+                    <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2">
                       Flat-pack delivery with heavy-duty corrugated cardboard protection.
                     </div>
                   )}
                 </div>
 
-                <div className="border border-[#E2DCD3] rounded bg-white">
+                {/* Need Help Section */}
+                <div className="border border-[#E5D3B3]/30 rounded bg-white">
                   <button
                     type="button"
                     onClick={() => setOpenAccordion(openAccordion === "help" ? null : "help")}
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
                   >
                     <span className="flex items-center gap-2">
-                      <HelpCircle size={14} className="text-[#0D9488]" /> Need Help?
+                      <HelpCircle size={14} className="text-[#0F3D39]" /> Need Help?
                     </span>
                     <ChevronDown
                       size={14}
                       className={`transition-transform ${openAccordion === "help" ? "rotate-180" : ""}`}
                     />
                   </button>
+                  
                   {openAccordion === "help" && (
-                    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
-                      Contact our support hotline or visit our nearest showroom for assistance.
+                    <div className="px-3.5 pb-3.5 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-3.5">
+                      
+                      {/* Showroom Contact Info */}
+                      <p className="mb-3 font-semibold text-[#0B2523]">
+                        Contact your nearest showroom:
+                      </p>
+                      
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0">
+                          <span className="text-[#0B2523]">1. Dhanmondi Branch</span>
+                          <a href="tel:+8801711000001" className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors">
+                            <Phone size={11} /> +880 1711-000001
+                          </a>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0">
+                          <span className="text-[#0B2523]">2. Gulshan Branch</span>
+                          <a href="tel:+8801711000002" className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors">
+                            <Phone size={11} /> +880 1711-000002
+                          </a>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0">
+                          <span className="text-[#0B2523]">3. Uttara Branch</span>
+                          <a href="tel:+8801711000003" className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors">
+                            <Phone size={11} /> +880 1711-000003
+                          </a>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0">
+                          <span className="text-[#0B2523]">4. Banani Branch</span>
+                          <a href="tel:+8801711000004" className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors">
+                            <Phone size={11} /> +880 1711-000004
+                          </a>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0">
+                          <span className="text-[#0B2523]">5. Mirpur Branch</span>
+                          <a href="tel:+8801711000005" className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors">
+                            <Phone size={11} /> +880 1711-000005
+                          </a>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0">
+                          <span className="text-[#0B2523]">6. Chattogram Branch</span>
+                          <a href="tel:+8801711000006" className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors">
+                            <Phone size={11} /> +880 1711-000006
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Bottom Text */}
+                      <p className="mt-3 pt-3 border-t border-[#E5D3B3]/20 text-[#0B2523]/60">
+                        Or visit our nearest showroom for assistance.
+                      </p>
                     </div>
                   )}
                 </div>
-
                 {/* Warranty Section */}
-                <div className="border border-[#E2DCD3] rounded bg-white">
+                <div className="border border-[#E5D3B3]/30 rounded bg-white">
                   <button
                     type="button"
                     onClick={() => setOpenAccordion(openAccordion === "war" ? null : "war")}
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#1E293B]"
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
                   >
                     <span className="flex items-center gap-2">
-                      <ShieldCheck size={14} className="text-[#0D9488]" /> 
+                      <ShieldCheck size={14} className="text-[#0F3D39]" /> 
                       Warranty
                     </span>
                     <ChevronDown
@@ -677,7 +732,7 @@ export default function ProductDetailsPage() {
                   </button>
                   
                   {openAccordion === "war" && (
-                    <div className="px-3.5 pb-3 text-xs text-[#64748B] border-t border-[#EEE8E0] pt-2">
+                    <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2">
                       {productAny.warrantyInfo || "Includes 1-year service warranty covering manufacturing defects."}
                     </div>
                   )}
@@ -686,28 +741,249 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* ABOUT THIS ITEM */}
-          <div className="mt-16 border-t border-[#E2DCD3] pt-10 space-y-10">
-            <div>
-              <h3 className="text-base font-bold text-[#1E293B] mb-3 uppercase tracking-wider">
-                About this item
-              </h3>
-              <ul className="space-y-2 text-sm text-[#1E293B] leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488] mt-2 shrink-0"></span>
-                  <span>
-                    {product.description ||
-                      "Crafted with precision using top-tier sustainable materials to ensure superior structural stability and long-lasting durability."}
-                  </span>
-                </li>
-              </ul>
+          {/* ABOUT THIS ITEM & FEATURES ACCORDION */}
+          <div className="w-full mt-10 border-y border border-[#E5D3B3]/30">
+            {/* Accordion Header */}
+            <button
+              type="button"
+              onClick={() => setDescriptionOpen(!descriptionOpen)}
+              className="w-full flex items-center justify-between py-4 px-1 text-left transition-colors hover:opacity-80 focus:outline-none"
+            >
+              <span className="text-sm pl-4 font-semibold text-[#0B2523]">
+                Features
+              </span>
+              <ChevronDown
+                size={18}
+                className={`text-[#0B2523]/40 transition-transform duration-200 ${
+                  descriptionOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Accordion Content */}
+            {descriptionOpen && (
+              <div className="pb-6 pt-1 px-1 space-y-3 text-sm text-[#0B2523] leading-relaxed">
+                {/* Dynamic Data Handling */}
+                {Array.isArray(product?.description) ? (
+                  <ul className="space-y-2">
+                    {product.description.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : typeof product?.description === "string" && product.description.trim() !== "" ? (
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                    <span>{product.description}</span>
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                      <span>
+                        Crafted with precision using top-tier sustainable materials to ensure superior structural stability and long-lasting durability.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                      <span>Made from high-quality raw materials for superior durability.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                      <span>Indoor use only.</span>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* TABS SECTION */}
+          <div className="mt-12 border border-[#E5D3B3]/30 rounded-xl bg-white overflow-hidden">
+            {/* Tab Headers */}
+            <div className="flex border-b border-[#E5D3B3]/30 bg-[#FDF6EE]">
+              <button
+                type="button"
+                onClick={() => setActiveTab("description")}
+                className={`flex-1 py-3.5 px-4 text-sm font-semibold transition-colors border-b-2 ${
+                  activeTab === "description"
+                    ? "text-[#0F3D39] border-[#0F3D39] bg-white"
+                    : "text-[#0B2523]/50 border-transparent hover:text-[#0F3D39]"
+                }`}
+              >
+                Description
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("specs")}
+                className={`flex-1 py-3.5 px-4 text-sm font-semibold transition-colors border-b-2 ${
+                  activeTab === "specs"
+                    ? "text-[#0F3D39] border-[#0F3D39] bg-white"
+                    : "text-[#0B2523]/50 border-transparent hover:text-[#0F3D39]"
+                }`}
+              >
+                Specifications
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("reviews")}
+                className={`flex-1 py-3.5 px-4 text-sm font-semibold transition-colors border-b-2 ${
+                  activeTab === "reviews"
+                    ? "text-[#0F3D39] border-[#0F3D39] bg-white"
+                    : "text-[#0B2523]/50 border-transparent hover:text-[#0F3D39]"
+                }`}
+              >
+                Reviews
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6 bg-white">
+              {/* Description Tab */}
+              {activeTab === "description" && (
+                <div className="space-y-3 text-sm text-[#0B2523]/80 leading-relaxed">
+                  {Array.isArray(product?.description) ? (
+                    <ul className="space-y-3">
+                      {product.description.map((item, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : typeof product?.description === "string" && product.description.trim() !== "" ? (
+                    <div className="flex items-start gap-3">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                      <span>{product.description}</span>
+                    </div>
+                  ) : (
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-3">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                        <span>Crafted with precision using top-tier sustainable materials to ensure superior structural stability and long-lasting durability.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                        <span>Made from high-quality raw materials for superior durability.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0"></span>
+                        <span>Indoor use only.</span>
+                      </li>
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {/* Specifications Tab */}
+              {activeTab === "specs" && (
+                <div className="overflow-hidden rounded-lg border border-[#E5D3B3]/30">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {[
+                        ["Material", selectedMaterial || "Premium Wood"],
+                        ["Color", selectedColor || "Multiple Options"],
+                        ["Size", selectedSize || "Standard Size"],
+                        ["Category", productAny.category || "Furniture"],
+                        ["Brand", "Sareng"],
+                        ["Warranty", "1 Year Service Warranty"],
+                      ].map(([label, value], idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? "bg-[#FDF6EE]" : "bg-[#F4F5F7]"}>
+                          <td className="px-4 py-3 font-semibold text-[#0B2523] w-1/3">{label}</td>
+                          <td className="px-4 py-3 text-[#0B2523]/70">{value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Reviews Tab */}
+              {activeTab === "reviews" && (
+                <div>
+                  {/* Rating Summary */}
+                  <div className="flex flex-col md:flex-row gap-6 mb-8">
+                    <div className="flex-1 bg-[#FDF6EE] rounded-lg p-5 text-center border border-[#E5D3B3]/30">
+                      <div className="text-4xl font-bold text-[#0B2523]">4.0</div>
+                      <div className="flex items-center justify-center gap-0.5 mt-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={16}
+                            className={
+                              star <= 4
+                                ? "fill-[#E5D3B3] text-[#E5D3B3]"
+                                : "fill-[#E5D3B3]/40 text-[#E5D3B3]/40"
+                            }
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-[#0B2523]/60 mt-2">Based on 12 reviews</p>
+                    </div>
+                    
+                    {/* Rating Breakdown Bars */}
+                    <div className="flex-1 space-y-2">
+                      {[
+                        { stars: 5, percent: 75 },
+                        { stars: 4, percent: 50 },
+                        { stars: 3, percent: 25 },
+                        { stars: 2, percent: 10 },
+                        { stars: 1, percent: 5 },
+                      ].map((item) => (
+                        <div key={item.stars} className="flex items-center gap-3">
+                          <span className="text-xs font-medium text-[#0B2523] w-8">{item.stars} Star</span>
+                          <div className="flex-1 h-2 bg-[#FDF6EE] rounded-full overflow-hidden border border-[#E5D3B3]/20">
+                            <div
+                              className="h-full bg-[#0F3D39] rounded-full"
+                              style={{ width: `${item.percent}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-[#0B2523]/60 w-8 text-right">{item.percent}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Review Cards */}
+                  <div className="space-y-4">
+                    {mockReviews.map((review, idx) => (
+                      <div key={idx} className="border border-[#E5D3B3]/30 rounded-lg p-4 bg-white">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-[#0B2523] text-sm">{review.name}</span>
+                              <span className="text-xs text-[#0B2523]/50">• {review.date}</span>
+                            </div>
+                            <div className="flex items-center gap-0.5 mt-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  size={12}
+                                  className={
+                                    star <= review.rating
+                                      ? "fill-[#E5D3B3] text-[#E5D3B3]"
+                                      : "fill-[#E5D3B3]/30 text-[#E5D3B3]/30"
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-[#0B2523]/70 leading-relaxed">{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* RELATED PRODUCTS */}
           {relatedProducts.length > 0 && (
             <div className="mt-16">
-              <h2 className="text-base font-bold text-[#1E293B] mb-4">
+              <h2 className="text-base font-bold text-[#0B2523] mb-4">
                 Related Products in {product.category || "Same Category"}
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

@@ -18,10 +18,9 @@ import {
 } from "react-icons/fi";
 import CustomOrderSection from "@/components/CustomOrderSection";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay, Grid } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
-import "swiper/css/grid";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
 
@@ -49,21 +48,6 @@ function useCountdown(targetDate: string | Date) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const staticCategories = [
-  { name: "Sofa", image: "/images/sofa.png" },
-  { name: "Bed", image: "/images/bed.png" },
-  { name: "Dining Table", image: "/images/dining.png" },
-  { name: "Chair", image: "/images/chair.png" },
-  { name: "Wardrobe", image: "/images/dresing-taible.png" },
-  { name: "Bookshelf", image: "/images/reaging-taible.png" },
-  { name: "Coffee Table", image: "/images/coffee-table.png" },
-  { name: "Lamp", image: "/images/lamp.png" },
-  { name: "Desk", image: "/images/desk.png" },
-  { name: "Mirror", image: "/images/mirror.png" },
-  { name: "Rug", image: "/images/img1 (2).png" },
-  { name: "Cabinet", image: "/images/img33.png" },
-];
-
 const blogPosts = [
   {
     title: "5 Tips to Style Your Living Room",
@@ -88,21 +72,21 @@ const blogPosts = [
   },
 ];
 
-// ─── Reusable Carousel Nav Button ────────────────────────────────────────────
+// ─── Reusable Carousel Nav Button (Hero Style) ─────────────────────────────────
 
 function NavBtn({ onClick, dir, disabled = false }: { onClick: () => void; dir: "prev" | "next"; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+      className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 ${
         disabled 
-          ? "border-gray-200 text-gray-300 cursor-not-allowed" 
-          : "border-gray-300 text-gray-500 hover:bg-[#d69a45] hover:border-[#d69a45] hover:text-white"
+          ? "border-[#E5D3B3]/40 text-[#E5D3B3]/40 cursor-not-allowed" 
+          : "border-[#0B2523]/20 text-[#0B2523] hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]"
       }`}
       aria-label={dir === "prev" ? "Previous" : "Next"}
     >
-      {dir === "prev" ? <FiChevronLeft size={15} /> : <FiChevronRight size={15} />}
+      {dir === "prev" ? <FiChevronLeft size={16} /> : <FiChevronRight size={16} />}
     </button>
   );
 }
@@ -114,12 +98,6 @@ export default function BeautyShopSectionsPage() {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [dynamicCategories] = useState(staticCategories);
-  
-  const categorySwiper = useRef<SwiperType | null>(null);
-  const [isBeginning, setIsBeginning] = useState(true);
-  const [isEnd, setIsEnd] = useState(false);
-
   const bestSellerSwiper = useRef<SwiperType | null>(null);
   const newArrivalSwiper = useRef<SwiperType | null>(null);
   const topRatedSwiper = useRef<SwiperType | null>(null);
@@ -167,100 +145,15 @@ export default function BeautyShopSectionsPage() {
   const goToShop = () => router.push("/shop");
 
   return (
-    <div className="bg-[#faf8f5] text-[#2e3326] font-sans antialiased">
-
-      {/* ── 1. Custom Order Section ────────────────────────── */}
-      <CustomOrderSection />
-
-      {/* ════════════════════════════════════════════════════════════ */}
-      {/* ── 2. Shop By Category (Swiper Grid - 2 Rows) ──────────── */}
-      {/* ════════════════════════════════════════════════════════════ */}
-      {dynamicCategories.length > 0 && (
-        <section className="py-12 bg-white">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            
-            {/* Header Section with Navigation */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex flex-col">
-                <h2 className="text-2xl md:text-3xl font-bold text-[#333333] tracking-wide">
-                  Shop By Category
-                </h2>
-                <div className="w-10 h-[1px] bg-[#d5a158] mt-3" />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <NavBtn 
-                  dir="prev" 
-                  onClick={() => categorySwiper.current?.slidePrev()} 
-                  disabled={isBeginning}
-                />
-                <NavBtn 
-                  dir="next" 
-                  onClick={() => categorySwiper.current?.slideNext()} 
-                  disabled={isEnd}
-                />
-              </div>
-            </div>
-
-            {/* ✅ Swiper Grid (২ লাইন) */}
-            <Swiper
-              modules={[Grid, Navigation]}
-              onSwiper={(swiper) => {
-                categorySwiper.current = swiper;
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
-              }}
-              onSlideChange={(swiper) => {
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
-              }}
-              spaceBetween={10} // মোবাইলে গ্যাপ কমিয়ে 10 করা হয়েছে যাতে ৪টি ফিট হয়
-              slidesPerView={4} // ✅ মোবাইলে (সবচেয়ে ছোট স্ক্রিনে) ৪টি কলাম
-              grid={{ rows: 2, fill: "row" }}
-              breakpoints={{
-                // 640px এর উপরে ৩টি কলাম
-                640: { slidesPerView: 3, grid: { rows: 2 }, spaceBetween: 16 },
-                // 1024px এর উপরে ৬টি কলাম
-                1024: { slidesPerView: 6, grid: { rows: 2 }, spaceBetween: 16 },
-              }}
-              className="w-full overflow-hidden py-2"
-            >
-              {dynamicCategories.map((cat, index) => (
-                <SwiperSlide key={index} className="h-auto">
-                  <button
-                    onClick={() => router.push(`/shop?category=${encodeURIComponent(cat.name)}`)}
-                    className="group w-full cursor-pointer focus:outline-none text-center h-full"
-                  >
-                    <div className="bg-[#f9f7f4] rounded-lg p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 min-h-[80px] sm:min-h-[100px] md:min-h-[120px] h-full">
-                      
-                      <div className="w-full aspect-[4/3] relative flex items-center justify-center mb-1 sm:mb-2 md:mb-3">
-                        <img
-                          src={cat.image}
-                          alt={cat.name}
-                          className="w-[75%] sm:w-[80%] h-[75%] sm:h-[80%] object-contain transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
-
-                      <p className="text-[#555555] text-[9px] sm:text-[10px] md:text-xs font-medium tracking-wide">
-                        {cat.name}
-                      </p>
-                    </div>
-                  </button>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-
-          </div>
-        </section>
-      )}
+    <div className="bg-[#FDF6EE] text-[#0B2523] font-sans antialiased">
 
       {/* ── 3. Our Best Sellers ─────────────────────────────── */}
-      <section className="py-10 bg-[#faf8f5]">
+      <section className="py-10 bg-[#FDF6EE]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c]">Our Best Sellers</h2>
-              <div className="w-10 h-[2px] bg-[#d69a45] mt-2" />
+              <h2 className="text-xl md:text-2xl font-extrabold text-[#0B2523]">Our Best Sellers</h2>
+              <div className="w-10 h-[2px] bg-[#FF7A00] mt-2" />
             </div>
             <div className="flex items-center gap-2">
               <NavBtn dir="prev" onClick={() => bestSellerSwiper.current?.slidePrev()} />
@@ -269,9 +162,9 @@ export default function BeautyShopSectionsPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-16 text-gray-400 text-sm">Loading best sellers...</div>
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">Loading best sellers...</div>
           ) : bestSellers.length === 0 ? (
-            <div className="text-center py-16 text-gray-400 text-sm">No products found.</div>
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">No products found.</div>
           ) : (
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -297,20 +190,20 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 4. Banner ────────────────────────────────────────── */}
-      <section className="py-0 bg-[#faf8f5] px-4 sm:px-6 lg:px-8">
+      <section className="py-0 bg-[#FDF6EE] px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
-          <div className="bg-[#3a4739] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_380px] min-h-[240px]">
+          <div className="bg-[#0F3D39] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_380px] min-h-[240px]">
             <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center gap-4">
               <h3 className="text-2xl sm:text-3xl font-extrabold leading-snug">
-                <span className="block text-[#d69a45]">Crafted for Comfort.</span>
-                <span className="block text-[#d69a45]">Designed for You.</span>
+                <span className="block text-[#E5D3B3]">Crafted for Comfort.</span>
+                <span className="block text-[#E5D3B3]">Designed for You.</span>
               </h3>
-              <p className="text-white/70 text-sm leading-relaxed max-w-sm">
+              <p className="text-[#E5D3B3]/70 text-sm leading-relaxed max-w-sm">
                 Sustainable wood. Premium finish. Made to last for generations.
               </p>
               <button
                 onClick={goToShop}
-                className="mt-2 inline-flex items-center gap-2 bg-transparent border border-white/40 hover:border-[#d69a45] hover:bg-[#d69a45]/10 text-white text-[11px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-sm transition-all w-fit cursor-pointer"
+                className="mt-2 inline-flex items-center gap-2 bg-transparent border border-[#E5D3B3]/40 hover:border-[#FF7A00] hover:bg-[#FF7A00]/10 text-[#E5D3B3] text-[11px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-sm transition-all w-fit cursor-pointer"
               >
                 Discover More
               </button>
@@ -327,19 +220,19 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 5. New Arrivals ──────────────────────────────────── */}
-      <section className="py-10 mt-4 bg-[#faf8f5]">
+      <section className="py-10 mt-4 bg-[#FDF6EE]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c]">New Arrivals</h2>
-              <div className="w-10 h-[2px] bg-[#d69a45] mt-2" />
+              <h2 className="text-xl md:text-2xl font-extrabold text-[#0B2523]">New Arrivals</h2>
+              <div className="w-10 h-[2px] bg-[#FF7A00] mt-2" />
             </div>
           </div>
 
           {loading ? (
-            <div className="text-center py-16 text-gray-400 text-sm">Loading new arrivals...</div>
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">Loading new arrivals...</div>
           ) : newArrivals.length === 0 ? (
-            <div className="text-center py-16 text-gray-400 text-sm">No products found.</div>
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">No products found.</div>
           ) : (
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -362,56 +255,41 @@ export default function BeautyShopSectionsPage() {
             </Swiper>
           )}
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-10 pt-8 border-t border-gray-100">
-            {[
-              { icon: FiGift, title: "Summer Sale", desc: "Up to 40% Off" },
-              { icon: FiTruck, title: "Free Shipping", desc: "On Orders Over ৳2000" },
-              { icon: FiShield, title: "Secure Payments", desc: "100% Safe & Secure" },
-              { icon: FiThumbsUp, title: "24/7 Support", desc: "We're Here to Help" },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <div key={i} className="flex items-center gap-3 p-4 bg-[#f4f2ec] rounded-xl">
-                <Icon size={22} className="text-[#d69a45] shrink-0" />
-                <div>
-                  <h5 className="font-bold text-xs text-[#2e3a2c]">{title}</h5>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        
         </div>
       </section>
 
       {/* ── 6. Make Your Space ───────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-[#faf8f5] overflow-hidden">
+      <section className="py-16 md:py-24 bg-[#FDF6EE] overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div className="space-y-6 lg:pr-10 relative z-10">
-              <div className="inline-block px-3 py-1 bg-[#d69a45]/10 text-[#d69a45] text-[10px] font-bold uppercase tracking-widest rounded-sm mb-2">
+              <div className="inline-block px-3 py-1 bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold uppercase tracking-widest rounded-sm mb-2">
                 Premium Collection
               </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] leading-[1.15] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0B2523] leading-[1.15] tracking-tight">
                 Make Your Space<br />More Stylish &amp; Functional
               </h2>
-              <p className="text-gray-500 text-[15px] leading-relaxed max-w-md">
+              <p className="text-[#0B2523]/70 text-[15px] leading-relaxed max-w-md">
                 From modern minimalism to classic elegance, discover thoughtfully designed pieces.
               </p>
               <div className="pt-2">
                 <button
                   onClick={goToShop}
-                  className="group relative inline-flex items-center justify-center bg-[#d69a45] text-white text-[11px] font-bold uppercase tracking-[0.2em] px-8 py-4 rounded-sm overflow-hidden transition-all hover:shadow-[0_10px_20px_rgba(214,154,69,0.3)]"
+                  className="group relative inline-flex items-center justify-center bg-[#FF7A00] text-white text-[11px] font-bold uppercase tracking-[0.2em] px-8 py-4 rounded-sm overflow-hidden transition-all hover:shadow-[0_10px_20px_rgba(255,122,0,0.3)]"
                 >
                   <span className="relative z-10">Shop Collection</span>
-                  <div className="absolute inset-0 h-full w-0 bg-[#c0873a] transition-all duration-300 ease-out group-hover:w-full z-0"></div>
+                  <div className="absolute inset-0 h-full w-0 bg-[#E56E00] transition-all duration-300 ease-out group-hover:w-full z-0"></div>
                 </button>
               </div>
             </div>
 
             <div className="relative flex justify-center items-end h-[400px] sm:h-[500px] lg:h-[600px] mt-10 lg:mt-0">
-              <div className="absolute bottom-0 w-[85%] sm:w-[75%] h-[85%] bg-[#3a4739] rounded-t-full shadow-2xl overflow-hidden group">
+              <div className="absolute bottom-0 w-[85%] sm:w-[75%] h-[85%] bg-[#0F3D39] rounded-t-full shadow-2xl overflow-hidden group">
                 <div className="absolute inset-0 opacity-20 bg-[url('/images/side.jpg')] bg-cover bg-center mix-blend-overlay transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
               </div>
-              <div className="absolute -bottom-6 -left-6 lg:left-10 w-40 h-40 bg-[#d69a45]/30 rounded-full blur-3xl" />
+              <div className="absolute -bottom-6 -left-6 lg:left-10 w-40 h-40 bg-[#FF7A00]/30 rounded-full blur-3xl" />
               <img
                 src="/images/julia-RuCVvjuyNeQ-unsplash.jpg"
                 alt="Stylish Armchair"
@@ -423,10 +301,10 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 7. Why Choose ────────────────────────────────────── */}
-      <section className="py-14 bg-[#faf8f5]">
+      <section className="py-14 bg-[#FDF6EE]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] tracking-tight mb-10">
-            Why Choose Sea Connecting Dots?
+          <h2 className="text-xl md:text-2xl font-extrabold text-[#0B2523] tracking-tight mb-10">
+            Why Choose Davici Furniture?
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -435,12 +313,12 @@ export default function BeautyShopSectionsPage() {
               { icon: FiUsers, title: "Trusted by Many", desc: "Thousands of happy customers." },
               { icon: FiThumbsUp, title: "Satisfaction Guaranteed", desc: "We stand by our promise." },
             ].map(({ icon: Icon, title, desc }, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center gap-3 p-6 bg-[#f4f2ec] rounded-xl">
-                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-[#d69a45] shadow-sm">
+              <div key={idx} className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-xl border border-[#E5D3B3]/20">
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#FDF6EE] text-[#FF7A00] shadow-sm">
                   <Icon size={20} />
                 </div>
-                <h4 className="font-bold text-sm text-[#2e3a2c]">{title}</h4>
-                <p className="text-[11px] text-gray-400 leading-relaxed">{desc}</p>
+                <h4 className="font-bold text-sm text-[#0B2523]">{title}</h4>
+                <p className="text-[11px] text-[#0B2523]/60 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -448,7 +326,7 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 8. Stats Bar ─────────────────────────────────────── */}
-      <section className="bg-[#3a4739] text-white py-8">
+      <section className="bg-[#0F3D39] text-white py-8">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
             {[
@@ -458,8 +336,8 @@ export default function BeautyShopSectionsPage() {
               { stat: "98%", label: "Satisfaction Rate" },
             ].map(({ stat, label }, idx) => (
               <div key={idx}>
-                <div className="text-2xl md:text-3xl font-extrabold text-[#d69a45]">{stat}</div>
-                <div className="text-[11px] text-white/60 uppercase tracking-wider mt-1 font-medium">{label}</div>
+                <div className="text-2xl md:text-3xl font-extrabold text-[#E5D3B3]">{stat}</div>
+                <div className="text-[11px] text-[#E5D3B3]/60 uppercase tracking-wider mt-1 font-medium">{label}</div>
               </div>
             ))}
           </div>
@@ -468,12 +346,12 @@ export default function BeautyShopSectionsPage() {
 
       {/* ── 9. Deal Of The Week ──────────────────────────────── */}
       {dealProduct && (
-        <section className="py-12 bg-[#faf8f5]">
+        <section className="py-12 bg-[#FDF6EE]">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c]">Deal Of The Week</h2>
-                <div className="w-10 h-[2px] bg-[#d69a45] mt-2" />
+                <h2 className="text-xl md:text-2xl font-extrabold text-[#0B2523]">Deal Of The Week</h2>
+                <div className="w-10 h-[2px] bg-[#FF7A00] mt-2" />
               </div>
               <div className="flex items-center gap-2">
                 <NavBtn dir="prev" onClick={() => {}} />
@@ -481,9 +359,9 @@ export default function BeautyShopSectionsPage() {
               </div>
             </div>
 
-            <div className="bg-[#f4f2ec] rounded-xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 items-center">
+            <div className="bg-white rounded-xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 items-center border border-[#E5D3B3]/20 shadow-sm">
               <div
-                className="bg-white rounded-xl flex items-center justify-center h-[220px] sm:h-[280px] cursor-pointer overflow-hidden"
+                className="bg-[#FDF6EE] rounded-xl flex items-center justify-center h-[220px] sm:h-[280px] cursor-pointer overflow-hidden"
                 onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
               >
                 <img
@@ -495,18 +373,18 @@ export default function BeautyShopSectionsPage() {
 
               <div className="space-y-4">
                 <h3
-                  className="text-xl sm:text-2xl font-extrabold text-[#2e3a2c] hover:text-[#d69a45] transition-colors cursor-pointer leading-snug"
+                  className="text-xl sm:text-2xl font-extrabold text-[#0B2523] hover:text-[#FF7A00] transition-colors cursor-pointer leading-snug"
                   onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
                 >
                   {dealProduct.name}
                 </h3>
-                <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
+                <p className="text-[#0B2523]/70 text-sm leading-relaxed line-clamp-2">
                   {dealProduct.description || "Premium quality piece built for comfort."}
                 </p>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-2xl font-black text-[#d69a45]">৳{dealProduct.price}</span>
+                  <span className="text-2xl font-black text-[#FF7A00]">৳{dealProduct.price}</span>
                   {dealProduct.originalPrice && dealProduct.originalPrice > dealProduct.price && (
-                    <span className="text-sm text-gray-400 line-through">৳{dealProduct.originalPrice}</span>
+                    <span className="text-sm text-[#0B2523]/50 line-through">৳{dealProduct.originalPrice}</span>
                   )}
                 </div>
                 <div className="flex gap-3">
@@ -516,17 +394,17 @@ export default function BeautyShopSectionsPage() {
                     { value: countdown.minutes, label: "Min" },
                     { value: countdown.seconds, label: "Sec" },
                   ].map(({ value, label }, idx) => (
-                    <div key={idx} className="bg-white rounded-lg px-3 py-2 text-center min-w-[56px] shadow-sm">
-                      <span className="block font-black text-[#2e3a2c] text-base tabular-nums">
+                    <div key={idx} className="bg-[#FDF6EE] rounded-lg px-3 py-2 text-center min-w-[56px] shadow-sm border border-[#E5D3B3]/20">
+                      <span className="block font-black text-[#0B2523] text-base tabular-nums">
                         {String(value).padStart(2, "0")}
                       </span>
-                      <span className="text-[9px] text-gray-400 uppercase font-semibold tracking-wide">{label}</span>
+                      <span className="text-[9px] text-[#0B2523]/50 uppercase font-semibold tracking-wide">{label}</span>
                     </div>
                   ))}
                 </div>
                 <button
                   onClick={() => router.push(`/product/${dealProduct._id || dealProduct.id}`)}
-                  className="bg-[#d69a45] hover:bg-[#c0873a] text-white text-[11px] font-bold uppercase tracking-widest px-7 py-3 rounded-sm transition-all cursor-pointer shadow-sm"
+                  className="bg-[#FF7A00] hover:bg-[#E56E00] text-white text-[11px] font-bold uppercase tracking-widest px-7 py-3 rounded-sm transition-all cursor-pointer shadow-sm"
                 >
                   Shop Now
                 </button>
@@ -537,12 +415,12 @@ export default function BeautyShopSectionsPage() {
       )}
 
       {/* ── 10. Top Rated Products ───────────────────────────── */}
-      <section className="py-10 bg-[#faf8f5]">
+      <section className="py-10 bg-[#FDF6EE]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c]">Top Rated Products</h2>
-              <div className="w-10 h-[2px] bg-[#d69a45] mt-2" />
+              <h2 className="text-xl md:text-2xl font-extrabold text-[#0B2523]">Top Rated Products</h2>
+              <div className="w-10 h-[2px] bg-[#FF7A00] mt-2" />
             </div>
             <div className="flex items-center gap-2">
               <NavBtn dir="prev" onClick={() => topRatedSwiper.current?.slidePrev()} />
@@ -551,9 +429,9 @@ export default function BeautyShopSectionsPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-16 text-gray-400 text-sm">Loading top rated...</div>
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">Loading top rated...</div>
           ) : trendingProducts.length === 0 ? (
-            <div className="text-center py-16 text-gray-400 text-sm">No products found.</div>
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">No products found.</div>
           ) : (
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -579,19 +457,19 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 11. Banner ───────────────────────────────────────── */}
-      <section className="py-0 bg-[#faf8f5] px-4 sm:px-6 lg:px-8 pb-10">
+      <section className="py-0 bg-[#FDF6EE] px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-[1400px] mx-auto">
-          <div className="bg-[#2e3a2c] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_420px] min-h-[220px]">
+          <div className="bg-[#0B2523] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_420px] min-h-[220px]">
             <div className="p-8 sm:p-10 flex flex-col justify-center gap-4">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white leading-snug">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#E5D3B3] leading-snug">
                 Design That Defines<br />Your Lifestyle
               </h3>
-              <p className="text-white/60 text-sm leading-relaxed max-w-sm">
+              <p className="text-[#E5D3B3]/60 text-sm leading-relaxed max-w-sm">
                 Furniture that fits your space, your story, and your style.
               </p>
               <button
                 onClick={goToShop}
-                className="mt-1 inline-flex items-center gap-2 border border-white/30 hover:border-[#d69a45] hover:bg-[#d69a45]/10 text-white text-[11px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-sm transition-all w-fit cursor-pointer"
+                className="mt-1 inline-flex items-center gap-2 border border-[#E5D3B3]/30 hover:border-[#FF7A00] hover:bg-[#FF7A00]/10 text-[#E5D3B3] text-[11px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-sm transition-all w-fit cursor-pointer"
               >
                 Browse Collection
               </button>
@@ -608,69 +486,9 @@ export default function BeautyShopSectionsPage() {
       </section>
 
       {/* ── 12. Blog ─────────────────────────────────────────── */}
-      <section className="py-12 bg-[#faf8f5]">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-xl md:text-2xl font-extrabold text-[#2e3a2c] mb-8 text-center">
-            Latest From Our Blog
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {blogPosts.map((post, index) => (
-              <div
-                key={index}
-                className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
-              >
-                <div className="relative h-[180px] overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-3 left-3 bg-[#d69a45] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                    {post.category}
-                  </span>
-                </div>
-                <div className="p-5 flex-1 flex flex-col gap-3">
-                  <h3 className="font-bold text-sm text-[#2e3a2c] line-clamp-2 hover:text-[#d69a45] transition-colors cursor-pointer leading-snug">
-                    {post.title}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed flex-1">
-                    {post.excerpt}
-                  </p>
-                  <button
-                    onClick={() => router.push(post.link)}
-                    className="text-[11px] font-bold text-[#d69a45] hover:text-[#2e3a2c] transition-colors flex items-center gap-1 cursor-pointer uppercase tracking-wider mt-auto w-fit"
-                  >
-                    Read More <FiArrowRight size={11} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    
 
-      {/* ── 13. Badges ───────────────────────────────────────── */}
-      <section className="py-8 bg-[#faf8f5] border-t border-gray-100">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { title: "10% Off", desc: "For First Order", icon: FiGift },
-              { title: "Refer & Earn", desc: "Get $20 Bonus", icon: FiDollarSign },
-              { title: "VIP Club", desc: "Exclusive Benefits", icon: FiTrendingUp },
-            ].map(({ title, desc, icon: Icon }, idx) => (
-              <div key={idx} className="p-5 bg-[#f4f2ec] rounded-xl flex items-center justify-between">
-                <div>
-                  <h4 className="font-black text-sm text-[#2e3a2c]">{title}</h4>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
-                </div>
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#d69a45] shadow-sm shrink-0">
-                  <Icon size={18} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+   
 
     </div>
   );

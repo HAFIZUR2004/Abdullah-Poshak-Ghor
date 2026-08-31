@@ -18,10 +18,17 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
-      // ImgBB — legacy images (if any)
+      // ImgBB — standard images
       {
         protocol: "https",
         hostname: "i.ibb.co",
+        port: "",
+        pathname: "/**",
+      },
+      // ImgBB — extended domain
+      {
+        protocol: "https",
+        hostname: "i.ibb.co.com",
         port: "",
         pathname: "/**",
       },

@@ -13,11 +13,6 @@ import {
   FiSend,
   FiArrowRight,
   FiHeart,
-  FiTruck,
-  FiCheckCircle,
-  FiRefreshCw,
-  FiDollarSign,
-  FiShield,
 } from "react-icons/fi";
 import { useState } from "react";
 
@@ -40,10 +35,10 @@ const customerServiceLinks = [
 ];
 
 const socials = [
-  { icon: FiFacebook,  href: "https://facebook.com",  label: "Facebook",  color: "hover:bg-blue-600 hover:border-blue-600" },
-  { icon: FiInstagram, href: "https://instagram.com", label: "Instagram", color: "hover:bg-pink-600 hover:border-pink-600" },
-  { icon: FiTwitter,   href: "https://twitter.com",   label: "Twitter",   color: "hover:bg-sky-500 hover:border-sky-500" },
-  { icon: FiYoutube,   href: "https://youtube.com",   label: "YouTube",   color: "hover:bg-red-600 hover:border-red-600" },
+  { icon: FiFacebook,  href: "https://facebook.com",  label: "Facebook",  color: "hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]" },
+  { icon: FiInstagram, href: "https://instagram.com", label: "Instagram", color: "hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]" },
+  { icon: FiTwitter,   href: "https://twitter.com",   label: "Twitter",   color: "hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]" },
+  { icon: FiYoutube,   href: "https://youtube.com",   label: "YouTube",   color: "hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]" },
 ];
 
 // ─── Payment Method SVG Logos ──────────────────────────────────────────────────
@@ -124,31 +119,43 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[#2e3a2c] text-white/90 font-sans">
+    <footer className="relative bg-[#FDF6EE] text-[#0B2523] font-sans border-t border-[#E5D3B3]/30 overflow-hidden">
+
+      {/* ── Background Logo Watermark (Center) ───────────────── */}
+      <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+        <div className="w-[400px] h-[400px] lg:w-[700px] lg:h-[700px] opacity-[0.05]">
+          <Image
+            src="/images/newlogo.png"
+            alt="Sareng Furniture Logo"
+            fill
+            className="object-contain"
+          />
+        </div>
+      </div>
 
       {/* ── Main Footer Grid ─────────────────────────────────── */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
 
           {/* Col 1 — Brand */}
           <div className="sm:col-span-2 lg:col-span-1 space-y-5">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="relative w-11 h-11 bg-white rounded-full p-1 flex items-center justify-center shrink-0 overflow-hidden">
+              <div className="relative flex items-center justify-center shrink-0 overflow-hidden  ">
                 <Image
-                  src="/images/logo.webp"
+                  src="/images/newlogo.png"
                   alt="Sareng Furniture"
                   width={36}
                   height={36}
-                  className="w-9 h-9 object-contain"
+                  className="w-22 h-22 object-contain"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-base font-bold tracking-wider leading-none text-white uppercase">Sareng</span>
-                <span className="text-[9px] uppercase tracking-widest text-[#d69a45]">Furniture</span>
+                <span className="text-base font-bold tracking-wider leading-none text-[#0B2523] uppercase">Sareng</span>
+                <span className="text-[9px] uppercase tracking-widest text-[#0F3D39] font-bold">Furniture</span>
               </div>
             </Link>
 
-            <p className="text-xs text-white/55 leading-relaxed">
+            <p className="text-xs text-[#0B2523]/70 leading-relaxed font-medium">
               We bring style, comfort, and quality to your home. Discover
               timeless furniture crafted with care and delivered fast.
             </p>
@@ -161,7 +168,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`w-8 h-8 bg-white/5 ${color} border border-white/10 rounded-lg flex items-center justify-center text-white/50 hover:text-white transition-all`}
+                  className={`w-8 h-8 bg-white ${color} border border-[#E5D3B3]/40 rounded-lg flex items-center justify-center text-[#0B2523]/70 transition-all`}
                 >
                   <Icon size={14} />
                 </a>
@@ -171,15 +178,15 @@ export default function Footer() {
 
           {/* Col 2 — Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-xs tracking-widest uppercase">Quick Links</h4>
+            <h4 className="text-[#0B2523] font-extrabold text-xs tracking-widest uppercase">Quick Links</h4>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-2 text-xs text-white/55 hover:text-[#d69a45] transition-colors"
+                    className="group flex items-center gap-2 text-xs text-[#0B2523]/70 hover:text-[#0F3D39] transition-colors font-medium"
                   >
-                    <FiArrowRight size={11} className="text-white/20 group-hover:text-[#d69a45] transition-colors" />
+                    <FiArrowRight size={11} className="text-[#0B2523]/40 group-hover:text-[#FF7A00] transition-colors" />
                     {link.name}
                   </Link>
                 </li>
@@ -189,15 +196,15 @@ export default function Footer() {
 
           {/* Col 3 — Customer Service + Contact */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-xs tracking-widest uppercase">Customer Service</h4>
+            <h4 className="text-[#0B2523] font-extrabold text-xs tracking-widest uppercase">Customer Service</h4>
             <ul className="space-y-2">
               {customerServiceLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-2 text-xs text-white/55 hover:text-[#d69a45] transition-colors"
+                    className="group flex items-center gap-2 text-xs text-[#0B2523]/70 hover:text-[#0F3D39] transition-colors font-medium"
                   >
-                    <FiArrowRight size={11} className="text-white/20 group-hover:text-[#d69a45] transition-colors" />
+                    <FiArrowRight size={11} className="text-[#0B2523]/40 group-hover:text-[#FF7A00] transition-colors" />
                     {link.name}
                   </Link>
                 </li>
@@ -205,17 +212,17 @@ export default function Footer() {
             </ul>
 
             {/* Contact snippet */}
-            <div className="pt-3 space-y-2 border-t border-white/10">
-              <a href="tel:+8801797312699" className="flex items-center gap-2 text-xs text-white/55 hover:text-[#d69a45] transition-colors">
-                <FiPhone size={12} className="text-[#d69a45] shrink-0" />
+            <div className="pt-3 space-y-2 border-t border-[#E5D3B3]/30">
+              <a href="tel:+8801797312699" className="flex items-center gap-2 text-xs text-[#0B2523]/70 hover:text-[#0F3D39] transition-colors font-medium">
+                <FiPhone size={12} className="text-[#FF7A00] shrink-0" />
                 +880 1797 312699
               </a>
-              <a href="mailto:support@solidbazzar.com" className="flex items-center gap-2 text-xs text-white/55 hover:text-[#d69a45] transition-colors">
-                <FiMail size={12} className="text-[#d69a45] shrink-0" />
+              <a href="mailto:support@solidbazzar.com" className="flex items-center gap-2 text-xs text-[#0B2523]/70 hover:text-[#0F3D39] transition-colors font-medium">
+                <FiMail size={12} className="text-[#FF7A00] shrink-0" />
                 support@solidbazzar.com
               </a>
-              <div className="flex items-start gap-2 text-xs text-white/55">
-                <FiMapPin size={12} className="text-[#d69a45] shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 text-xs text-[#0B2523]/70 font-medium">
+                <FiMapPin size={12} className="text-[#FF7A00] shrink-0 mt-0.5" />
                 <span>Gangni, Mollarhat, Bagerhat, Khulna-9384</span>
               </div>
             </div>
@@ -223,23 +230,23 @@ export default function Footer() {
 
           {/* Col 4 — Newsletter */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-xs tracking-widest uppercase">Newsletter</h4>
-            <p className="text-xs text-white/55 leading-relaxed">
+            <h4 className="text-[#0B2523] font-extrabold text-xs tracking-widest uppercase">Newsletter</h4>
+            <p className="text-xs text-[#0B2523]/70 leading-relaxed font-medium">
               Get updates on new arrivals and exclusive offers.
             </p>
-            <form onSubmit={handleSubscribe} className="flex h-10 rounded overflow-hidden shadow-sm">
+            <form onSubmit={handleSubscribe} className="flex h-10 rounded overflow-hidden shadow-sm border border-[#E5D3B3]/40">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="flex-1 bg-white text-gray-800 px-3 py-2 text-xs focus:outline-none placeholder:text-gray-400"
+                className="flex-1 bg-white text-[#0B2523] px-3 py-2 text-xs focus:outline-none placeholder:text-[#0B2523]/40 font-medium"
               />
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-[#d69a45] hover:bg-[#c0873a] text-white px-3 flex items-center justify-center transition-all cursor-pointer disabled:opacity-60"
+                className="bg-[#FF7A00] hover:bg-[#E56E00] text-white px-3 flex items-center justify-center transition-all cursor-pointer disabled:opacity-60 active:scale-95"
                 aria-label="Subscribe"
               >
                 {isLoading ? (
@@ -250,14 +257,14 @@ export default function Footer() {
               </button>
             </form>
             {isSubscribed && (
-              <p className="text-[#d69a45] text-xs font-semibold animate-pulse">
+              <p className="text-[#0F3D39] text-xs font-bold animate-pulse">
                 🎉 Subscribed! Check your inbox.
               </p>
             )}
 
             {/* Payment Methods — real logos */}
             <div className="pt-2">
-              <p className="text-[10px] text-white/35 font-semibold uppercase tracking-wider mb-3">
+              <p className="text-[10px] text-[#0B2523]/60 font-bold uppercase tracking-wider mb-3">
                 Payment Methods
               </p>
               <div className="flex flex-wrap gap-2 items-center">
@@ -275,12 +282,12 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom Bar ────────────────────────────────────────── */}
-      <div className="border-t border-white/5">
+      <div className="relative z-10 border-t border-[#E5D3B3]/30 bg-[#F0E6D8]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-white/35">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#0B2523]/60 font-medium">
             <p>© {new Date().getFullYear()} Sareng Furniture. All Rights Reserved.</p>
             <p className="flex items-center gap-1">
-              Made with <FiHeart size={10} className="text-[#d69a45] fill-[#d69a45]" /> in Bangladesh
+              Made with <FiHeart size={10} className="text-[#FF7A00] fill-[#FF7A00]" /> in Bangladesh
             </p>
           </div>
         </div>

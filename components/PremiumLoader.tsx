@@ -8,7 +8,7 @@ export default function PremiumLoader() {
         {/* 1. Logo Area with Smooth Cinematic Drift */}
         <div className="relative w-24 h-24 mb-2 flex items-center justify-center animate-[logoDrift_3s_ease-in-out_infinite]">
           <Image
-            src="/images/logo.webp"
+            src="/images/newlogo.png"
             alt="Sareng Furniture Loading..."
             width={96}
             height={96}
