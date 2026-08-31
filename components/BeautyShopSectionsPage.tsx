@@ -16,7 +16,7 @@ import {
   FiDollarSign,
   FiTrendingUp,
 } from "react-icons/fi";
-import CustomOrderSection from "@/components/CustomOrderSection";
+import CustomOrderSection from "@/components/CustomizationSection";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";

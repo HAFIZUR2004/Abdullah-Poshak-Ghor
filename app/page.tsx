@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CategoriesPage from "@/components/categories";
 import Categories from "@/components/categories";
+import CustomizationSection from "@/components/CustomizationSection";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +31,7 @@ export default function Home() {
     <Navbar/>
       <Hero />
       <Categories/>
+      <CustomizationSection/>
       <BeautyShopSectionsPage />
       <Reviews />
       <Footer/>
