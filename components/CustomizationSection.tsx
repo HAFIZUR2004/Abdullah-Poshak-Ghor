@@ -38,7 +38,7 @@ export default function CustomizationSection() {
         {/* Main Customization Grid / Banner Image */}
         <div className="relative w-full h-[350px] sm:h-[450px] lg:h-[550px] rounded-2xl overflow-hidden shadow-md border border-[#E5D3B3]/30">
           <Image
-            src="/images/custom.jpeg"
+            src="/images/customizesection.jpeg"
             alt="Custom Furniture Craftsmanship"
             fill
             priority
