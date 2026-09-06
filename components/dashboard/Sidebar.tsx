@@ -15,6 +15,7 @@ import {
   FiX,
   FiPackage,
   FiUser,
+  FiFolder,
   FiUsers,
 } from "react-icons/fi";
 
@@ -99,11 +100,17 @@ export default function Sidebar() {
       icon: <FiHome />,
       path: "/dashboard",
     },
+    
     {
       label: "Products",
       icon: <FiPackage />,
       path: "/dashboard/products",
     },
+  {
+    label: "Categories",
+    icon: <FiFolder />, // 🔥 Ficategorie-এর বদলে FiFolder বা FiGrid ব্যবহার করুন
+    path: "/dashboard/categories",
+  },
     {
       label: "Users",
       icon: <FiUsers />,
