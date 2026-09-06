@@ -2,12 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import {
-  FiAward,
-  FiHeart,
-  FiUsers,
-  FiThumbsUp,
-} from "react-icons/fi";
+import { Award, Heart, Users, ThumbsUp } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 
 const modernSans = Plus_Jakarta_Sans({
@@ -15,10 +10,6 @@ const modernSans = Plus_Jakarta_Sans({
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-sans",
 });
-
-/* =========================================================
-   NUMBER COUNTER ANIMATION COMPONENT
-========================================================= */
 
 function NumberCounter({
   end,
@@ -31,7 +22,6 @@ function NumberCounter({
 }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  // Framer Motion InView hook detection
   const isInView = useInView(ref, { once: true, amount: 0.3 });
 
   useEffect(() => {
@@ -44,8 +34,6 @@ function NumberCounter({
       if (!startTime) startTime = time;
 
       const progress = Math.min((time - startTime) / duration, 1);
-      
-      // Smooth cubic ease-out calculation
       const eased = 1 - Math.pow(1 - progress, 4);
 
       setCount(Math.floor(eased * end));
@@ -70,14 +58,10 @@ function NumberCounter({
   );
 }
 
-/* =========================================================
-   MAIN COMPONENT
-========================================================= */
-
 export default function WhyChoose() {
   const features = [
     {
-      icon: FiAward,
+      icon: Award,
       title: "Premium Material",
       desc: "High-quality, durable & sustainable.",
       count: 100,
@@ -85,7 +69,7 @@ export default function WhyChoose() {
       label: "Quality Focus",
     },
     {
-      icon: FiHeart,
+      icon: Heart,
       title: "Thoughtful Design",
       desc: "Designed for comfort and style.",
       count: 100,
@@ -93,7 +77,7 @@ export default function WhyChoose() {
       label: "Design Focus",
     },
     {
-      icon: FiUsers,
+      icon: Users,
       title: "Trusted by Many",
       desc: "Thousands of happy customers.",
       count: 1000,
@@ -101,7 +85,7 @@ export default function WhyChoose() {
       label: "Happy Customers",
     },
     {
-      icon: FiThumbsUp,
+      icon: ThumbsUp,
       title: "Satisfaction Guaranteed",
       desc: "We stand by our promise.",
       count: 100,
@@ -114,7 +98,6 @@ export default function WhyChoose() {
     <section
       className={`${modernSans.variable} relative overflow-hidden bg-[#FDF9F3] py-16 font-sans text-[#0B2523] sm:py-20 lg:py-24`}
     >
-      {/* Background Decoration */}
       <motion.div
         animate={{
           y: [0, -18, 0],
@@ -142,7 +125,6 @@ export default function WhyChoose() {
       />
 
       <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 35 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -190,7 +172,6 @@ export default function WhyChoose() {
           </p>
         </motion.div>
 
-        {/* FEATURE CARDS */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           {features.map(
             (
@@ -216,7 +197,6 @@ export default function WhyChoose() {
                 whileHover={{ y: -8 }}
                 className="group relative overflow-hidden rounded-[18px] border border-[#E8E0D6] bg-white p-6 text-center shadow-[0_5px_25px_rgba(25,45,40,0.035)] transition-shadow duration-300 hover:shadow-[0_18px_45px_rgba(25,45,40,0.10)]"
               >
-                {/* Top Line */}
                 <motion.div
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
@@ -228,7 +208,6 @@ export default function WhyChoose() {
                   className="absolute left-0 right-0 top-0 h-[3px] origin-left bg-[#075B4C]"
                 />
 
-                {/* ICON */}
                 <motion.div
                   initial={{ scale: 0, rotate: -20 }}
                   whileInView={{ scale: 1, rotate: 0 }}
@@ -245,7 +224,6 @@ export default function WhyChoose() {
                   <Icon size={23} strokeWidth={1.7} />
                 </motion.div>
 
-                {/* NUMBER COUNTER */}
                 <div className="mt-5">
                   <div className="text-[30px] font-extrabold leading-none tracking-[-1px] text-[#075B4C]">
                     <NumberCounter
@@ -260,17 +238,14 @@ export default function WhyChoose() {
                   </p>
                 </div>
 
-                {/* TITLE */}
                 <h4 className="mt-5 text-[14px] font-bold text-[#111817]">
                   {title}
                 </h4>
 
-                {/* DESCRIPTION */}
                 <p className="mx-auto mt-2 max-w-[220px] text-[11px] leading-[1.7] text-[#737875]">
                   {desc}
                 </p>
 
-                {/* BOTTOM INDICATOR */}
                 <div className="mt-5 flex justify-center gap-1.5">
                   <motion.span
                     initial={{ width: 5 }}
