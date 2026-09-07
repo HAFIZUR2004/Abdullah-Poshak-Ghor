@@ -79,7 +79,7 @@ function useCountdown(targetDate: string | Date) {
 export default function DealOfTheWeek() {
   const router = useRouter();
 
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   /* =======================================================
@@ -97,49 +97,64 @@ export default function DealOfTheWeek() {
   const countdown = useCountdown(dealEndDate);
 
   /* =======================================================
-     FETCH PRODUCTS
+     FETCH DEAL OF THE WEEK FROM COLLECTION API
   ======================================================= */
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchDealOfTheWeek = async () => {
       try {
-        const res = await fetch("/api/products", {
+        setLoading(true);
+        
+        // Collection API থেকে Deal of the Week প্রোডাক্ট fetch
+        const collectionRes = await fetch("/api/collections?type=deal-of-the-week", {
           cache: "no-store",
         });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
+        
+        let collectionProducts: Product[] = [];
+        
+        if (collectionRes.ok) {
+          const collectionData = await collectionRes.json();
+          collectionProducts = Array.isArray(collectionData) ? collectionData : [];
         }
-
-        const data = await res.json();
-
-        const products: Product[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.products)
-          ? data.products
-          : Array.isArray(data?.data)
-          ? data.data
-          : [];
-
-        const activeProducts = products.filter(
-          (product) =>
-            product.status?.toLowerCase() === "active"
+        
+        // Fallback: যদি Collection খালি থাকে, সব প্রোডাক্ট থেকে সবচেয়ে বেশি ডিসকাউন্ট যাদের আছে তাদের দেখাবে
+        if (collectionProducts.length === 0) {
+          const allProductsRes = await fetch("/api/products", {
+            cache: "no-store",
+          });
+          
+          if (allProductsRes.ok) {
+            const allData = await allProductsRes.json();
+            const allProducts: Product[] = Array.isArray(allData)
+              ? allData
+              : Array.isArray(allData?.products)
+              ? allData.products
+              : Array.isArray(allData?.data)
+              ? allData.data
+              : [];
+            
+            // সবচেয়ে বেশি ডিসকাউন্ট যাদের আছে তাদের ফিল্টার
+            collectionProducts = allProducts.filter(
+              (product) => Number(product.discount || 0) > 0
+            );
+          }
+        }
+        
+        // Active প্রোডাক্টগুলো ফিল্টার
+        const activeProducts = collectionProducts.filter(
+          (product) => product.status?.toLowerCase() === "active"
         );
-
-        setDbProducts(activeProducts);
+        
+        setProducts(activeProducts);
       } catch (error) {
-        console.error(
-          "Error fetching products:",
-          error
-        );
-
-        setDbProducts([]);
+        console.error("Error fetching deal of the week:", error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchDealOfTheWeek();
   }, []);
 
   /* =======================================================
@@ -147,7 +162,7 @@ export default function DealOfTheWeek() {
   ======================================================= */
 
   const specialDeals = useMemo(() => {
-    return dbProducts
+    return products
       .filter(
         (product) =>
           Number(product.discount || 0) > 0
@@ -157,15 +172,15 @@ export default function DealOfTheWeek() {
           Number(b.discount || 0) -
           Number(a.discount || 0)
       );
-  }, [dbProducts]);
+  }, [products]);
 
   const dealProduct = useMemo(() => {
     return (
       specialDeals[0] ||
-      dbProducts[0] ||
+      products[0] ||
       null
     );
-  }, [specialDeals, dbProducts]);
+  }, [specialDeals, products]);
 
   /* =======================================================
      LOADING

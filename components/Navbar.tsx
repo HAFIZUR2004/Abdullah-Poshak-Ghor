@@ -13,6 +13,13 @@ import { useProducts } from "@/hooks/useProducts";
 import { useAuth } from "@/hooks/AuthContext";
 import { Product } from "@/types";
 import Swal from "sweetalert2";
+import { Inter } from "next/font/google"; // 👈 Inter font import
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 // ─── imgbb লিংক ────────────────────────────────────────────────────────────────
 const LOGO_URL = "https://i.ibb.co.com/Y7ZZrcJ5/newlogo.png";
@@ -223,7 +230,7 @@ export default function Navbar() {
     <>
       {/* Announcement Bar */}
       {showAnnouncement && (
-        <div className="relative bg-[#0F3D39] text-[#E5D3B3] overflow-hidden">
+        <div className={`relative bg-[#0F3D39] text-[#E5D3B3] overflow-hidden ${inter.variable}`}>
           <div className="flex items-center justify-center px-10 py-2">
             <div className="overflow-hidden flex-1 max-w-3xl mx-auto">
               <div className="marquee">
@@ -248,18 +255,19 @@ export default function Navbar() {
           <style>{`
             .marquee { position: relative; width: 100%; overflow: hidden; }
             .marquee-track { display: inline-flex; gap: 2.25rem; align-items: center; white-space: nowrap; will-change: transform; animation: marquee 18s linear infinite; min-width: max-content; }
-            .marquee-item { display: inline-block; color: #E5D3B3; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.01em; }
+            .marquee-item { display: inline-block; color: #E5D3B3; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.01em; font-family: 'Inter', sans-serif !important; }
             @keyframes marquee { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
             @media (max-width: 420px) { .marquee-track { animation-duration: 22s; } .marquee-item { font-size: 0.72rem; } }
           `}</style>
         </div>
       )}
 
-      {/* Main Header - Hero Section এর রঙের সাথে ম্যাচ করা হয়েছে */}
+      {/* Main Header - Inter Font ব্যবহার করা হয়েছে */}
       <header
-        className={`bg-[#FDF6EE] border-b border-[#E5D3B3] sticky top-0 z-50 transition-all duration-300 font-sans ${
+        className={`bg-[#FDF6EE] border-b border-[#E5D3B3] sticky top-0 z-50 transition-all duration-300 font-sans ${inter.variable} ${
           isScrolled ? "shadow-[0_4px_20px_rgba(0,0,0,0.1)]" : ""
         }`}
+        style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[60px] gap-4">
@@ -269,8 +277,8 @@ export default function Navbar() {
                 <img src={LOGO_URL} alt="Sareng Furniture" width={40} height={40} className="w-16 h-17 object-contain" />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="text-xl font-bold tracking-wider leading-none text-[#0B2523] uppercase font-sans">Sareng</span>
-                <span className="text-[9px] uppercase tracking-widest text-[#0F3D39] font-sans">Furniture</span>
+                <span className="text-xl font-bold tracking-wider leading-none text-[#0B2523] uppercase font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>Sareng</span>
+                <span className="text-[9px] uppercase tracking-widest text-[#0F3D39] font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>Furniture</span>
               </div>
             </Link>
 
@@ -285,6 +293,7 @@ export default function Navbar() {
                     onFocus={() => setIsSearchOpen(true)}
                     placeholder="Search furniture..."
                     className="w-full bg-transparent pl-3 pr-9 py-1.5 text-sm text-[#0B2523] placeholder:text-[#0B2523]/50 focus:outline-none"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
                   />
                   {searchQuery && (
                     <button type="button" onClick={() => setSearchQuery("")} className="absolute right-9 top-1/2 -translate-y-1/2 text-[#0B2523]/50 hover:text-[#0B2523] transition p-1">
@@ -415,6 +424,7 @@ export default function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search furniture..."
                 className="w-full bg-transparent pl-3 pr-9 py-1.5 text-sm text-[#0B2523] placeholder:text-[#0B2523]/50 focus:outline-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
               />
               {searchQuery && (
                 <button type="button" onClick={() => setSearchQuery("")} className="absolute right-9 top-1/2 -translate-y-1/2 text-[#0B2523]/50 hover:text-[#0B2523] transition p-1">

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { 
   FiSearch, 
   FiSliders, 
@@ -18,15 +19,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
-const categoryIcons: Record<string, React.ElementType> = {
-  "Sofa & Sectionals": FiBox,
-  "Accent Chairs & Ottomans": FiBox,
-  "Chair": FiBox,
-  "Table": FiBox,
-  "Sofa": FiBox,
-  "Storage": FiBox,
-  "Bed": FiBox,
-};
+interface Category {
+  _id: string;
+  name: string;
+  image: string;
+  slug: string;
+}
 
 const getProductImage = (product: Product): string =>
   product.images?.[0] || product.image || "/placeholder.jpg";
@@ -63,14 +61,27 @@ const getDiscountInfo = (product: Product) => {
   };
 };
 
-export default function ShopPage() {
+// ─── Shop Content Component ──────────────────────────────────────────────────
+function ShopContent() {
+  const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams?.get("category") || "All Furniture";
+
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState("All Furniture");
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("featured");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
+
+  // Update selected category when URL param changes
+  useEffect(() => {
+    const cat = searchParams?.get("category");
+    if (cat && cat !== selectedCategory) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
 
   // Load wishlist from localStorage
   useEffect(() => {
@@ -78,46 +89,59 @@ export default function ShopPage() {
     setWishlist(savedWishlist);
   }, []);
 
+  // Fetch Products and Categories
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("/api/products");
-        const data = await res.json();
+        setIsLoading(true);
+
+        // Fetch Products
+        const productsRes = await fetch("/api/products");
+        const productsData = await productsRes.json();
 
         let productArray: Product[] = [];
 
-        if (Array.isArray(data)) {
-          productArray = data;
-        } else if (data?.data && Array.isArray(data.data)) {
-          productArray = data.data;
-        } else if (data?.success === true && Array.isArray(data.data)) {
-          productArray = data.data;
-        } else {
-          setProducts([]);
-          setIsLoading(false);
-          return;
+        if (Array.isArray(productsData)) {
+          productArray = productsData;
+        } else if (productsData?.data && Array.isArray(productsData.data)) {
+          productArray = productsData.data;
+        } else if (productsData?.success === true && Array.isArray(productsData.data)) {
+          productArray = productsData.data;
         }
 
         const activeProducts = productArray.filter(
           (p: Product) => p.status === "Active"
         );
         setProducts(activeProducts);
-     } catch (error) {
-        console.error("Error fetching products:", error);
+
+        // Fetch Categories from Database
+        const categoriesRes = await fetch("/api/categories");
+        const categoriesData = await categoriesRes.json();
+
+        if (categoriesData.success && categoriesData.categories.length > 0) {
+          setCategories(categoriesData.categories);
+        }
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
         setProducts([]);
+        setCategories([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const categories = [
+  // ─── Category List ──────────────────────────────────────────────────────────
+  // Database categories + "All Furniture"
+  const categoryList = [
     "All Furniture",
-    ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
+    ...categories.map((cat) => cat.name),
   ];
 
+  // ─── Filter & Sort ──────────────────────────────────────────────────────────
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       selectedCategory === "All Furniture" || product.category === selectedCategory;
@@ -139,7 +163,7 @@ export default function ShopPage() {
     return 0;
   });
 
-  // Toggle Wishlist Function
+  // ─── Wishlist ────────────────────────────────────────────────────────────────
   const toggleWishlist = (productId: string | number | undefined) => {
     if (!productId) return;
     
@@ -157,9 +181,24 @@ export default function ShopPage() {
 
     setWishlist(updatedWishlist);
     localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
-
-    // Navbar-এ কাউন্ট আপডেট করার জন্য event dispatch করুন
     window.dispatchEvent(new Event("storage"));
+  };
+
+  // ─── Handle Category Click ──────────────────────────────────────────────────
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category);
+    const currentParams = new URLSearchParams(searchParams?.toString() || "");
+    if (category === "All Furniture") {
+      currentParams.delete("category");
+    } else {
+      currentParams.set("category", category);
+    }
+    const queryString = currentParams.toString();
+    window.history.pushState(
+      { category },
+      "",
+      `/shop${queryString ? `?${queryString}` : ""}`
+    );
   };
 
   if (isLoading) {
@@ -226,11 +265,11 @@ export default function ShopPage() {
               Categories
             </h3>
             <ul className="space-y-1.5">
-              {categories.map((cat) => (
+              {categoryList.map((cat) => (
                 <li key={cat}>
                   <button
                     onClick={() => {
-                      setSelectedCategory(cat);
+                      handleCategoryClick(cat);
                       setIsMobileFilterOpen(false);
                     }}
                     className={`w-full flex items-center justify-between text-left px-3 py-2.5 rounded-lg text-sm font-medium transition ${
@@ -258,10 +297,10 @@ export default function ShopPage() {
                 Categories
               </h3>
               <ul className="space-y-1.5">
-                {categories.map((cat) => (
+                {categoryList.map((cat) => (
                   <li key={cat}>
                     <button
-                      onClick={() => setSelectedCategory(cat)}
+                      onClick={() => handleCategoryClick(cat)}
                       className={`w-full flex items-center justify-between text-left px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                         selectedCategory === cat
                           ? "bg-[#0F3D39] text-[#E5D3B3] shadow-sm"
@@ -411,5 +450,22 @@ export default function ShopPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// ─── Main Export with Suspense ──────────────────────────────────────────────────
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col bg-[#FDF6EE]">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <PremiumLoader />
+        </main>
+        <Footer />
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }

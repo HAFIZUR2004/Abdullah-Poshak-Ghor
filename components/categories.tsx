@@ -146,32 +146,32 @@ export default function Categories() {
                 rows: isTwoRows ? 2 : 1,
                 fill: "row",
               }}
-              spaceBetween={8}
+              spaceBetween={6}
               breakpoints={{
                 0: {
                   slidesPerView: 3,
                   grid: { rows: isTwoRows ? 2 : 1 },
-                  spaceBetween: 8,
+                  spaceBetween: 6,
                 },
                 640: {
-                  slidesPerView: 3,
+                  slidesPerView: 4,
+                  grid: { rows: isTwoRows ? 2 : 1 },
+                  spaceBetween: 10,
+                },
+                768: {
+                  slidesPerView: 5,
+                  grid: { rows: isTwoRows ? 2 : 1 },
+                  spaceBetween: 12,
+                },
+                1024: {
+                  slidesPerView: 6,
                   grid: { rows: isTwoRows ? 2 : 1 },
                   spaceBetween: 14,
                 },
-                768: {
-                  slidesPerView: 4,
+                1280: {
+                  slidesPerView: 7,
                   grid: { rows: isTwoRows ? 2 : 1 },
                   spaceBetween: 16,
-                },
-                1024: {
-                  slidesPerView: 5,
-                  grid: { rows: isTwoRows ? 2 : 1 },
-                  spaceBetween: 18,
-                },
-                1280: {
-                  slidesPerView: 6,
-                  grid: { rows: isTwoRows ? 2 : 1 },
-                  spaceBetween: 20,
                 },
               }}
               className="w-full overflow-hidden"
@@ -184,22 +184,22 @@ export default function Categories() {
                     }
                     className="group w-full cursor-pointer focus:outline-none text-center h-full"
                   >
-                    <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 lg:p-5 flex flex-col items-center justify-center transition-all duration-300 group-hover:shadow-lg sm:group-hover:shadow-xl group-hover:-translate-y-1 group-hover:border-[#0F3D39] min-h-[105px] sm:min-h-[150px] lg:min-h-[160px] h-full border-2 border-transparent">
-                      <div className="w-full aspect-[4/3] relative flex items-center justify-center mb-1 sm:mb-3">
+                    <div className="bg-white rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 lg:p-3 flex flex-col items-center justify-center transition-all duration-300 group-hover:shadow-lg sm:group-hover:shadow-xl group-hover:-translate-y-1 group-hover:border-[#0F3D39] min-h-[80px] sm:min-h-[100px] lg:min-h-[110px] h-full border-2 border-transparent">
+                      <div className="w-full aspect-[3/2] relative flex items-center justify-center mb-1 sm:mb-1.5">
                         <Image
                           src={cat.image || "/placeholder.png"}
                           alt={cat.name}
                           fill
-                          sizes="(max-width: 640px) 30vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw"
-                          className="object-contain p-0.5 sm:p-2 transition-transform duration-500 group-hover:scale-110"
+                          sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, (max-width: 1024px) 16vw, 12vw"
+                          className="object-contain p-0.5 sm:p-1 transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
 
-                      <p className="text-[#0B2523] text-[10px] sm:text-sm font-bold tracking-tight sm:tracking-wide group-hover:text-[#0F3D39] transition-colors line-clamp-1">
+                      <p className="text-[#0B2523] text-[9px] sm:text-[11px] lg:text-xs font-bold tracking-tight sm:tracking-wide group-hover:text-[#0F3D39] transition-colors line-clamp-1">
                         {cat.name}
                       </p>
 
-                      <div className="w-4 sm:w-8 h-[1.5px] sm:h-[2px] bg-[#FF7A00] mt-1 sm:mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="w-3 sm:w-5 h-[1px] sm:h-[1.5px] bg-[#FF7A00] mt-0.5 sm:mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                   </button>
                 </SwiperSlide>

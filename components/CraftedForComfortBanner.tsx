@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { FiArrowRight } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 // ─── Plus Jakarta Sans Font Setup ────────────────────────────────────────────
 
@@ -12,47 +13,103 @@ const modernSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
 });
 
+// ─── Interface ────────────────────────────────────────────────────────────────
+
+interface BannerData {
+  _id?: string;
+  title: string;
+  image: string;
+  link: string;
+  isActive: boolean;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CraftedForComfortBanner() {
   const router = useRouter();
-  const goToShop = () => router.push("/shop");
+  const [banner, setBanner] = useState<BannerData | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // ─── Fetch Banner from API ──────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await fetch("/api/banner");
+        const data = await res.json();
+        
+        if (data.success && data.banner) {
+          setBanner(data.banner);
+        } else {
+          // Fallback: যদি API fail করে, default banner ব্যবহার করব
+          setBanner({
+            title: "Crafted for Comfort",
+            image: "https://i.ibb.co.com/4RCn5y67/discount.webp",
+            link: "/shop",
+            isActive: true,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching banner:", error);
+        // Fallback: error হলে default banner
+        setBanner({
+          title: "Crafted for Comfort",
+          image: "https://i.ibb.co.com/4RCn5y67/discount.webp",
+          link: "/shop",
+          isActive: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
+  // ─── Handle Click ───────────────────────────────────────────────────────────
+  const handleClick = () => {
+    if (banner?.link) {
+      router.push(banner.link);
+    } else {
+      router.push("/shop");
+    }
+  };
+
+  // ─── Loading State ──────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className={`${modernSans.variable} font-sans bg-[#FDF6EE] antialiased`}>
+        <section className="py-2 bg-[#FDF6EE] px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="relative w-full rounded-2xl bg-gray-200 animate-pulse h-32 sm:h-48 lg:h-64" />
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // ─── No Banner / Inactive ──────────────────────────────────────────────────
+  if (!banner || !banner.isActive || !banner.image) {
+    return null;
+  }
+
+  // ─── Render Banner ──────────────────────────────────────────────────────────
   return (
     <div className={`${modernSans.variable} font-sans bg-[#FDF6EE] text-[#0B2523] antialiased`}>
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* Banner - Crafted for Comfort */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-0 bg-[#FDF6EE] px-4 sm:px-6 lg:px-8">
+      <section className="py-2 bg-[#FDF6EE] px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
-          <div className="bg-[#0F3D39] rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_380px] min-h-[240px] shadow-lg">
-            <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center gap-4 relative">
-              <div className="absolute top-4 right-4 w-20 h-20 bg-[#DCE8C8]/10 rounded-full blur-2xl" />
-              <div className="border-l-4 border-[#FF7A00] pl-3">
-                <p className="text-[10px] font-bold text-[#E5D3B3]/60 uppercase tracking-widest">Premium Quality</p>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold leading-snug">
-                <span className="block text-[#E5D3B3]">Crafted for Comfort.</span>
-                <span className="block text-[#E5D3B3]">Designed for You.</span>
-              </h3>
-              <p className="text-[#E5D3B3]/70 text-sm leading-relaxed max-w-sm">
-                Sustainable wood. Premium finish. Made to last for generations.
-              </p>
-              <button
-                onClick={goToShop}
-                className="mt-2 inline-flex items-center gap-2 bg-[#FF7A00] hover:bg-[#E56E00] text-white text-[11px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-sm transition-all w-fit cursor-pointer shadow-md"
-              >
-                Discover More <FiArrowRight size={12} />
-              </button>
-            </div>
-            <div className="relative min-h-[200px] lg:min-h-0 hidden lg:block">
-              <img
-                src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=700&auto=format&fit=crop"
-                alt="Crafted furniture"
-                className="w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0F3D39] to-transparent opacity-30" />
-            </div>
+          <div 
+            className="relative w-full cursor-pointer overflow-hidden rounded-2xl shadow-sm" 
+            onClick={handleClick}
+          >
+            <Image
+              src={banner.image}
+              alt={banner.title || "Crafted furniture discount banner"}
+              width={1400}
+              height={400}
+              className="w-full h-auto object-contain transition-transform duration-300 hover:scale-[1.01]"
+              priority
+              unoptimized={banner.image.startsWith("data:")}
+            />
           </div>
         </div>
       </section>

@@ -1,4 +1,5 @@
 // app/api/products/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Product from "@/models/Product";
@@ -52,6 +53,12 @@ export async function POST(request: NextRequest) {
       fabricEnabled: body.fabricEnabled || false,
       fabricName: body.fabricName || "",
       fabricColors: body.fabricColors || [],
+      // নতুন ফিল্ড
+      isBestSeller: body.isBestSeller || false,
+      isTodayDeal: body.isTodayDeal || false,
+      isNewArrival: body.isNewArrival || false,
+      isDealOfTheWeek: body.isDealOfTheWeek || false,
+      isTopRated: body.isTopRated || false,
     });
 
     return NextResponse.json(
@@ -101,6 +108,12 @@ export async function PUT(request: NextRequest) {
       fabricEnabled: body.fabricEnabled || false,
       fabricName: body.fabricName || "",
       fabricColors: body.fabricColors || [],
+      // নতুন ফিল্ড
+      isBestSeller: body.isBestSeller || false,
+      isTodayDeal: body.isTodayDeal || false,
+      isNewArrival: body.isNewArrival || false,
+      isDealOfTheWeek: body.isDealOfTheWeek || false,
+      isTopRated: body.isTopRated || false,
       updatedAt: new Date(),
     };
 

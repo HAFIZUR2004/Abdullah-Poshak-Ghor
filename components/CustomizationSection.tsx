@@ -1,8 +1,6 @@
-// CustomOrderSection.tsx
-
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { 
@@ -11,6 +9,26 @@ import {
 } from "react-icons/fi";
 
 export default function CustomizationSection() {
+  const [imageUrl, setImageUrl] = useState<string>("/images/customizesection.jpeg");
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const res = await fetch("/api/custom-section", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.imageUrl) {
+            setImageUrl(data.imageUrl);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch section image:", error);
+      }
+    };
+
+    fetchImage();
+  }, []);
+
   return (
     <section className="py-20 lg:py-28 bg-[#FDF6EE] relative overflow-hidden font-sans">
       
@@ -38,7 +56,7 @@ export default function CustomizationSection() {
         {/* Main Customization Grid / Banner Image */}
         <div className="relative w-full h-[350px] sm:h-[450px] lg:h-[550px] rounded-2xl overflow-hidden shadow-md border border-[#E5D3B3]/30">
           <Image
-            src="/images/customizesection.jpeg"
+            src={imageUrl}
             alt="Custom Furniture Craftsmanship"
             fill
             priority

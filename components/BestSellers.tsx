@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
@@ -42,33 +42,40 @@ function NavBtn({ onClick, dir, disabled = false }: { onClick: () => void; dir: 
 
 export default function BestSellersPage() {
   const router = useRouter();
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
   const bestSellerSwiper = useRef<SwiperType | null>(null);
 
+  // Collection API থেকে Best Seller প্রোডাক্ট fetch করা
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchBestSellers = async () => {
       try {
-        const res = await fetch("/api/products");
+        setLoading(true);
+        const res = await fetch("/api/collections?type=best-seller");
+        
         if (res.ok) {
           const data = await res.json();
-          const active = (data as Product[]).filter((p: Product) => p.status === "Active");
-          setDbProducts(active);
+          // Collection API থেকে প্রাপ্ত প্রোডাক্টগুলো সেট করা
+          if (Array.isArray(data)) {
+            setProducts(data as Product[]);
+          } else {
+            setProducts([]);
+          }
+        } else {
+          console.error("Failed to fetch best sellers:", res.status);
+          setProducts([]);
         }
       } catch (e) {
-        console.error("Error fetching products:", e);
+        console.error("Error fetching best sellers:", e);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
 
-  const bestSellers = useMemo(
-    () => dbProducts.filter((p) => p.stock && p.stock < 100).slice(0, 10),
-    [dbProducts]
-  );
+    fetchBestSellers();
+  }, []);
 
   const goToShop = () => router.push("/shop");
 
@@ -94,8 +101,10 @@ export default function BestSellersPage() {
 
           {loading ? (
             <div className="text-center py-16 text-[#0B2523]/50 text-sm">Loading best sellers...</div>
-          ) : bestSellers.length === 0 ? (
-            <div className="text-center py-16 text-[#0B2523]/50 text-sm">No products found.</div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">
+              No products found. Please add products from dashboard.
+            </div>
           ) : (
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -110,7 +119,7 @@ export default function BestSellersPage() {
               }}
               className="w-full overflow-hidden py-2 px-1"
             >
-              {bestSellers.map((product) => (
+              {products.map((product) => (
                 <SwiperSlide key={product._id || product.id}>
                   <ProductCard product={product} />
                 </SwiperSlide>

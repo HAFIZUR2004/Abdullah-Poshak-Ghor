@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
@@ -9,47 +9,45 @@ import "swiper/css";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
 
-// ─── Plus Jakarta Sans Font Setup ────────────────────────────────────────────
-
 const modernSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-sans",
 });
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export default function NewArrivalsPage() {
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
   const newArrivalSwiper = useRef<SwiperType | null>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchNewArrivals = async () => {
       try {
-        const res = await fetch("/api/products");
+        setLoading(true);
+        // Collection API থেকে New Arrival প্রোডাক্ট fetch
+        const res = await fetch("/api/collections?type=new-arrival");
+        
         if (res.ok) {
           const data = await res.json();
-          const active = (data as Product[]).filter((p: Product) => p.status === "Active");
-          setDbProducts(active);
+          setProducts(Array.isArray(data) ? data : []);
+        } else {
+          console.error("Failed to fetch new arrivals:", res.status);
+          setProducts([]);
         }
       } catch (e) {
-        console.error("Error fetching products:", e);
+        console.error("Error fetching new arrivals:", e);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
 
-  const newArrivals = useMemo(() => [...dbProducts].reverse().slice(0, 10), [dbProducts]);
+    fetchNewArrivals();
+  }, []);
 
   return (
     <div className={`${modernSans.variable} font-sans bg-[#FDF6EE] text-[#0B2523] antialiased`}>
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* New Arrivals */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="py-10 mt-4 bg-[#FDF6EE]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
@@ -63,8 +61,10 @@ export default function NewArrivalsPage() {
 
           {loading ? (
             <div className="text-center py-16 text-[#0B2523]/50 text-sm">Loading new arrivals...</div>
-          ) : newArrivals.length === 0 ? (
-            <div className="text-center py-16 text-[#0B2523]/50 text-sm">No products found.</div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">
+              No products found. Please add products from dashboard.
+            </div>
           ) : (
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -79,7 +79,7 @@ export default function NewArrivalsPage() {
               }}
               className="w-full overflow-hidden py-2 px-1"
             >
-              {newArrivals.map((product) => (
+              {products.map((product) => (
                 <SwiperSlide key={product._id || product.id}>
                   <ProductCard product={product} />
                 </SwiperSlide>

@@ -34,33 +34,40 @@ function NavBtn({ onClick, dir, disabled = false }: { onClick: () => void; dir: 
 }
 
 export default function TopRatedProducts() {
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
   const topRatedSwiper = useRef<SwiperType | null>(null);
 
+  // Collection API থেকে Top Rated প্রোডাক্ট fetch করা
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchTopRated = async () => {
       try {
-        const res = await fetch("/api/products");
+        setLoading(true);
+        const res = await fetch("/api/collections?type=top-rated");
+        
         if (res.ok) {
           const data = await res.json();
-          const active = (data as Product[]).filter((p: Product) => p.status === "Active");
-          setDbProducts(active);
+          // Collection API থেকে প্রাপ্ত প্রোডাক্টগুলো সেট করা
+          if (Array.isArray(data)) {
+            setProducts(data as Product[]);
+          } else {
+            setProducts([]);
+          }
+        } else {
+          console.error("Failed to fetch top rated products:", res.status);
+          setProducts([]);
         }
       } catch (e) {
-        console.error("Error fetching products:", e);
+        console.error("Error fetching top rated products:", e);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
 
-  const trendingProducts = useMemo(
-    () => dbProducts.filter((p) => (p.rating ?? 5) >= 4.2).slice(0, 10),
-    [dbProducts]
-  );
+    fetchTopRated();
+  }, []);
 
   return (
     <div className={`${modernSans.variable} font-sans bg-[#FDF6EE] text-[#0B2523] antialiased`}>
@@ -81,8 +88,10 @@ export default function TopRatedProducts() {
 
           {loading ? (
             <div className="text-center py-16 text-[#0B2523]/50 text-sm">Loading top rated...</div>
-          ) : trendingProducts.length === 0 ? (
-            <div className="text-center py-16 text-[#0B2523]/50 text-sm">No products found.</div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-16 text-[#0B2523]/50 text-sm">
+              No products found. Please add products from dashboard.
+            </div>
           ) : (
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -97,7 +106,7 @@ export default function TopRatedProducts() {
               }}
               className="w-full overflow-hidden py-2 px-1"
             >
-              {trendingProducts.map((product) => (
+              {products.map((product) => (
                 <SwiperSlide key={product._id || product.id}>
                   <ProductCard product={product} />
                 </SwiperSlide>

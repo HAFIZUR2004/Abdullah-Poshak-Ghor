@@ -1,4 +1,5 @@
-// models/Product.ts
+// models/Product.ts - আপডেট
+
 import mongoose from "mongoose";
 
 const ProductSchema = new mongoose.Schema(
@@ -93,6 +94,27 @@ const ProductSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // নতুন ফিল্ড - Collection Flags
+     isBestSeller: {
+      type: Boolean,
+      default: false,
+    },
+    isTodayDeal: {
+      type: Boolean,
+      default: false,
+    },
+    isNewArrival: {
+      type: Boolean,
+      default: false,
+    },
+    isDealOfTheWeek: {
+      type: Boolean,
+      default: false,
+    },
+    isTopRated: {
+      type: Boolean,
+      default: false,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -107,7 +129,6 @@ const ProductSchema = new mongoose.Schema(
   }
 );
 
-// Check if model already exists
 const Product =
   mongoose.models.Product ||
   mongoose.model("Product", ProductSchema);

@@ -48,7 +48,7 @@ export default function Home() {
       <StatsBar/>
       <DealOfTheWeek/>
       <TopRatedProducts/>
-      <DesignThatDefines/>
+      {/* <DesignThatDefines/> */}
       <Reviews />
       <Footer/>
     </>
