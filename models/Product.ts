@@ -1,4 +1,4 @@
-// models/Product.ts - আপডেট
+// models/Product.ts - সম্পূর্ণ আপডেট
 
 import mongoose from "mongoose";
 
@@ -94,8 +94,8 @@ const ProductSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    // নতুন ফিল্ড - Collection Flags
-     isBestSeller: {
+    // Collection Flags
+    isBestSeller: {
       type: Boolean,
       default: false,
     },

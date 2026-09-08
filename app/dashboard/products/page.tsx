@@ -196,9 +196,13 @@ const colorOptions = [
 // ======================================================
 
 const defaultMaterials: MaterialOption[] = [
-  { id: "mdf", label: "MDF", description: "Medium Density Fiberboard", basePrice: "", enabled: false },
-  { id: "vnr", label: "VNR", description: "Veneer", basePrice: "", enabled: false },
-  { id: "pvc", label: "PVC", description: "Polyvinyl Chloride", basePrice: "", enabled: false },
+  { id: "mdf-18", label: "MDF - 18 mm", description: "Medium Density Fiberboard - 18mm", basePrice: "", enabled: false },
+  { id: "mdf-classic-15", label: "MDF - Classic - 15 mm", description: "Medium Density Fiberboard Classic - 15mm", basePrice: "", enabled: false },
+  { id: "vnr-18", label: "VNR - 18 mm", description: "Veneer - 18mm", basePrice: "", enabled: false },
+  { id: "vnr-classic-15", label: "VNR - Classic - 15 mm", description: "Veneer Classic - 15mm", basePrice: "", enabled: false },
+  { id: "partical-melamine", label: "Partical Melamine Board", description: "Particle Board with Melamine Finish", basePrice: "", enabled: false },
+  { id: "uv-board", label: "UV Board", description: "UV Coated Board", basePrice: "", enabled: false },
+  { id: "pvc-board", label: "PVC Board", description: "Polyvinyl Chloride Board", basePrice: "", enabled: false },
 ];
 
 // ======================================================
@@ -1158,39 +1162,39 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
               </div>
 
               {/* MATERIAL OPTIONS */}
-              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-                    <Layers size={15} className="text-[#B98A5A]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-[#49352D]">Material Options</h3>
-                    <p className="text-[9px] text-[#A09289]">Select materials with optional prices</p>
-                  </div>
-                </div>
+<div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+  <div className="mb-4 flex items-center gap-2">
+    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+      <Layers size={15} className="text-[#B98A5A]" />
+    </div>
+    <div>
+      <h3 className="text-sm font-black text-[#49352D]">Material Options</h3>
+      <p className="text-[9px] text-[#A09289]">Select materials with optional prices</p>
+    </div>
+  </div>
 
-                <div className="space-y-3">
-                  {materialOptions.map((material) => (
-                    <div key={material.id} className={`rounded-xl border p-3 transition ${material.enabled ? "border-[#C8A77F] bg-[#FFF8EF]" : "border-[#E7D9CC] bg-white"}`}>
-                      <div className="flex items-center justify-between gap-3">
-                        <label className="flex min-w-0 cursor-pointer items-center gap-3">
-                          <input type="checkbox" checked={material.enabled} onChange={() => toggleMaterial(material.id)} className="h-4 w-4 accent-[#B98A5A]" />
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#4A352B]">{material.label}</p>
-                            <p className="truncate text-[9px] text-[#9D8C81]">{material.description}</p>
-                          </div>
-                        </label>
-                        {material.enabled && (
-                          <div className="relative w-28 shrink-0">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#9A806D]">৳</span>
-                            <input type="text" inputMode="decimal" value={material.basePrice} onChange={(e) => updateMaterialPrice(material.id, e.target.value)} placeholder="Price" className="w-full rounded-lg border border-[#E7D9CC] bg-white py-2 pl-6 pr-2 text-[11px] outline-none focus:border-[#B98A5A]" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+  <div className="space-y-3">
+    {materialOptions.map((material) => (
+      <div key={material.id} className={`rounded-xl border p-3 transition ${material.enabled ? "border-[#C8A77F] bg-[#FFF8EF]" : "border-[#E7D9CC] bg-white"}`}>
+        <div className="flex items-center justify-between gap-3">
+          <label className="flex min-w-0 cursor-pointer items-center gap-3">
+            <input type="checkbox" checked={material.enabled} onChange={() => toggleMaterial(material.id)} className="h-4 w-4 accent-[#B98A5A]" />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#4A352B]">{material.label}</p>
+              <p className="truncate text-[9px] text-[#9D8C81]">{material.description}</p>
+            </div>
+          </label>
+          {material.enabled && (
+            <div className="relative w-28 shrink-0">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#9A806D]">৳</span>
+              <input type="text" inputMode="decimal" value={material.basePrice} onChange={(e) => updateMaterialPrice(material.id, e.target.value)} placeholder="Price" className="w-full rounded-lg border border-[#E7D9CC] bg-white py-2 pl-6 pr-2 text-[11px] outline-none focus:border-[#B98A5A]" />
+            </div>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
               {/* COLORS */}
               <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
