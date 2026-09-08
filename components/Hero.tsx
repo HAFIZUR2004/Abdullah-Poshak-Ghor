@@ -29,11 +29,11 @@ export default function Hero() {
       </div>
 
       {/* 4. Large Background Number "01" - Slightly darker cream color */}
-      <div className="absolute bottom-[-50px] left-[8%] z-[3] select-none pointer-events-none">
+      {/* <div className="absolute bottom-[-50px] left-[8%] z-[3] select-none pointer-events-none">
         <span className="text-[220px] sm:text-[320px] lg:text-[480px] font-extrabold text-[#F0E6D8] leading-none tracking-tighter">
           01
         </span>
-      </div>
+      </div> */}
 
       {/* 5. Text Content and CTAs */}
       <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -46,10 +46,10 @@ export default function Hero() {
             <div className="space-y-3">
               <div className="border-l-4 border-[#0B2523] pl-4">
                 <p className="text-sm font-bold text-[#0B2523] uppercase tracking-widest">
-                  Davici Furniture
+                  Sareng Furniture
                 </p>
                 <p className="text-xs text-[#0B2523]/60 font-medium mt-1">
-                  2020
+                  2026
                 </p>
               </div>
               
