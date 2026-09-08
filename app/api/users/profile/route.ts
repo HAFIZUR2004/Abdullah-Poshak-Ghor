@@ -4,19 +4,30 @@ import { getSession } from "@/lib/auth";
 
 export async function PUT(req: NextRequest) {
   try {
-    const session = await getSession(req);
+    // Session is read from the httpOnly cookie
+    const session = await getSession();
+
     if (!session) {
-      return NextResponse.json({ code: "NOT_AUTHENTICATED" }, { status: 401 });
+      return NextResponse.json(
+        { code: "NOT_AUTHENTICATED" },
+        { status: 401 },
+      );
     }
 
     const { name, mobile } = await req.json();
 
     if (!name || name.trim() === "") {
-      return NextResponse.json({ code: "MISSING_FIELDS" }, { status: 400 });
+      return NextResponse.json(
+        { code: "MISSING_FIELDS" },
+        { status: 400 },
+      );
     }
 
     if (mobile && !/^01[3-9]\d{8}$/.test(mobile)) {
-      return NextResponse.json({ code: "INVALID_MOBILE" }, { status: 400 });
+      return NextResponse.json(
+        { code: "INVALID_MOBILE" },
+        { status: 400 },
+      );
     }
 
     const client = await clientPromise;
@@ -35,7 +46,10 @@ export async function PUT(req: NextRequest) {
     );
 
     if (result.matchedCount === 0) {
-      return NextResponse.json({ code: "USER_NOT_FOUND" }, { status: 404 });
+      return NextResponse.json(
+        { code: "USER_NOT_FOUND" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({
@@ -44,6 +58,10 @@ export async function PUT(req: NextRequest) {
     });
   } catch (error) {
     console.error("Profile update error:", error);
-    return NextResponse.json({ code: "SERVER_ERROR" }, { status: 500 });
+
+    return NextResponse.json(
+      { code: "SERVER_ERROR" },
+      { status: 500 },
+    );
   }
 }

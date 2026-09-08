@@ -1,11 +1,12 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { getSession } from "@/lib/auth";
 import { AUTH_ERRORS } from "@/lib/errorCodes";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getSession(request);
+    // Session cookie থেকে session নেওয়া হবে
+    const session = await getSession();
 
     if (!session) {
       return NextResponse.json(
@@ -17,7 +18,9 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db("sareng_furniture");
 
-    const user = await db.collection("users").findOne({ uid: session.uid });
+    const user = await db
+      .collection("users")
+      .findOne({ uid: session.uid });
 
     if (!user) {
       return NextResponse.json(
@@ -26,8 +29,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // ✅ Account status ও চেক করা ভালো (blocked user হলে auto logout করানো যায় frontend থেকে)
-    if (user.status === "blocked" || user.status === "suspended") {
+    // Account status check
+    if (user.status === "suspended") {
       return NextResponse.json(
         { code: AUTH_ERRORS.ACCOUNT_SUSPENDED },
         { status: 403 },
@@ -38,11 +41,15 @@ export async function GET(request: NextRequest) {
       {
         user: {
           uid: user.uid,
-          name: user.name,
-          email: user.email,
-          mobile: user.mobile,
+          name: user.name || "",
+          email: user.email || "",
+          mobile: user.mobile || "",
           photoURL: user.photoURL || "",
+
+          // Important:
+          // DB role-টাই return হবে
           role: user.role || "user",
+
           status: user.status || "active",
         },
       },
@@ -50,6 +57,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     console.error("Me Route Error:", error);
+
     return NextResponse.json(
       { code: AUTH_ERRORS.SERVER_ERROR },
       { status: 500 },

@@ -363,7 +363,7 @@ export default function Navbar() {
                 <div className="hidden lg:flex">
                   {user ? (
                     <div className="flex items-center gap-1.5">
-                      {userRole === "admin" ? (
+                     {userRole === "admin" || userRole === "super_admin" ? (
                         <Link href="/dashboard" className="flex items-center gap-1.5 bg-[#0F3D39] hover:bg-[#0F3D39]/80 px-3 py-1.5 rounded text-[#E5D3B3] transition">
                           <FiLayout size={15} />
                           <span className="text-sm font-semibold">Dashboard</span>

@@ -282,16 +282,28 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom Bar ────────────────────────────────────────── */}
-      <div className="relative z-10 border-t border-[#E5D3B3]/30 bg-[#F0E6D8]">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#0B2523]/60 font-medium">
-            <p>© {new Date().getFullYear()} Sareng Furniture. All Rights Reserved.</p>
-            <p className="flex items-center gap-1">
-              Made with <FiHeart size={10} className="text-[#FF7A00] fill-[#FF7A00]" /> in Bangladesh
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* =========================================================
+    COPYRIGHT / DEVELOPMENT CREDIT
+========================================================= */}
+<div className="mt-8 border-t border-white/10 pt-6">
+  <div className="flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
+    <p className="text-xs text-gray-500">
+      © {new Date().getFullYear()} Sareng Furniture. All rights reserved.
+    </p>
+
+    <p className="text-xs text-gray-500">
+      Designed & Developed by{" "}
+      <a
+        href="https://growbusinesssolutionsbd.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold text-primary-gold transition-colors duration-300 hover:text-white"
+      >
+        Grow Business Solutions BD
+      </a>
+    </p>
+  </div>
+</div>
 
     </footer>
   );

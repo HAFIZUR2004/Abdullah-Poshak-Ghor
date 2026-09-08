@@ -26,6 +26,8 @@ interface User {
   name?: string;
   email?: string;
   avatar?: string;
+  role?: "admin" | "super_admin";
+  status?: string;
 }
 
 export default function Sidebar() {
