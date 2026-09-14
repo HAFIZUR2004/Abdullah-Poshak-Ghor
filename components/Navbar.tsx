@@ -29,10 +29,10 @@ const navLinks = [
   { name: "Home", href: "/", icon: FiHome },
   { name: "Shop", href: "/shop", icon: FiShoppingBag },
   { name: "About Us", href: "/about" },
-  { name: "Collection", href: "/collection" },
-  { name: "Blog", href: "/blog" },
+ 
+
   { name: "Contact Us", href: "/contact", icon: FiMessageSquare },
-  { name: "Track Order", href: "/track-order", icon: FiTruck },
+ 
 ];
 
 const getProductImage = (product: Product): string =>
@@ -406,7 +406,7 @@ export default function Navbar() {
             </nav>
             <div className="flex items-center gap-1.5 text-[#0B2523]/80 text-xs">
               <FiHeadphones size={13} className="text-[#0F3D39]" />
-              <span>Need Help? +123 456 7890</span>
+              <span>Need Help? +880 1806-971390</span>
             </div>
           </div>
         </div>

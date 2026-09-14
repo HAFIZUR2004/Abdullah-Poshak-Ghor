@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   transpilePackages: ["react-icons"],
   images: {
+    qualities: [75, 100], // 👈 এই লাইনটি যোগ করুন
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {

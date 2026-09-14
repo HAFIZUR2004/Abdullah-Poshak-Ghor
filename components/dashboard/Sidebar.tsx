@@ -20,6 +20,7 @@ import {
   FiSliders,
   FiStar,
   FiImage,
+  FiMapPin, // Showroom Outlet Icon
 } from "react-icons/fi";
 
 interface User {
@@ -57,7 +58,6 @@ export default function Sidebar() {
         }
 
         const data = await response.json();
-
         setUser(data.user || data);
       } catch (error) {
         console.error("Failed to get current user:", error);
@@ -89,7 +89,6 @@ export default function Sidebar() {
       }
 
       setUser(null);
-
       router.push("/login");
       router.refresh();
     } catch (error) {
@@ -104,6 +103,11 @@ export default function Sidebar() {
       label: "Overview",
       icon: <FiHome />,
       path: "/dashboard",
+    },
+    {
+      label: "Hero",
+      icon: <FiHome />,
+      path: "/dashboard/hero",
     },
     {
       label: "Products",
@@ -134,6 +138,11 @@ export default function Sidebar() {
       label: "Users",
       icon: <FiUsers />,
       path: "/dashboard/users",
+    },
+    {
+      label: "Showrooms",
+      icon: <FiMapPin />, // Icon changed to Map Pin
+      path: "/dashboard/showrooms",
     },
     {
       label: "Orders",
@@ -169,11 +178,9 @@ export default function Sidebar() {
     if (user?.name) {
       return user.name.charAt(0).toUpperCase();
     }
-
     if (user?.email) {
       return user.email.charAt(0).toUpperCase();
     }
-
     return "U";
   };
 
@@ -184,11 +191,9 @@ export default function Sidebar() {
     if (user?.name) {
       return user.name;
     }
-
     if (user?.email) {
       return user.email.split("@")[0];
     }
-
     return "User";
   };
 
@@ -240,7 +245,6 @@ export default function Sidebar() {
               <h2 className="text-lg font-bold text-white leading-none tracking-tight">
                 Sareng
               </h2>
-
               <p className="text-[10px] text-white/70 font-medium tracking-[0.2em] uppercase">
                 Dashboard
               </p>
@@ -251,8 +255,9 @@ export default function Sidebar() {
         {/* Navigation */}
         <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-220px)]">
           {navItems.map((item) => {
-            const isActive = pathname === item.path || pathname?.startsWith(item.path + "/");
-            
+            const isActive =
+              pathname === item.path || pathname?.startsWith(item.path + "/");
+
             return (
               <button
                 key={item.path}
@@ -262,17 +267,26 @@ export default function Sidebar() {
                 }}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                  ${isActive 
-                    ? "bg-[#006A4E] text-white shadow-lg shadow-[#006A4E]/20" 
-                    : "text-gray-600 hover:bg-gray-50 hover:text-[#006A4E]"
+                  ${
+                    isActive
+                      ? "bg-[#006A4E] text-white shadow-lg shadow-[#006A4E]/20"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-[#006A4E]"
                   }
                 `}
               >
-                <span className={`text-lg ${isActive ? "text-white" : "text-gray-400"}`}>
+                <span
+                  className={`text-lg ${
+                    isActive ? "text-white" : "text-gray-400"
+                  }`}
+                >
                   {item.icon}
                 </span>
 
-                <span className={`font-medium text-sm ${isActive ? "text-white" : "text-gray-700"}`}>
+                <span
+                  className={`font-medium text-sm ${
+                    isActive ? "text-white" : "text-gray-700"
+                  }`}
+                >
                   {item.label}
                 </span>
 
@@ -315,7 +329,6 @@ export default function Sidebar() {
                   <p className="text-sm font-semibold text-gray-800 truncate">
                     {getDisplayName()}
                   </p>
-
                   <p className="text-xs text-gray-400 truncate">
                     {user?.email || "user@example.com"}
                   </p>
@@ -331,7 +344,6 @@ export default function Sidebar() {
             className="w-full py-2.5 px-4 bg-red-50 text-red-600 rounded-xl flex items-center justify-center gap-2 hover:bg-red-100 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiLogOut size={18} />
-
             {loggingOut ? "Logging out..." : "Logout"}
           </button>
         </div>

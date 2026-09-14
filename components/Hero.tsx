@@ -1,99 +1,221 @@
+// components/Hero.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+
+// 🟢 ১. Fallback images দিন যাতে API লোড হতে দেরি হলেও বা Fail করলেও Auto Slide কাজ করে
+const DEFAULT_IMAGES: string[] = [
+  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
+  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
+];
 
 export default function Hero() {
   const router = useRouter();
 
+  const [images, setImages] = useState<string[]>(DEFAULT_IMAGES);
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  // =========================================================
+  // FETCH HERO IMAGES
+  // =========================================================
+  useEffect(() => {
+    const fetchHero = async () => {
+      try {
+        const res = await fetch("/api/hero", {
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch hero data");
+        }
+
+        const data = await res.json();
+
+        if (
+          data?.success &&
+          Array.isArray(data.hero?.heroImages) &&
+          data.hero.heroImages.length > 0
+        ) {
+          setImages(data.hero.heroImages);
+        }
+      } catch (error) {
+        console.error("Failed to load hero images:", error);
+      }
+    };
+
+    fetchHero();
+  }, []);
+
+  // =========================================================
+  // AUTO SLIDE (FIXED DEPENDENCY & STATE UPDATE)
+  // =========================================================
+  useEffect(() => {
+    // 🟢 ২. ইমেজ ২টার কম থাকলে বা মাউস হোভার করা থাকলে স্লাইড হবে না
+    if (images.length < 2 || paused) return;
+
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [images.length, paused]); // 🟢 images reference নয়, images.length ও paused নির্ভর করে চলবে
+
+  // =========================================================
+  // CURRENT SLIDE GUARD
+  // =========================================================
+  useEffect(() => {
+    if (images.length > 0 && current >= images.length) {
+      setCurrent(0);
+    }
+  }, [images.length, current]);
+
+  // =========================================================
+  // CHANGE SLIDE
+  // =========================================================
+  const goTo = useCallback((idx: number) => {
+    setCurrent(idx);
+  }, []);
+
   return (
-    <div className="relative overflow-hidden min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] font-sans flex items-center bg-[#FDF6EE]">
-      
-      {/* 1. Main Background Color (Light Peach/Cream) */}
-      <div className="absolute inset-0 z-0 bg-[#FDF6EE]" />
+    <section
+      className="relative w-full overflow-hidden bg-white font-sans"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div
+        className="
+          relative
+          w-full
+          aspect-[1900/768]
+          min-h-[520px]
+          sm:min-h-[580px]
+          overflow-hidden
+        "
+      >
+        {/* SLIDES */}
+        {images.map((src, idx) => (
+          <div
+            key={idx}
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+              idx === current
+                ? "z-[1] opacity-100"
+                : "z-0 opacity-0 pointer-events-none"
+            }`}
+            aria-hidden={idx !== current}
+          >
+            <Image
+              src={src}
+              alt={`Hero slide ${idx + 1}`}
+              fill
+              priority={idx === 0}
+              quality={100}
+              sizes="100vw"
+              className="object-cover object-center"
+              unoptimized={src.startsWith("data:")}
+            />
+          </div>
+        ))}
 
-      {/* 2. Decorative Green Circle Shape behind the product */}
-      <div className="absolute right-[5%] top-[10%] lg:right-[8%] lg:top-[12%] w-[350px] h-[350px] sm:w-[450px] sm:h-[450px] lg:w-[600px] lg:h-[600px] rounded-full bg-[#DCE8C8] opacity-80 z-[1]" />
+        {/* CONTENT OVERLAY */}
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          <div
+            className="
+              mx-auto
+              flex
+              h-full
+              w-full
+              max-w-[1400px]
+              items-center
+              px-4
+              sm:px-6
+              lg:px-8
+            "
+          >
+            <div
+              className="
+                pointer-events-auto
+                w-full
+                max-w-[560px]
+                lg:w-[52%]
+              "
+            >
+              <div className="space-y-3">
+                <div className="border-l-4 border-[#0B2523] pl-4">
+                  <p className="text-sm font-bold uppercase tracking-widest text-[#0B2523]">
+                    Sareng Furniture
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-[#0B2523]/60">
+                    2026
+                  </p>
+                </div>
 
-      {/* 3. Product/Furniture Image */}
-      <div className="absolute right-0 bottom-0 lg:right-[2%] lg:bottom-0 w-[80%] sm:w-[65%] lg:w-[55%] h-full z-[2] flex items-end justify-end pointer-events-none">
-        <Image
-          src="/images/hero-removebg-preview.png"
-          alt="Spring Collection Furniture"
-          width={900}
-          height={900}
-          priority
-          className="object-contain object-bottom w-full h-full drop-shadow-2xl scale-105 lg:scale-110"
-        />
-      </div>
-
-      {/* 4. Large Background Number "01" - Slightly darker cream color */}
-      {/* <div className="absolute bottom-[-50px] left-[8%] z-[3] select-none pointer-events-none">
-        <span className="text-[220px] sm:text-[320px] lg:text-[480px] font-extrabold text-[#F0E6D8] leading-none tracking-tighter">
-          01
-        </span>
-      </div> */}
-
-      {/* 5. Text Content and CTAs */}
-      <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center lg:min-h-[600px]">
-          
-          {/* Left Column */}
-          <div className="space-y-6 max-w-xl py-16 lg:py-0 text-left">
-            
-            {/* Small Brand Text */}
-            <div className="space-y-3">
-              <div className="border-l-4 border-[#0B2523] pl-4">
-                <p className="text-sm font-bold text-[#0B2523] uppercase tracking-widest">
-                  Sareng Furniture
-                </p>
-                <p className="text-xs text-[#0B2523]/60 font-medium mt-1">
-                  2026
+                <p className="mt-4 pl-4 text-xs font-bold uppercase tracking-[0.2em] text-[#0B2523]/70">
+                  New Arrivals
                 </p>
               </div>
-              
-              {/* NEW ARRIVALS Text */}
-              <p className="text-xs font-bold text-[#0B2523]/70 uppercase tracking-[0.2em] pl-4 mt-4">
-                New Arrivals
+
+              <h1 className="mt-5 text-5xl font-medium leading-[1.05] tracking-tight text-[#0B2523] sm:text-6xl lg:text-[76px] xl:text-[82px]">
+                Spring
+                <span className="block">Collection</span>
+              </h1>
+
+              <p className="mt-5 max-w-[500px] text-sm font-medium leading-7 text-[#0B2523]/70 sm:text-base">
+                Discover timeless furniture that blends comfort, craftsmanship, and modern design.
               </p>
-            </div>
 
-            {/* Main Heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-medium text-[#0B2523] leading-[1.1] tracking-tight mt-4">
-              Spring
-              <span className="block">Collection</span>
-            </h1>
-
-            {/* Short Description */}
-            <p className="text-sm text-[#0B2523]/70 leading-relaxed max-w-sm font-medium mt-2">
-              Discover timeless furniture that blends comfort, craftsmanship, and modern design.
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-6">
-              <button
-                onClick={() => router.push("/shop")}
-                className="bg-[#FF7A00] hover:bg-[#E56E00] text-white text-sm font-bold uppercase tracking-wider px-8 py-3 rounded-sm transition-all shadow-md cursor-pointer whitespace-nowrap active:scale-95"
-              >
-                Shop now →
-              </button>
+              <div className="flex items-center gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => router.push("/shop")}
+                  className="cursor-pointer whitespace-nowrap rounded-sm bg-[#FF7A00] px-9 py-3.5 text-sm font-bold uppercase tracking-wider text-white shadow-md transition-all duration-200 hover:bg-[#E56E00] active:scale-95"
+                >
+                  Shop now →
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Right Column (Empty to keep layout balanced) */}
-          <div className="hidden lg:block h-[500px]" />
-
         </div>
-      </div>
 
-      {/* 6. Bottom Pagination Dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#0B2523]"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#0B2523]/30"></span>
-        <span className="w-2.5 h-2.5 rounded-full bg-[#0B2523]/30"></span>
+        {/* SLIDER DOTS */}
+        {images.length > 1 && (
+          <div
+            className="
+              absolute
+              bottom-7
+              left-1/2
+              z-20
+              flex
+              -translate-x-1/2
+              items-center
+              gap-2
+            "
+          >
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => goTo(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`
+                  h-2.5
+                  w-2.5
+                  rounded-full
+                  transition-all
+                  duration-300
+                  ${
+                    idx === current
+                      ? "scale-125 bg-[#0B2523]"
+                      : "bg-[#0B2523]/30 hover:bg-[#0B2523]/60"
+                  }
+                `}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-    </div>
+    </section>
   );
 }

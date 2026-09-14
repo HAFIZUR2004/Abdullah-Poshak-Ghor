@@ -1,74 +1,87 @@
-// app/api/banner/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { Banner } from "@/models/Banner";
-import mongoose from "mongoose";
+// app/api/hero/route.ts
+import { NextResponse } from "next/server";
+import { dbConnect } from "@/lib/mongodb";  // ✅ named import
+import Hero from "@/models/Hero";
 
-async function connectDb() {
-  await clientPromise;
-  if (mongoose.connection.readyState !== 1) {
-    await mongoose.connect(process.env.MONGODB_URI as string);
-  }
-}
+const DEFAULT_IMAGES = [
+  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
+  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
+  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
+];
 
-// ─── GET Banner ──────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────
+// GET — 3 hero images
+// ────────────────────────────────────────────────────────────
 export async function GET() {
   try {
-    await connectDb();
-    
-    let banner = await Banner.findOne({ isActive: true });
-    
-    // If no banner exists, create default
-    if (!banner) {
-      banner = await Banner.create({
-        title: "Crafted for Comfort",
-        image: "https://i.ibb.co.com/4RCn5y67/discount.webp",
-        link: "/shop",
-        isActive: true,
-      });
+    await dbConnect();   // ✅
+    let heroData = await Hero.findOne();
+
+    if (!heroData) {
+      heroData = await Hero.create({ heroImages: DEFAULT_IMAGES });
     }
-    
-    return NextResponse.json({ success: true, banner }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching banner:", error);
+
+    // পুরোনো / ভাঙা structure হলে fix
+    if (
+      !Array.isArray(heroData.heroImages) ||
+      heroData.heroImages.length !== 3
+    ) {
+      heroData.heroImages = DEFAULT_IMAGES;
+      await heroData.save();
+    }
+
     return NextResponse.json(
-      { success: false, message: "Failed to fetch banner" },
+      { success: true, hero: heroData },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("GET Error:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch hero data" },
       { status: 500 }
     );
   }
 }
 
-// ─── UPDATE Banner ───────────────────────────────────────────────────────────
-export async function PUT(req: NextRequest) {
+// ────────────────────────────────────────────────────────────
+// PUT — 3 images update
+// ────────────────────────────────────────────────────────────
+export async function PUT(req: Request) {
   try {
-    await connectDb();
-    const { title, image, link, isActive } = await req.json();
+    await dbConnect();   // ✅ এটাই সঠিক
+    const body = await req.json();
 
-    let banner = await Banner.findOne({ isActive: true });
+    const heroImages = body?.heroImages;
 
-    if (!banner) {
-      // Create new if not exists
-      banner = await Banner.create({
-        title: title || "Crafted for Comfort",
-        image: image || "https://i.ibb.co.com/4RCn5y67/discount.webp",
-        link: link || "/shop",
-        isActive: true,
-      });
-    } else {
-      // Update existing
-      banner.title = title || banner.title;
-      banner.image = image || banner.image;
-      banner.link = link || banner.link;
-      banner.isActive = isActive !== undefined ? isActive : banner.isActive;
-      banner.updatedAt = new Date();
-      await banner.save();
+    if (!Array.isArray(heroImages) || heroImages.length !== 3) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "heroImages must be an array of exactly 3 items",
+        },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ success: true, banner }, { status: 200 });
-  } catch (error: any) {
-    console.error("Error updating banner:", error);
+    if (!heroImages.every((img) => typeof img === "string" && img.trim())) {
+      return NextResponse.json(
+        { success: false, message: "All 3 images must have valid URLs" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ পুরোনো field সব মুছে fresh document বানানো
+    await Hero.deleteMany({});
+    const updatedHero = await Hero.create({ heroImages });
+
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to update banner" },
+      { success: true, hero: updatedHero },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("PUT Error:", error.message || error);
+    return NextResponse.json(
+      { success: false, message: error.message || "Failed to update hero" },
       { status: 500 }
     );
   }

@@ -155,7 +155,7 @@ export default function WhyChoose() {
           <h2 className="text-[30px] font-extrabold leading-tight tracking-[-1px] text-[#101817] sm:text-[36px] lg:text-[42px]">
             Why Choose{" "}
             <span className="text-[#075B4C]">
-              Davici Furniture?
+              Sareng Furniture?
             </span>
           </h2>
 
