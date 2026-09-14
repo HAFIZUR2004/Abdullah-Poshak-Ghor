@@ -145,7 +145,7 @@ const unitConversions: Record<
   MM: { toMM: 1, label: "Millimeter" },
 };
 
-const unitOrder: Unit[] = ["M", "FT", "INC", "CM", "MM"];
+const unitOrder: Unit[] = ["FT", "INC", "M", "CM"];
 
 const convertUnit = (value: number, from: Unit, to: Unit): number => {
   const mm = value * unitConversions[from].toMM;
@@ -212,7 +212,7 @@ const defaultMaterials: MaterialOption[] = [
 const createEmptySize = (id: string): SizeOption => ({
   id,
   label: "",
-  primaryUnit: "M",
+  primaryUnit: "FT",
   dimensions: createEmptyDimensions(),
   price: "",
 });
@@ -450,20 +450,34 @@ const SizeOptionRow = React.memo(function SizeOptionRow({
         </p>
       </div>
 
-      <div className="mt-4">
-        <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">Extra Size Price</label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9A806D]">৳</span>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={price}
-            onChange={handlePriceChange}
-            placeholder="Optional"
-            className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white pl-8 pr-3 text-xs text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
-          />
-        </div>
-      </div>
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+  <div>
+    <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
+      Extra Size Price
+    </label>
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9A806D]">
+        ৳
+      </span>
+      <input
+        type="text"
+        inputMode="decimal"
+        value={price}
+        onChange={handlePriceChange}
+        placeholder="Optional"
+        className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white pl-8 pr-3 text-xs text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+      />
+    </div>
+  </div>
+
+  {/* Secondary info panel — grid-এর দ্বিতীয় কলাম */}
+  <div className="flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2 h-10 mt-[26px]">
+    <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
+    <p className="text-[10px] leading-tight text-[#89776C]">
+      এই size-এর জন্য অতিরিক্ত মূল্য (ঐচ্ছিক)
+    </p>
+  </div>
+</div>
     </div>
   );
 });

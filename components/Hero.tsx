@@ -145,27 +145,27 @@ export default function Hero() {
               <div className="space-y-3">
                 <div className="border-l-4 border-[#0B2523] pl-4">
                   <p className="text-sm font-bold uppercase tracking-widest text-[#0B2523]">
-                    Sareng Furniture
+                    {/* Sareng Furniture */}
                   </p>
                   <p className="mt-1 text-xs font-medium text-[#0B2523]/60">
-                    2026
+                    {/* 2026 */}
                   </p>
                 </div>
 
                 <p className="mt-4 pl-4 text-xs font-bold uppercase tracking-[0.2em] text-[#0B2523]/70">
-                  New Arrivals
+                  {/* New Arrivals */}
                 </p>
               </div>
 
               <h1 className="mt-5 text-5xl font-medium leading-[1.05] tracking-tight text-[#0B2523] sm:text-6xl lg:text-[76px] xl:text-[82px]">
-                Spring
-                <span className="block">Collection</span>
+                {/* Spring */}
+                {/* <span className="block">Collection</span> */}
               </h1>
 
               <p className="mt-5 max-w-[500px] text-sm font-medium leading-7 text-[#0B2523]/70 sm:text-base">
-                Discover timeless furniture that blends comfort, craftsmanship, and modern design.
+                {/* Discover timeless furniture that blends comfort, craftsmanship, and modern design. */}
               </p>
-
+{/* 
               <div className="flex items-center gap-4 pt-6">
                 <button
                   type="button"
@@ -174,7 +174,7 @@ export default function Hero() {
                 >
                   Shop now →
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
