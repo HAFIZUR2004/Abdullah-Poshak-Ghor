@@ -20,14 +20,15 @@ const BannerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: true,
   }
 );
 
-export const Banner = mongoose.models.Banner || mongoose.model("Banner", BannerSchema);
+// ✅ Named + Default দুটোই export
+const Banner =
+  mongoose.models.Banner || mongoose.model("Banner", BannerSchema);
+
+export default Banner;
+export { Banner };

@@ -25,26 +25,50 @@ export default function BannerManagementPage() {
   const [previewImage, setPreviewImage] = useState<string>("");
 
   // ─── Fetch Banner Data ──────────────────────────────────────────────────────
-  useEffect(() => {
-    const fetchBanner = async () => {
-      try {
-        const res = await fetch("/api/banner");
-        const data = await res.json();
-        if (data.success) {
-          setBanner(data.banner);
-          setPreviewImage(data.banner.image);
-        }
-      } catch (error) {
-        console.error("Error fetching banner:", error);
-        toast.error("Failed to load banner data");
-      } finally {
-        setFetchLoading(false);
+// ─── Fetch Banner Data ──────────────────────────────────────────────────────
+useEffect(() => {
+  const fetchBanner = async () => {
+    try {
+      const res = await fetch("/api/banner", { cache: "no-store" });
+      const data = await res.json();
+
+      console.log("🔍 Banner API response:", data);
+
+      // ✅ Safe check
+      if (data?.success && data?.banner) {
+        setBanner(data.banner);
+        setPreviewImage(data.banner.image || "");
+      } else {
+        // Fallback — default banner দিয়ে দেখাবে
+        const fallback = {
+          title: "Crafted for Comfort",
+          image: "https://i.ibb.co.com/4RCn5y67/discount.webp",
+          link: "/shop",
+          isActive: true,
+        };
+        setBanner(fallback);
+        setPreviewImage(fallback.image);
+        toast.error(data?.message || "Using default banner");
       }
-    };
+    } catch (error) {
+      console.error("🔴 Error fetching banner:", error);
+      toast.error("Failed to load banner data");
+      // Fallback
+      const fallback = {
+        title: "Crafted for Comfort",
+        image: "https://i.ibb.co.com/4RCn5y67/discount.webp",
+        link: "/shop",
+        isActive: true,
+      };
+      setBanner(fallback);
+      setPreviewImage(fallback.image);
+    } finally {
+      setFetchLoading(false);
+    }
+  };
 
-    fetchBanner();
-  }, []);
-
+  fetchBanner();
+}, []);
   // ─── Handle Image URL Change ──────────────────────────────────────────────
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;

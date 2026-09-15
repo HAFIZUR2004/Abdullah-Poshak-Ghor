@@ -909,40 +909,41 @@ export default function ProductEntryPage() {
       const finalOriginalPrice = originalPrice ? parseFloat(originalPrice) : undefined;
       const discount = finalOriginalPrice && finalOriginalPrice > finalPrice ? calculateDiscount(finalPrice, finalOriginalPrice) : 0;
 
-      const formattedSizes = sizeOptions
-        .filter((size) => {
-          const widthValue = size.dimensions.width[size.primaryUnit];
-          return widthValue && Number(widthValue) > 0;
-        })
-        .map((size) => {
-          const getDimensionValues = (dimensionType: DimensionType) => {
-            const primaryValue = size.dimensions[dimensionType][size.primaryUnit];
-            const numeric = Number(primaryValue);
-            if (!primaryValue || !Number.isFinite(numeric) || numeric <= 0) return null;
-            return {
-              mm: formatNumber(convertUnit(numeric, size.primaryUnit, "MM")),
-              cm: formatNumber(convertUnit(numeric, size.primaryUnit, "CM")),
-              m: formatNumber(convertUnit(numeric, size.primaryUnit, "M")),
-              in: formatNumber(convertUnit(numeric, size.primaryUnit, "INC")),
-              ft: formatNumber(convertUnit(numeric, size.primaryUnit, "FT")),
-            };
-          };
+  
+const formattedSizes = sizeOptions
+  .filter((size) => {
+    const widthValue = size.dimensions.width[size.primaryUnit];
+    return widthValue && Number(widthValue) > 0;
+  })
+  .map((size) => {
+    const getDimensionValues = (dimensionType: DimensionType) => {
+      const primaryValue = size.dimensions[dimensionType][size.primaryUnit];
+      const numeric = Number(primaryValue);
+      if (!primaryValue || !Number.isFinite(numeric) || numeric <= 0) return null;
+      return {
+        mm: formatNumber(convertUnit(numeric, size.primaryUnit, "MM")),
+        cm: formatNumber(convertUnit(numeric, size.primaryUnit, "CM")),
+        m: formatNumber(convertUnit(numeric, size.primaryUnit, "M")),
+        in: formatNumber(convertUnit(numeric, size.primaryUnit, "INC")),
+        ft: formatNumber(convertUnit(numeric, size.primaryUnit, "FT")),
+      };
+    };
 
-          const L = getDimensionValues("depth");
-          const W = getDimensionValues("width");
-          const H = getDimensionValues("height");
-          if (!L || !W || !H) return "";
+    const L = getDimensionValues("depth");
+    const W = getDimensionValues("width");
+    const H = getDimensionValues("height");
+    if (!L || !W || !H) return "";
 
-          const sizeString = `${size.label ? size.label + ": " : ""}
+    const sizeString = `${size.label ? size.label + ": " : ""}
 L${L.mm} X W${W.mm} X H${H.mm} mm
 L${L.cm} X W${W.cm} X H${H.cm} cm
 L${L.m} X W${W.m} X H${H.m} m
 L${L.in} X W${W.in} X H${H.in} in
 L${L.ft} X W${W.ft} X H${H.ft} ft`;
 
-          return size.price ? `${sizeString} - ৳${size.price}` : sizeString;
-        })
-        .filter(Boolean);
+    return size.price ? `${sizeString} - ৳${size.price}` : sizeString;
+  })
+  .filter(Boolean);
 
       const materialStrings: string[] = [];
       if (materials.trim()) {

@@ -476,7 +476,7 @@ export default function DealOfTheWeek() {
                   COUNTDOWN
               ================================================= */}
 
-              <div className="mt-7">
+              {/* <div className="mt-7">
 
                 <div className="mb-3 flex items-center gap-2">
 
@@ -517,7 +517,7 @@ export default function DealOfTheWeek() {
 
                 </div>
 
-              </div>
+              </div> */}
 
               {/* =================================================
                   BUTTONS

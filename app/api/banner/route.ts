@@ -1,87 +1,77 @@
-// app/api/hero/route.ts
+// app/api/banner/route.ts
 import { NextResponse } from "next/server";
-import { dbConnect } from "@/lib/mongodb";  // ✅ named import
-import Hero from "@/models/Hero";
+import { dbConnect } from "@/lib/mongodb";
+import Banner from "@/models/Banner";
 
-const DEFAULT_IMAGES = [
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-];
+// ডিফল্ট ব্যানার ডেটা
+const DEFAULT_BANNER = {
+  title: "Crafted for Comfort",
+  image: "https://i.ibb.co.com/4RCn5y67/discount.webp",
+  link: "/shop",
+  isActive: true,
+};
 
 // ────────────────────────────────────────────────────────────
-// GET — 3 hero images
+// GET — ব্যানার ডেটা পাওয়ার জন্য
 // ────────────────────────────────────────────────────────────
 export async function GET() {
   try {
-    await dbConnect();   // ✅
-    let heroData = await Hero.findOne();
+    await dbConnect();
+    let bannerData = await Banner.findOne();
 
-    if (!heroData) {
-      heroData = await Hero.create({ heroImages: DEFAULT_IMAGES });
-    }
-
-    // পুরোনো / ভাঙা structure হলে fix
-    if (
-      !Array.isArray(heroData.heroImages) ||
-      heroData.heroImages.length !== 3
-    ) {
-      heroData.heroImages = DEFAULT_IMAGES;
-      await heroData.save();
+    // ডাটাবেজে ব্যানার না থাকলে ডিফল্ট ব্যানার ক্রিয়েট করবে
+    if (!bannerData) {
+      bannerData = await Banner.create(DEFAULT_BANNER);
     }
 
     return NextResponse.json(
-      { success: true, hero: heroData },
+      { success: true, banner: bannerData },
       { status: 200 }
     );
   } catch (error: any) {
-    console.error("GET Error:", error);
+    console.error("GET Banner Error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch hero data" },
+      { success: false, message: "Failed to fetch banner data" },
       { status: 500 }
     );
   }
 }
 
 // ────────────────────────────────────────────────────────────
-// PUT — 3 images update
+// PUT — ব্যানার আপডেট করার জন্য
 // ────────────────────────────────────────────────────────────
 export async function PUT(req: Request) {
   try {
-    await dbConnect();   // ✅ এটাই সঠিক
+    await dbConnect();
     const body = await req.json();
 
-    const heroImages = body?.heroImages;
+    const { title, image, link, isActive } = body || {};
 
-    if (!Array.isArray(heroImages) || heroImages.length !== 3) {
+    // ছবি চেক করা
+    if (!image || typeof image !== "string" || !image.trim()) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "heroImages must be an array of exactly 3 items",
-        },
+        { success: false, message: "Image URL is required" },
         { status: 400 }
       );
     }
 
-    if (!heroImages.every((img) => typeof img === "string" && img.trim())) {
-      return NextResponse.json(
-        { success: false, message: "All 3 images must have valid URLs" },
-        { status: 400 }
-      );
-    }
-
-    // ✅ পুরোনো field সব মুছে fresh document বানানো
-    await Hero.deleteMany({});
-    const updatedHero = await Hero.create({ heroImages });
+    // পুরোনো ডাটা মুছে নতুন ফ্রেস ব্যানার সেট করা
+    await Banner.deleteMany({});
+    const updatedBanner = await Banner.create({
+      title: title || "",
+      image: image.trim(),
+      link: link || "/shop",
+      isActive: isActive ?? true,
+    });
 
     return NextResponse.json(
-      { success: true, hero: updatedHero },
+      { success: true, banner: updatedBanner },
       { status: 200 }
     );
   } catch (error: any) {
-    console.error("PUT Error:", error.message || error);
+    console.error("PUT Banner Error:", error.message || error);
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to update hero" },
+      { success: false, message: error.message || "Failed to update banner" },
       { status: 500 }
     );
   }

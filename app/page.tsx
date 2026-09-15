@@ -49,7 +49,7 @@ export default function Home() {
       <DealOfTheWeek/>
       <TopRatedProducts/>
       {/* <DesignThatDefines/> */}
-      <Reviews />
+    {/* <Reviews /> */}
       <Footer/>
     </>
   );
