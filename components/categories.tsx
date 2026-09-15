@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -48,20 +48,38 @@ export default function Categories() {
     fetchCategories();
   }, []);
 
-  // Direct Slide Methods with Fallback
-  const handlePrev = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (swiperRef.current) {
-      swiperRef.current.slidePrev();
-    }
-  };
+  // ✅ Swiper state sync helper
+  const syncNavState = useCallback((swiper: SwiperType) => {
+    setIsBeginning(swiper.isBeginning);
+    setIsEnd(swiper.isEnd);
+  }, []);
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (swiperRef.current) {
-      swiperRef.current.slideNext();
-    }
-  };
+  // ✅ Prev handler — disabled check + touch support
+  const handlePrev = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const swiper = swiperRef.current;
+      if (!swiper || swiper.isBeginning) return;
+      swiper.slidePrev();
+      // mobile-এ state update force করো
+      requestAnimationFrame(() => syncNavState(swiper));
+    },
+    [syncNavState]
+  );
+
+  // ✅ Next handler
+  const handleNext = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const swiper = swiperRef.current;
+      if (!swiper || swiper.isEnd) return;
+      swiper.slideNext();
+      requestAnimationFrame(() => syncNavState(swiper));
+    },
+    [syncNavState]
+  );
 
   if (!isMounted) return null;
 
@@ -89,10 +107,11 @@ export default function Categories() {
           <button
             type="button"
             onClick={handlePrev}
-            disabled={isBeginning}
+            onTouchEnd={handlePrev}
+            aria-disabled={isBeginning}
             className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 z-30 touch-manipulation ${
               isBeginning
-                ? "border-[#E5D3B3]/40 text-[#E5D3B3]/40 cursor-not-allowed"
+                ? "border-[#E5D3B3]/40 text-[#E5D3B3]/40 cursor-not-allowed opacity-50"
                 : "border-[#0B2523]/20 text-[#0B2523] active:scale-90 hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]"
             }`}
             aria-label="Previous"
@@ -103,10 +122,11 @@ export default function Categories() {
           <button
             type="button"
             onClick={handleNext}
-            disabled={isEnd}
+            onTouchEnd={handleNext}
+            aria-disabled={isEnd}
             className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 z-30 touch-manipulation ${
               isEnd
-                ? "border-[#E5D3B3]/40 text-[#E5D3B3]/40 cursor-not-allowed"
+                ? "border-[#E5D3B3]/40 text-[#E5D3B3]/40 cursor-not-allowed opacity-50"
                 : "border-[#0B2523]/20 text-[#0B2523] active:scale-90 hover:bg-[#0F3D39] hover:border-[#0F3D39] hover:text-[#E5D3B3]"
             }`}
             aria-label="Next"
@@ -131,22 +151,25 @@ export default function Categories() {
               modules={[Navigation, Grid]}
               onSwiper={(swiper) => {
                 swiperRef.current = swiper;
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
+                // ✅ initial state sync
+                syncNavState(swiper);
                 setTimeout(() => {
                   swiper.update();
-                }, 200);
+                  syncNavState(swiper);
+                }, 300);
               }}
-              onSlideChange={(swiper) => {
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
-              }}
+              onSlideChange={syncNavState}
+              onResize={syncNavState}
+              onReachBeginning={syncNavState}
+              onReachEnd={syncNavState}
+              onFromEdge={syncNavState}
               slidesPerView={3}
               grid={{
                 rows: isTwoRows ? 2 : 1,
                 fill: "row",
               }}
               spaceBetween={6}
+              watchOverflow={true}
               breakpoints={{
                 0: {
                   slidesPerView: 3,
