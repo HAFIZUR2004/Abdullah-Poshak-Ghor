@@ -35,7 +35,6 @@ import {
   Filter,
   Grid3X3,
   List,
-  // Alias for collection buttons
   Star as StarIcon,
   Clock as ClockIcon,
   TrendingUp as TrendingUpIcon,
@@ -82,7 +81,6 @@ interface Product {
   returnPolicy?: string;
   note?: string;
   createdAt?: Date;
-  // নতুন ফিল্ড
   isBestSeller?: boolean;
   isTodayDeal?: boolean;
   isNewArrival?: boolean;
@@ -183,7 +181,7 @@ const colorOptions = [
   { name: "Duco White", value: "Duco White", hex: "#ECF0F9" },
   { name: "Lacquer No. 1", value: "Lacquer No. 1", hex: "#9F4010" },
   { name: "Lacquer No. 2", value: "Lacquer No. 2", hex: "#421917" },
-  { name: "Lacquer No. 2 Deep", value: "Lacquer No. 3", hex: "#311919" },
+  { name: "Lacquer No. 2 Deep", value: "Lacquer No. 2 Deep", hex: "#311919" },
   { name: "Lacquer No. 3", value: "Lacquer No. 3", hex: "#1B1515" },
   { name: "Veneer No. 1", value: "Veneer No. 1", hex: "#B06F2B" },
   { name: "Veneer No. 2", value: "Veneer No. 2", hex: "#813B0A" },
@@ -391,7 +389,7 @@ const SizeOptionRow = React.memo(function SizeOptionRow({
           </div>
           <div>
             <p className="text-xs font-bold text-[#4A342A]">Size Option</p>
-            <p className="text-[10px] text-[#9B8C82]">Width × Depth × Height - সব unit auto convert</p>
+            <p className="text-[10px] text-[#9B8C82]">Width × Depth × Height - all units auto convert</p>
           </div>
         </div>
 
@@ -438,46 +436,45 @@ const SizeOptionRow = React.memo(function SizeOptionRow({
       </div>
 
       <div className="mt-4 space-y-3">
-        <DimensionInput label="Width (প্রস্থ)" dimensionType="width" values={dimensions.width} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
-        <DimensionInput label="Depth (গভীরতা)" dimensionType="depth" values={dimensions.depth} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
-        <DimensionInput label="Height (উচ্চতা)" dimensionType="height" values={dimensions.height} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
+        <DimensionInput label="Width" dimensionType="width" values={dimensions.width} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
+        <DimensionInput label="Depth" dimensionType="depth" values={dimensions.depth} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
+        <DimensionInput label="Height" dimensionType="height" values={dimensions.height} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
       </div>
 
       <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2">
         <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
         <p className="text-[10px] leading-relaxed text-[#89776C]">
-          যেকোনো একটি unit-এ value লিখলেই অন্যগুলো automatically convert হবে। Width, Depth, Height - তিনটাই আলাদা করে দিন।
+          Enter a value in any one unit and the others will convert automatically. Provide Width, Depth, and Height separately.
         </p>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-  <div>
-    <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
-      Extra Size Price
-    </label>
-    <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9A806D]">
-        ৳
-      </span>
-      <input
-        type="text"
-        inputMode="decimal"
-        value={price}
-        onChange={handlePriceChange}
-        placeholder="Optional"
-        className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white pl-8 pr-3 text-xs text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
-      />
-    </div>
-  </div>
+        <div>
+          <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
+            Extra Size Price
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9A806D]">
+              ৳
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={price}
+              onChange={handlePriceChange}
+              placeholder="Optional"
+              className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white pl-8 pr-3 text-xs text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
+            />
+          </div>
+        </div>
 
-  {/* Secondary info panel — grid-এর দ্বিতীয় কলাম */}
-  <div className="flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2 h-10 mt-[26px]">
-    <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
-    <p className="text-[10px] leading-tight text-[#89776C]">
-      এই size-এর জন্য অতিরিক্ত মূল্য (ঐচ্ছিক)
-    </p>
-  </div>
-</div>
+        <div className="flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2 h-10 mt-[26px]">
+          <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
+          <p className="text-[10px] leading-tight text-[#89776C]">
+            Additional price for this size (optional)
+          </p>
+        </div>
+      </div>
     </div>
   );
 });
@@ -543,7 +540,6 @@ export default function ProductEntryPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // Dynamic Categories
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
@@ -572,7 +568,6 @@ export default function ProductEntryPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -581,7 +576,6 @@ export default function ProductEntryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const multiFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch Categories
   const fetchCategories = useCallback(async () => {
     try {
       setLoadingCategories(true);
@@ -590,14 +584,12 @@ export default function ProductEntryPage() {
 
       if (data.success && Array.isArray(data.categories)) {
         setCategories(data.categories);
-        // Set default category if available
         if (data.categories.length > 0 && !category) {
           setCategory(data.categories[0].name);
         }
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
-      // Fallback to default categories
       const fallbackCategories = [
         "Sofa & Sectionals",
         "Center & Coffee Tables",
@@ -655,10 +647,6 @@ export default function ProductEntryPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // ======================================================
-  // SEARCH & FILTER
-  // ======================================================
-
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -669,56 +657,51 @@ export default function ProductEntryPage() {
     });
   }, [products, searchQuery, filterCategory, filterStatus]);
 
-  // ======================================================
-  // COLLECTION TOGGLE HANDLER
-  // ======================================================
+  const handleToggleCollection = async (
+    productId: string,
+    collectionType: "best-seller" | "today-deal" | "new-arrival" | "deal-of-the-week" | "top-rated"
+  ) => {
+    try {
+      const currentProduct = products.find((p) => p.id === productId);
 
- const handleToggleCollection = async (
-  productId: string,
-  collectionType: "best-seller" | "today-deal" | "new-arrival" | "deal-of-the-week" | "top-rated"
-) => {
-  try {
-    // আপডেট করার আগে বর্তমান প্রোডাক্টের অবস্থা চেক করুন
-    const currentProduct = products.find((p) => p.id === productId);
-    
-    const shouldAdd = !currentProduct?.[
-      collectionType === "best-seller" ? "isBestSeller" :
-      collectionType === "today-deal" ? "isTodayDeal" :
-      collectionType === "new-arrival" ? "isNewArrival" :
-      collectionType === "deal-of-the-week" ? "isDealOfTheWeek" :
-      "isTopRated"
-    ];
+      const shouldAdd = !currentProduct?.[
+        collectionType === "best-seller" ? "isBestSeller" :
+        collectionType === "today-deal" ? "isTodayDeal" :
+        collectionType === "new-arrival" ? "isNewArrival" :
+        collectionType === "deal-of-the-week" ? "isDealOfTheWeek" :
+        "isTopRated"
+      ];
 
-    const res = await fetch("/api/collections", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: collectionType,
-        productIds: [productId],
-        action: shouldAdd ? "add" : "remove", // add বা remove নির্ধারণ
-      }),
-    });
+      const res = await fetch("/api/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: collectionType,
+          productIds: [productId],
+          action: shouldAdd ? "add" : "remove",
+        }),
+      });
 
-    if (!res.ok) throw new Error("Failed to update collection");
+      if (!res.ok) throw new Error("Failed to update collection");
 
-    await fetchProducts();
+      await fetchProducts();
 
-    Swal.fire({
-      title: "Success!",
-      text: shouldAdd ? "Product added to collection." : "Product removed from collection.",
-      icon: "success",
-      timer: 1500,
-      showConfirmButton: false,
-    });
-  } catch (error) {
-    console.error("Toggle collection error:", error);
-    Swal.fire({
-      title: "Error!",
-      text: "Failed to update collection.",
-      icon: "error",
-    });
-  }
-};
+      Swal.fire({
+        title: "Success!",
+        text: shouldAdd ? "Product added to collection." : "Product removed from collection.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Toggle collection error:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to update collection.",
+        icon: "error",
+      });
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -909,41 +892,39 @@ export default function ProductEntryPage() {
       const finalOriginalPrice = originalPrice ? parseFloat(originalPrice) : undefined;
       const discount = finalOriginalPrice && finalOriginalPrice > finalPrice ? calculateDiscount(finalPrice, finalOriginalPrice) : 0;
 
-  
-const formattedSizes = sizeOptions
-  .filter((size) => {
-    const widthValue = size.dimensions.width[size.primaryUnit];
-    return widthValue && Number(widthValue) > 0;
-  })
-  .map((size) => {
-    const getDimensionValues = (dimensionType: DimensionType) => {
-      const primaryValue = size.dimensions[dimensionType][size.primaryUnit];
-      const numeric = Number(primaryValue);
-      if (!primaryValue || !Number.isFinite(numeric) || numeric <= 0) return null;
-      return {
-        mm: formatNumber(convertUnit(numeric, size.primaryUnit, "MM")),
-        cm: formatNumber(convertUnit(numeric, size.primaryUnit, "CM")),
-        m: formatNumber(convertUnit(numeric, size.primaryUnit, "M")),
-        in: formatNumber(convertUnit(numeric, size.primaryUnit, "INC")),
-        ft: formatNumber(convertUnit(numeric, size.primaryUnit, "FT")),
-      };
-    };
+      // ✅ Size save order: FT → INC → M → CM (no MM) + Extra Size Price at the end
+      const formattedSizes = sizeOptions
+        .filter((size) => {
+          const widthValue = size.dimensions.width[size.primaryUnit];
+          return widthValue && Number(widthValue) > 0;
+        })
+        .map((size) => {
+          const getDimensionValues = (dimensionType: DimensionType) => {
+            const primaryValue = size.dimensions[dimensionType][size.primaryUnit];
+            const numeric = Number(primaryValue);
+            if (!primaryValue || !Number.isFinite(numeric) || numeric <= 0) return null;
+            return {
+              ft: formatNumber(convertUnit(numeric, size.primaryUnit, "FT")),
+              in: formatNumber(convertUnit(numeric, size.primaryUnit, "INC")),
+              m: formatNumber(convertUnit(numeric, size.primaryUnit, "M")),
+              cm: formatNumber(convertUnit(numeric, size.primaryUnit, "CM")),
+            };
+          };
 
-    const L = getDimensionValues("depth");
-    const W = getDimensionValues("width");
-    const H = getDimensionValues("height");
-    if (!L || !W || !H) return "";
+          const L = getDimensionValues("depth");
+          const W = getDimensionValues("width");
+          const H = getDimensionValues("height");
+          if (!L || !W || !H) return "";
 
-    const sizeString = `${size.label ? size.label + ": " : ""}
-L${L.mm} X W${W.mm} X H${H.mm} mm
-L${L.cm} X W${W.cm} X H${H.cm} cm
-L${L.m} X W${W.m} X H${H.m} m
+          const sizeString = `${size.label ? size.label + ": " : ""}
+L${L.ft} X W${W.ft} X H${H.ft} ft
 L${L.in} X W${W.in} X H${H.in} in
-L${L.ft} X W${W.ft} X H${H.ft} ft`;
+L${L.m} X W${W.m} X H${H.m} m
+L${L.cm} X W${W.cm} X H${H.cm} cm`;
 
-    return size.price ? `${sizeString} - ৳${size.price}` : sizeString;
-  })
-  .filter(Boolean);
+          return size.price ? `${sizeString} - ৳${size.price}` : sizeString;
+        })
+        .filter(Boolean);
 
       const materialStrings: string[] = [];
       if (materials.trim()) {
@@ -1177,39 +1158,39 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
               </div>
 
               {/* MATERIAL OPTIONS */}
-<div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-  <div className="mb-4 flex items-center gap-2">
-    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-      <Layers size={15} className="text-[#B98A5A]" />
-    </div>
-    <div>
-      <h3 className="text-sm font-black text-[#49352D]">Material Options</h3>
-      <p className="text-[9px] text-[#A09289]">Select materials with optional prices</p>
-    </div>
-  </div>
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
+                    <Layers size={15} className="text-[#B98A5A]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-[#49352D]">Material Options</h3>
+                    <p className="text-[9px] text-[#A09289]">Select materials with optional prices</p>
+                  </div>
+                </div>
 
-  <div className="space-y-3">
-    {materialOptions.map((material) => (
-      <div key={material.id} className={`rounded-xl border p-3 transition ${material.enabled ? "border-[#C8A77F] bg-[#FFF8EF]" : "border-[#E7D9CC] bg-white"}`}>
-        <div className="flex items-center justify-between gap-3">
-          <label className="flex min-w-0 cursor-pointer items-center gap-3">
-            <input type="checkbox" checked={material.enabled} onChange={() => toggleMaterial(material.id)} className="h-4 w-4 accent-[#B98A5A]" />
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-[#4A352B]">{material.label}</p>
-              <p className="truncate text-[9px] text-[#9D8C81]">{material.description}</p>
-            </div>
-          </label>
-          {material.enabled && (
-            <div className="relative w-28 shrink-0">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#9A806D]">৳</span>
-              <input type="text" inputMode="decimal" value={material.basePrice} onChange={(e) => updateMaterialPrice(material.id, e.target.value)} placeholder="Price" className="w-full rounded-lg border border-[#E7D9CC] bg-white py-2 pl-6 pr-2 text-[11px] outline-none focus:border-[#B98A5A]" />
-            </div>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
+                <div className="space-y-3">
+                  {materialOptions.map((material) => (
+                    <div key={material.id} className={`rounded-xl border p-3 transition ${material.enabled ? "border-[#C8A77F] bg-[#FFF8EF]" : "border-[#E7D9CC] bg-white"}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="flex min-w-0 cursor-pointer items-center gap-3">
+                          <input type="checkbox" checked={material.enabled} onChange={() => toggleMaterial(material.id)} className="h-4 w-4 accent-[#B98A5A]" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-[#4A352B]">{material.label}</p>
+                            <p className="truncate text-[9px] text-[#9D8C81]">{material.description}</p>
+                          </div>
+                        </label>
+                        {material.enabled && (
+                          <div className="relative w-28 shrink-0">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#9A806D]">৳</span>
+                            <input type="text" inputMode="decimal" value={material.basePrice} onChange={(e) => updateMaterialPrice(material.id, e.target.value)} placeholder="Price" className="w-full rounded-lg border border-[#E7D9CC] bg-white py-2 pl-6 pr-2 text-[11px] outline-none focus:border-[#B98A5A]" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* COLORS */}
               <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
@@ -1276,7 +1257,7 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-[#49352D]">Size Options</h3>
-                      <p className="text-[9px] text-[#A09289]">Width × Depth × Height - সব unit auto convert</p>
+                      <p className="text-[9px] text-[#A09289]">Width × Depth × Height - all units auto convert</p>
                     </div>
                   </div>
                   <button type="button" onClick={addSize} className="flex items-center gap-1 rounded-lg bg-[#B98A5A] px-3 py-2 text-[10px] font-bold text-white transition hover:bg-[#9F754B]">
@@ -1356,9 +1337,7 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
 
           {/* RIGHT: Inventory */}
           <div className="min-w-0 rounded-3xl border border-[#E6D8CB] bg-white p-5 shadow-[0_15px_50px_rgba(75,50,30,0.08)] md:p-6">
-            {/* Search & Filter Bar */}
             <div className="mb-6 space-y-4">
-              {/* Search Bar */}
               <div className="flex flex-col gap-4 md:flex-row md:items-center">
                 <div className="flex-1 relative">
                   <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -1371,7 +1350,6 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
                   />
                 </div>
 
-                {/* View Toggle */}
                 <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                   <button
                     onClick={() => setViewMode("list")}
@@ -1390,9 +1368,7 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
                 </div>
               </div>
 
-              {/* Filters */}
               <div className="flex flex-col gap-3 sm:flex-row">
-                {/* Category Filter - Dynamic */}
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
@@ -1404,7 +1380,6 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
                   ))}
                 </select>
 
-                {/* Status Filter */}
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
@@ -1420,7 +1395,6 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
               </div>
             </div>
 
-            {/* Product Count */}
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm text-gray-600">
                 Showing <span className="font-bold text-[#B98A5A]">{filteredProducts.length}</span> of {products.length} products
@@ -1451,7 +1425,6 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
                 <p className="mt-1 text-xs text-[#9A8A80]">Try adjusting your search or filters.</p>
               </div>
             ) : viewMode === "list" ? (
-              /* LIST VIEW */
               <div className="overflow-x-auto rounded-2xl border border-[#EEE4DC]">
                 <table className="w-full min-w-[1200px] border-collapse text-left">
                   <thead>
@@ -1532,7 +1505,6 @@ L${L.ft} X W${W.ft} X H${H.ft} ft`;
                 </table>
               </div>
             ) : (
-              /* GRID VIEW */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredProducts.map((product) => {
                   const discount = product.originalPrice && product.originalPrice > product.price ? calculateDiscount(product.price, product.originalPrice) : 0;
