@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   Copy,
   Phone,
-  Star,
 } from "lucide-react";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
@@ -89,7 +88,7 @@ export default function ProductDetailsPage() {
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [openOption, setOpenOption] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"description" | "specs" | "reviews">(
+  const [activeTab, setActiveTab] = useState<"description" | "specs">(
     "description"
   );
 
@@ -100,29 +99,6 @@ export default function ProductDetailsPage() {
   const [showroomsLoading, setShowroomsLoading] = useState(true);
 
   const productId = params.id as string;
-
-  const mockReviews = [
-    {
-      name: "Rahim Ahmed",
-      rating: 5,
-      date: "2024-12-15",
-      comment:
-        "Excellent quality! The wood finish is beautiful and installation was easy.",
-    },
-    {
-      name: "Nusrat Jahan",
-      rating: 4,
-      date: "2024-11-28",
-      comment: "Very good product for the price. Delivery was slightly delayed though.",
-    },
-    {
-      name: "Tanvir Hasan",
-      rating: 5,
-      date: "2024-10-10",
-      comment:
-        "Premium feel and finish. Highly recommended for anyone looking for quality furniture.",
-    },
-  ];
 
   // ──────────────────────────────────────────────────────────
   // Fetch Product
@@ -668,8 +644,7 @@ export default function ProductDetailsPage() {
                   </button>
                   {openAccordion === "pkg" && (
                     <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2">
-                      Flat-pack delivery with heavy-duty corrugated cardboard
-                      protection.
+                      Delivered in secure packaging, with direct home delivery and expert setup provided by our skilled technicians.
                     </div>
                   )}
                 </div>
@@ -838,7 +813,6 @@ export default function ProductDetailsPage() {
                 [
                   { key: "description", label: "Description" },
                   { key: "specs", label: "Specifications" },
-                  { key: "reviews", label: "Reviews" },
                 ] as const
               ).map((tab) => (
                 <button
@@ -908,7 +882,7 @@ export default function ProductDetailsPage() {
                     <tbody>
                       {[
                         ["Material", selectedMaterial || "Premium Wood"],
-                        ["Color", selectedColor || "Multiple Options"],
+                        ["Color", selectedColor ? parseColor(selectedColor).name : "Multiple Options"],
                         ["Size", selectedSize || "Standard Size"],
                         ["Category", productAny.category || "Furniture"],
                         ["Brand", "Sareng"],
@@ -930,101 +904,6 @@ export default function ProductDetailsPage() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              )}
-
-              {/* Reviews */}
-              {activeTab === "reviews" && (
-                <div>
-                  <div className="flex flex-col md:flex-row gap-6 mb-8">
-                    <div className="flex-1 bg-[#FDF6EE] rounded-lg p-5 text-center border border-[#E5D3B3]/30">
-                      <div className="text-4xl font-bold text-[#0B2523]">
-                        4.0
-                      </div>
-                      <div className="flex items-center justify-center gap-0.5 mt-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            size={16}
-                            className={
-                              star <= 4
-                                ? "fill-[#E5D3B3] text-[#E5D3B3]"
-                                : "fill-[#E5D3B3]/40 text-[#E5D3B3]/40"
-                            }
-                          />
-                        ))}
-                      </div>
-                      <p className="text-xs text-[#0B2523]/60 mt-2">
-                        Based on 12 reviews
-                      </p>
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      {[
-                        { stars: 5, percent: 75 },
-                        { stars: 4, percent: 50 },
-                        { stars: 3, percent: 25 },
-                        { stars: 2, percent: 10 },
-                        { stars: 1, percent: 5 },
-                      ].map((item) => (
-                        <div
-                          key={item.stars}
-                          className="flex items-center gap-3"
-                        >
-                          <span className="text-xs font-medium text-[#0B2523] w-8">
-                            {item.stars} Star
-                          </span>
-                          <div className="flex-1 h-2 bg-[#FDF6EE] rounded-full overflow-hidden border border-[#E5D3B3]/20">
-                            <div
-                              className="h-full bg-[#0F3D39] rounded-full"
-                              style={{ width: `${item.percent}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-[#0B2523]/60 w-8 text-right">
-                            {item.percent}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {mockReviews.map((review, idx) => (
-                      <div
-                        key={idx}
-                        className="border border-[#E5D3B3]/30 rounded-lg p-4 bg-white"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-[#0B2523] text-sm">
-                                {review.name}
-                              </span>
-                              <span className="text-xs text-[#0B2523]/50">
-                                • {review.date}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-0.5 mt-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  size={12}
-                                  className={
-                                    star <= review.rating
-                                      ? "fill-[#E5D3B3] text-[#E5D3B3]"
-                                      : "fill-[#E5D3B3]/30 text-[#E5D3B3]/30"
-                                  }
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-sm text-[#0B2523]/70 leading-relaxed">
-                          {review.comment}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>

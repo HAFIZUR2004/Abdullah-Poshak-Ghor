@@ -177,18 +177,18 @@ const createEmptyDimensions = (): DimensionValues => ({
 // ======================================================
 
 const colorOptions = [
-  { name: "শ্যাম্পেন গোল্ড", value: "শ্যাম্পেন গোল্ড", hex: "#D0B798" },
-  { name: "রোজ গোল্ড", value: "রোজ গোল্ড", hex: "#D8CAC1" },
-  { name: "পার্ল হোয়াইট", value: "পার্ল হোয়াইট", hex: "#EEF0EA" },
-  { name: "ডকু সাদা", value: "ডকু সাদা", hex: "#ECF0F9" },
-  { name: "লেকার ১নং", value: "লেকার ১নং", hex: "#9F4010" },
-  { name: "লেকার ২নং", value: "লেকার ২নং", hex: "#421917" },
-  { name: "লেকার ৩নং", value: "লেকার ৩নং", hex: "#311919" },
-  { name: "লেকার ৩নং", value: "লেকার ৩নং", hex: "#1B1515" },
-  { name: "ভিনি: ১নং", value: "ভিনি: ১নং", hex: "#B06F2B" },
-  { name: "ভিনি: ২নং", value: "ভিনি: ২নং", hex: "#813B0A" },
-  { name: "ভিনি: ৩নং", value: "ভিনি: ৩নং", hex: "#360D09" },
-  { name: "MDF ও ভিনি: ১নং", value: "MDF ও ভিনি: ১নং", hex: "#320C01" },
+  { name: "Champagne Gold", value: "Champagne Gold", hex: "#D0B798" },
+  { name: "Rose Gold", value: "Rose Gold", hex: "#D8CAC1" },
+  { name: "Pearl White", value: "Pearl White", hex: "#EEF0EA" },
+  { name: "Duco White", value: "Duco White", hex: "#ECF0F9" },
+  { name: "Lacquer No. 1", value: "Lacquer No. 1", hex: "#9F4010" },
+  { name: "Lacquer No. 2", value: "Lacquer No. 2", hex: "#421917" },
+  { name: "Lacquer No. 2 Deep", value: "Lacquer No. 3", hex: "#311919" },
+  { name: "Lacquer No. 3", value: "Lacquer No. 3", hex: "#1B1515" },
+  { name: "Veneer No. 1", value: "Veneer No. 1", hex: "#B06F2B" },
+  { name: "Veneer No. 2", value: "Veneer No. 2", hex: "#813B0A" },
+  { name: "Veneer No. 3", value: "Veneer No. 3", hex: "#360D09" },
+  { name: "MDF Board with Veneer No. 1", value: "MDF & Veneer No. 1", hex: "#320C01" },
 ];
 
 // ======================================================

@@ -232,7 +232,7 @@ export default function Sidebar() {
           >
             <div className="transition-transform group-hover:scale-105">
               <Image
-                src="/images/logo.webp"
+                src="https://i.ibb.co.com/Y7ZZrcJ5/newlogo.png"
                 alt="Sareng Furniture"
                 width={50}
                 height={50}
