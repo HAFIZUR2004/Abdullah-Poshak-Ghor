@@ -75,7 +75,7 @@ export default function StatsBar({
 
   return (
     <div
-      className={`${modernSans.variable} font-sans bg-white text-[#0F3D39] antialiased`}
+      className={`${modernSans.variable} font-sans bg-[#FDF6EE] text-[#0F3D39] antialiased`}
     >
       {/* ───────────────────────────────────────────── */}
       {/* Why Choose Section Header */}

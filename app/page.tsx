@@ -13,7 +13,7 @@ import BestSellers from "@/components/BestSellers";
 import CraftedForComfortBanner from "@/components/CraftedForComfortBanner";
 import NewArrivalsPage from "@/components/NewArrivalsPage";
 import MakeYourSpace from "@/components/todaydeals";
-import WhyChoose from "@/components/WhyChoose";
+
 import StatsBar from "@/components/StatsBar";
 import DealOfTheWeek from "@/components/DealOfTheWeek";
 import TopRatedProducts from "@/components/TopRatedProducts";
@@ -44,7 +44,7 @@ export default function Home() {
       <CraftedForComfortBanner/>
       <NewArrivalsPage/>
       <MakeYourSpace/>
-      <WhyChoose/>
+      
       <StatsBar/>
       <DealOfTheWeek/>
       <TopRatedProducts/>
