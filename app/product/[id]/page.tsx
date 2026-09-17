@@ -825,30 +825,47 @@ export default function ProductDetailsPage() {
                 </div>
               )}
 
-              {/* Specifications Tab */}
-              {activeTab === "specs" && (
-                <div className="overflow-hidden rounded-lg border border-[#E5D3B3]/30">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {[
-                        ["Material", selectedMaterial || "Premium Wood"],
-                        ["Color", selectedColor || "Multiple Options"],
-                        ["Size", selectedSize || "Standard Size"],
-                        ["Category", productAny.category || "Furniture"],
-                        ["Brand", "Sareng"],
-                        ["Warranty", "1 Year Service Warranty"],
-                      ].map(([label, value], idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? "bg-[#FDF6EE]" : "bg-[#F4F5F7]"}>
-                          <td className="px-4 py-3 font-semibold text-[#0B2523] w-1/3">{label}</td>
-                          <td className="px-4 py-3 text-[#0B2523]/70">{value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+{/* Specifications Tab */}
+{activeTab === "specs" && (
+  <div className="overflow-hidden rounded-lg border border-[#E5D3B3]/30">
+    <table className="w-full text-sm">
+      <tbody>
+        {[
+          ["Material", selectedMaterial || "Premium Wood"],
 
-              
+          [
+            "Color",
+            selectedColor
+              ? selectedColor.replace(/\s*\(#[A-Fa-f0-9]{3,8}\)\s*$/, "").trim()
+              : "Multiple Options",
+          ],
+
+          ["Size", selectedSize || "Standard Size"],
+          ["Category", productAny.category || "Furniture"],
+          ["Brand", "Sareng"],
+          ["Warranty", "1 Year Service Warranty"],
+        ].map(([label, value], idx) => (
+          <tr
+            key={idx}
+            className={
+              idx % 2 === 0
+                ? "bg-[#FDF6EE]"
+                : "bg-[#F4F5F7]"
+            }
+          >
+            <td className="w-1/3 px-4 py-3 font-semibold text-[#0B2523]">
+              {label}
+            </td>
+
+            <td className="px-4 py-3 text-[#0B2523]/70">
+              {value}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}           
               
             </div>
           </div>
