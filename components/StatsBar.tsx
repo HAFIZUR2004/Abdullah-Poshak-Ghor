@@ -61,7 +61,11 @@ function NumberCounter({
   );
 }
 
-export default function StatsBar({ productCount = 360 }: { productCount?: number }) {
+export default function StatsBar({
+  productCount = 360,
+}: {
+  productCount?: number;
+}) {
   const stats = [
     { value: 26, suffix: "+", label: "Years Experience" },
     { value: 25, suffix: "K+", label: "Happy Customers" },
@@ -70,11 +74,63 @@ export default function StatsBar({ productCount = 360 }: { productCount?: number
   ];
 
   return (
-    <div className={`${modernSans.variable} font-sans bg-[#0F3D39] text-white antialiased`}>
+    <div
+      className={`${modernSans.variable} font-sans bg-white text-[#0F3D39] antialiased`}
+    >
+      {/* ───────────────────────────────────────────── */}
+      {/* Why Choose Section Header */}
+      {/* ───────────────────────────────────────────── */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
+        {/* WHY US label with gold lines */}
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <motion.span
+            initial={{ width: 0 }}
+            whileInView={{ width: 32 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="h-[3px] rounded-full bg-[#D9B873]"
+          />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">
+            Why Us
+          </span>
+          <motion.span
+            initial={{ width: 0 }}
+            whileInView={{ width: 32 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="h-[3px] rounded-full bg-[#D9B873]"
+          />
+        </div>
+
+        {/* Heading */}
+        <h2 className="text-[30px] font-extrabold leading-tight tracking-[-1px] text-[#101817] sm:text-[36px] lg:text-[42px]">
+          Why Choose{" "}
+          <span className="text-[#0F3D39]">Sareng Furniture?</span>
+        </h2>
+
+        {/* Gold divider line */}
+        <motion.div
+          initial={{ width: 0 }}
+          whileInView={{ width: 64 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="mx-auto mt-5 h-[2px] rounded-full bg-[#D9B873]"
+        />
+
+        {/* Description */}
+        <p className="mx-auto mt-4 max-w-[550px] text-[12px] leading-6 text-gray-500 sm:text-[13px]">
+          We combine quality materials, thoughtful design and reliable service
+          to create furniture you can enjoy for years.
+        </p>
+      </div>
+
+      {/* ───────────────────────────────────────────── */}
+      {/* Stats Bar */}
+      {/* ───────────────────────────────────────────── */}
       <section className="bg-[#0F3D39] text-white py-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#DCE8C8]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#FF7A00]/5 rounded-full blur-3xl" />
-        
+
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
             {stats.map(({ value, suffix, label }, idx) => (

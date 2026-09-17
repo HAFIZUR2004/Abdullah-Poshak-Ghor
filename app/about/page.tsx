@@ -102,10 +102,10 @@ interface Showroom {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const STATS = [
-  { value: 2018, suffix: "", label: "Established", icon: FiCalendar },
-  { value: 6, suffix: "", label: "Showrooms", icon: FiMapPin },
-  { value: 10000, suffix: "+", label: "Happy Customers", icon: FiUsers },
-  { value: 150, suffix: "+", label: "Furniture Designs", icon: FiLayers },
+  { value: 1954, suffix: "", label: "Established", icon: FiCalendar },
+  { value: 8, suffix: "", label: "Showrooms", icon: FiMapPin },
+  { value: 25000, suffix: "+", label: "Happy Customers", icon: FiUsers },
+  { value: 500, suffix: "+", label: "Furniture Designs", icon: FiLayers },
   { value: 50, suffix: "+", label: "Skilled Craftsmen", icon: FiAward },
 ];
 

@@ -211,11 +211,11 @@ export default function Footer() {
 
             {/* Contact snippet */}
             <div className="pt-4 space-y-2.5 border-t border-[#E5D3B3]/40">
-              <a href="tel:+8801797312699" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
+              <a href="tel:+8801806971390" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
                 <div className="w-6 h-6 rounded-lg bg-[#FF7A00]/10 flex items-center justify-center shrink-0">
                   <FiPhone size={12} className="text-[#FF7A00]" />
                 </div>
-                +880 1797 312699
+                +880 1806 971390
               </a>
               <a href="mailto:support@solidbazzar.com" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
                 <div className="w-6 h-6 rounded-lg bg-[#FF7A00]/10 flex items-center justify-center shrink-0">

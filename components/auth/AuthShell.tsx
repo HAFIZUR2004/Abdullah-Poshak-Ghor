@@ -34,7 +34,7 @@ export default function AuthShell({
             <div className="pointer-events-none absolute -bottom-16 -left-10 h-56 w-56 rounded-full bg-white/5" />
 
             <Image
-              src="/images/logo.webp"
+              src="https://i.ibb.co.com/FkcbNmzJ/Logo-2-removebg-preview.webp"
               alt="Sareng Furniture"
               width={56}
               height={56}

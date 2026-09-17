@@ -13,7 +13,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useAuth } from "@/hooks/AuthContext";
 import { Product } from "@/types";
 import Swal from "sweetalert2";
-import { Inter } from "next/font/google"; // 👈 Inter font import
+import { Inter } from "next/font/google";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,24 +21,18 @@ const inter = Inter({
   display: "swap",
 });
 
-// ─── imgbb লিংক ────────────────────────────────────────────────────────────────
 const LOGO_URL = "https://i.ibb.co.com/Y7ZZrcJ5/newlogo.png";
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
 const navLinks = [
   { name: "Home", href: "/", icon: FiHome },
   { name: "Shop", href: "/shop", icon: FiShoppingBag },
   { name: "About Us", href: "/about" },
- 
-
   { name: "Contact Us", href: "/contact", icon: FiMessageSquare },
- 
 ];
 
 const getProductImage = (product: Product): string =>
   product.images?.[0] || product.image || "/placeholder.jpg";
 
-// ─── User Avatar Component ─────────────────────────────────────────────────────
 const UserAvatar = ({ photoURL, name }: { photoURL?: string | null; name?: string | null }) => {
   const [imgError, setImgError] = useState(false);
 
@@ -60,7 +54,6 @@ const UserAvatar = ({ photoURL, name }: { photoURL?: string | null; name?: strin
   );
 };
 
-// ─── Search Product Item ──────────────────────────────────────────────────────
 const SearchItem = ({ product, onClick }: { product: Product; onClick: () => void }) => (
   <button
     onClick={onClick}
@@ -84,7 +77,6 @@ const SearchItem = ({ product, onClick }: { product: Product; onClick: () => voi
   </button>
 );
 
-// ─── Main Navbar ────────────────────────────────────────────────────────────────
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -101,14 +93,12 @@ export default function Navbar() {
   const { user, loading, logout, userRole } = useAuth();
   const { products } = useProducts();
 
-  // Scroll effect
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Wishlist count load
   useEffect(() => {
     const loadWishlistCount = () => {
       const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
@@ -117,7 +107,7 @@ export default function Navbar() {
 
     loadWishlistCount();
     window.addEventListener("storage", loadWishlistCount);
-    
+
     const interval = setInterval(loadWishlistCount, 2000);
 
     return () => {
@@ -126,13 +116,11 @@ export default function Navbar() {
     };
   }, []);
 
-  // Trending products
   const trendingProducts = useMemo(
     () => products.filter((p) => (p.rating || 0) >= 4.5).slice(0, 5),
     [products]
   );
 
-  // Search results
   const searchResults = useMemo(
     () =>
       searchQuery.trim()
@@ -147,7 +135,6 @@ export default function Navbar() {
     [searchQuery, products]
   );
 
-  // Close search outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -159,19 +146,16 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close menu/search on route change
   useEffect(() => {
     setIsMenuOpen(false);
     setIsSearchOpen(false);
   }, [pathname]);
 
-  // Lock scroll on menu open
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isMenuOpen]);
 
-  // Logout handler
   const handleLogout = async () => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -198,7 +182,6 @@ export default function Navbar() {
     }
   };
 
-  // Search submit
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -208,7 +191,6 @@ export default function Navbar() {
     }
   };
 
-  // Product click
   const handleResultClick = (productId: string | undefined) => {
     if (productId && productId !== "undefined") {
       router.push(`/product/${productId}`);
@@ -217,10 +199,8 @@ export default function Navbar() {
     }
   };
 
-  // Active route
   const isActive = (href: string) => (href === "/" ? pathname === href : pathname.startsWith(href));
 
-  // User name
   const getUserName = () => {
     if ((user as any)?.displayName) return (user as any).displayName.split(" ")[0];
     return user?.email?.split("@")[0] || "User";
@@ -262,7 +242,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Main Header - Inter Font ব্যবহার করা হয়েছে */}
+      {/* Main Header */}
       <header
         className={`bg-[#FDF6EE] border-b border-[#E5D3B3] sticky top-0 z-50 transition-all duration-300 font-sans ${inter.variable} ${
           isScrolled ? "shadow-[0_4px_20px_rgba(0,0,0,0.1)]" : ""
@@ -306,7 +286,6 @@ export default function Navbar() {
                 </div>
               </form>
 
-              {/* Desktop Search Dropdown */}
               {isSearchOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#ECECEC] rounded-md shadow-xl z-50 overflow-hidden text-[#0B2523]">
                   <div className="px-4 pt-3 pb-2 border-b border-[#ECECEC]">
@@ -349,7 +328,6 @@ export default function Navbar() {
                 <FiSearch size={20} />
               </button>
 
-              {/* Wishlist with Count */}
               <Link href="/wishlist" className="hidden lg:flex relative w-9 h-9 items-center justify-center text-[#0B2523] hover:text-[#0F3D39] transition" aria-label="Wishlist">
                 <FiHeart size={20} />
                 {wishlistCount > 0 && (
@@ -470,7 +448,6 @@ export default function Navbar() {
               <span className="absolute bottom-[7px] text-[9px] font-bold text-[#0B2523] whitespace-nowrap">Menu</span>
             </div>
 
-            {/* Wishlist with Count */}
             <Link href="/wishlist" className={`relative flex flex-col items-center justify-center w-[20%] h-full gap-1 transition-all duration-200 ${isActive("/wishlist") ? "text-[#0F3D39]" : "text-[#0B2523]/50"}`}>
               <div className="relative">
                 <FiHeart size={21} strokeWidth={isActive("/wishlist") ? 2.5 : 2} />
@@ -484,7 +461,6 @@ export default function Navbar() {
               {isActive("/wishlist") && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-[#0F3D39] rounded-b-full" />}
             </Link>
 
-            {/* Search */}
             <button
               onClick={() => { setIsSearchOpen(!isSearchOpen); setTimeout(() => mobileInputRef.current?.focus(), 100); }}
               className={`relative flex flex-col items-center justify-center w-[20%] h-full gap-1 transition-all duration-200 ${isSearchOpen ? "text-[#0F3D39]" : "text-[#0B2523]/50"}`}
@@ -560,9 +536,7 @@ export default function Navbar() {
           </div>
         </div>
       )}
-
-      {/* Mobile Bottom Space */}
-      <div className="h-[70px] lg:hidden" />
+      {/* ❌ "Mobile Bottom Space" div ta ekhane chilo — delete kore dilam */}
     </>
   );
 }

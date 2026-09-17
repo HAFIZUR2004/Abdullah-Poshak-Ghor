@@ -144,31 +144,7 @@ export default function Sidebar() {
       icon: <FiMapPin />, // Icon changed to Map Pin
       path: "/dashboard/showrooms",
     },
-    {
-      label: "Orders",
-      icon: <FiShoppingBag />,
-      path: "/dashboard/orders",
-    },
-    {
-      label: "Favorites",
-      icon: <FiHeart />,
-      path: "/dashboard/favorites",
-    },
-    {
-      label: "Profile",
-      icon: <FiUser />,
-      path: "/dashboard/profile",
-    },
-    {
-      label: "Notifications",
-      icon: <FiBell />,
-      path: "/dashboard/notifications",
-    },
-    {
-      label: "Settings",
-      icon: <FiSettings />,
-      path: "/dashboard/settings",
-    },
+   
   ];
 
   // =========================
