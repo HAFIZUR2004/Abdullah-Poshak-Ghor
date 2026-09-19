@@ -298,7 +298,7 @@ export default function Footer() {
             <p className="text-xs text-[#0B2523]/70 font-medium flex items-center gap-1">
               <span>Designed & Developed by</span>
               <a
-                href="https://growbusinesssolutionsbd.com"
+                href="https://growbusinessbd.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold text-[#0F3D39] hover:text-[#FF7A00] transition-colors duration-200 underline decoration-[#0F3D39]/30 underline-offset-4 hover:decoration-[#FF7A00]"

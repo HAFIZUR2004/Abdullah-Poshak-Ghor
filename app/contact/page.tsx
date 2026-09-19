@@ -94,38 +94,7 @@ export default function ContactPage() {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const faqs = [
-    {
-      question: "How long does delivery take?",
-      answer:
-        "Delivery takes 1-2 business days inside Barishal and 2-4 business days outside Barishal.",
-      icon: FiTruck,
-    },
-    {
-      question: "Are the products original?",
-      answer:
-        "Yes, we provide 100% original and premium quality solid wood products.",
-      icon: FiShield,
-    },
-    {
-      question: "What is the return/replacement policy?",
-      answer:
-        "We offer return or replacement within 7 days of delivery.",
-      icon: FiRefreshCw,
-    },
-    {
-      question: "What payment options are available?",
-      answer:
-        "We accept Cash on Delivery, bKash, Nagad, Rocket, and cards.",
-      icon: FiCreditCard,
-    },
-    {
-      question: "How can I track my order?",
-      answer:
-        "Track your order using order number on 'Track Order' page.",
-      icon: FiSearch,
-    },
-  ];
+
 
   return (
     <>
@@ -464,89 +433,7 @@ export default function ContactPage() {
             </div>
 
             {/* FAQ */}
-            <div className="bg-white rounded-2xl shadow-lg shadow-gray-100/50 p-6 sm:p-7">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-[#d69a45]/10 flex items-center justify-center">
-                  <FiHelpCircle
-                    className="text-[#d69a45]"
-                    size={18}
-                  />
-                </div>
-
-                <div>
-                  <h2 className="text-base font-extrabold text-[#2e3a2c] tracking-tight">
-                    Frequently Asked
-                  </h2>
-
-                  <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">
-                    Quick Answers
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {faqs.map((faq, index) => {
-                  const Icon = faq.icon;
-                  const isOpen = openFaq === index;
-
-                  return (
-                    <div
-                      key={index}
-                      className={`border rounded-xl overflow-hidden transition-all duration-300 ${
-                        isOpen
-                          ? "border-[#d69a45]/30 bg-[#faf8f5]"
-                          : "border-gray-100 hover:border-gray-200"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleFaq(index)}
-                        className="w-full flex items-center justify-between gap-3 p-3.5 text-left transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              isOpen
-                                ? "bg-[#d69a45] text-white"
-                                : "bg-[#d69a45]/10 text-[#d69a45]"
-                            }`}
-                          >
-                            <Icon size={13} />
-                          </div>
-
-                          <span
-                            className={`font-semibold text-xs sm:text-sm transition-colors ${
-                              isOpen
-                                ? "text-[#2e3a2c]"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            {faq.question}
-                          </span>
-                        </div>
-
-                        <FiChevronDown
-                          className={`text-gray-400 shrink-0 transition-transform duration-300 ${
-                            isOpen ? "rotate-180" : ""
-                          }`}
-                          size={14}
-                        />
-                      </button>
-
-                      <div
-                        className={`overflow-hidden transition-all duration-300 ${
-                          isOpen ? "max-h-40" : "max-h-0"
-                        }`}
-                      >
-                        <p className="px-3.5 pb-3.5 text-xs text-gray-500 leading-relaxed font-light">
-                          {faq.answer}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>

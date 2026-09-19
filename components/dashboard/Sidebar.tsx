@@ -125,11 +125,6 @@ export default function Sidebar() {
       path: "/dashboard/banner",
     },
     {
-      label: "Reviews",
-      icon: <FiStar />,
-      path: "/dashboard/reviews",
-    },
-    {
       label: "Custom Section",
       icon: <FiSliders />,
       path: "/dashboard/custom-section",
