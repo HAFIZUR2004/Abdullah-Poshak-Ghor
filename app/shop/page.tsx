@@ -4,14 +4,13 @@ import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { 
-  FiSearch, 
-  FiSliders, 
-  FiHeart, 
-  FiStar, 
+import {
+  FiSearch,
+  FiSliders,
+  FiHeart,
+  FiStar,
   FiChevronDown,
   FiCheck,
-  FiBox
 } from "react-icons/fi";
 import { Product } from "@/types";
 import PremiumLoader from "@/components/PremiumLoader";
@@ -26,8 +25,9 @@ interface Category {
   slug: string;
 }
 
+// ✅ FIXED: main image priority, then gallery first image
 const getProductImage = (product: Product): string =>
-  product.images?.[0] || product.image || "/placeholder.jpg";
+  product.image || product.images?.[0] || "/placeholder.jpg";
 
 // ─── Discount Calculation Helper ────────────────────────────────────────────────
 const getDiscountInfo = (product: Product) => {
@@ -105,7 +105,10 @@ function ShopContent() {
           productArray = productsData;
         } else if (productsData?.data && Array.isArray(productsData.data)) {
           productArray = productsData.data;
-        } else if (productsData?.success === true && Array.isArray(productsData.data)) {
+        } else if (
+          productsData?.success === true &&
+          Array.isArray(productsData.data)
+        ) {
           productArray = productsData.data;
         }
 
@@ -121,7 +124,6 @@ function ShopContent() {
         if (categoriesData.success && categoriesData.categories.length > 0) {
           setCategories(categoriesData.categories);
         }
-
       } catch (error) {
         console.error("Error fetching data:", error);
         setProducts([]);
@@ -135,16 +137,13 @@ function ShopContent() {
   }, []);
 
   // ─── Category List ──────────────────────────────────────────────────────────
-  // Database categories + "All Furniture"
-  const categoryList = [
-    "All Furniture",
-    ...categories.map((cat) => cat.name),
-  ];
+  const categoryList = ["All Furniture", ...categories.map((cat) => cat.name)];
 
   // ─── Filter & Sort ──────────────────────────────────────────────────────────
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
-      selectedCategory === "All Furniture" || product.category === selectedCategory;
+      selectedCategory === "All Furniture" ||
+      product.category === selectedCategory;
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -166,7 +165,7 @@ function ShopContent() {
   // ─── Wishlist ────────────────────────────────────────────────────────────────
   const toggleWishlist = (productId: string | number | undefined) => {
     if (!productId) return;
-    
+
     const id = String(productId);
     const isLiked = wishlist.includes(id);
     let updatedWishlist: string[];
@@ -240,7 +239,9 @@ function ShopContent() {
             </button>
 
             <div className="flex items-center gap-2 w-auto">
-              <span className="text-xs font-medium text-[#0F3D39]/70 hidden sm:inline">Sort by:</span>
+              <span className="text-xs font-medium text-[#0F3D39]/70 hidden sm:inline">
+                Sort by:
+              </span>
               <div className="relative">
                 <select
                   value={sortBy}
@@ -289,7 +290,6 @@ function ShopContent() {
 
         {/* MAIN LAYOUT */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
           {/* DESKTOP SIDEBAR */}
           <aside className="hidden md:block md:col-span-1 space-y-6">
             <div className="bg-white p-5 rounded-xl border border-[#E5D3B3]/30 shadow-sm sticky top-24">
@@ -313,33 +313,6 @@ function ShopContent() {
                   </li>
                 ))}
               </ul>
-
-              {/* Price Filter Widget */}
-              <div className="mt-8 border-t border-[#E5D3B3]/30 pt-5">
-                <h3 className="text-base font-bold text-[#0B2523] mb-4">Price Range</h3>
-                <div className="space-y-3">
-                  <input
-                    type="range"
-                    min="5000"
-                    max="100000"
-                    step="2000"
-                    className="w-full accent-[#0F3D39] cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-[#0F3D39]/70 font-medium">
-                    <span>৳ 5,000</span>
-                    <span>৳ 1,00,000</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Availability Filter */}
-              <div className="mt-6 border-t border-[#E5D3B3]/30 pt-5">
-                <h3 className="text-base font-bold text-[#0B2523] mb-3">Availability</h3>
-                <label className="flex items-center gap-2.5 cursor-pointer text-sm text-[#0F3D39]/80">
-                  <input type="checkbox" className="rounded text-[#0F3D39] focus:ring-[#0F3D39] size-4" defaultChecked />
-                  In Stock Only
-                </label>
-              </div>
             </div>
           </aside>
 
@@ -347,15 +320,20 @@ function ShopContent() {
           <main className="md:col-span-3 pb-16">
             {sortedProducts.length === 0 ? (
               <div className="bg-white rounded-xl border border-[#E5D3B3]/30 p-12 text-center mb-8">
-                <p className="text-[#0F3D39]/70 text-base">কোনো প্রোডাক্ট পাওয়া যায়নি।</p>
+                <p className="text-[#0F3D39]/70 text-base">
+                  No products found.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-16">
                 {sortedProducts.map((product) => {
                   const productId = product._id || product.id;
-                  const { hasDiscount, discountPercent, originalPrice } = getDiscountInfo(product);
+                  const { hasDiscount, discountPercent, originalPrice } =
+                    getDiscountInfo(product);
 
-                  const isNew = product.status === "Trending" || product.status === "Featured";
+                  const isNew =
+                    product.status === "Trending" ||
+                    product.status === "Featured";
                   const isLiked = wishlist.includes(String(productId));
 
                   return (
@@ -363,9 +341,12 @@ function ShopContent() {
                       key={productId}
                       className="group bg-white rounded-2xl border border-[#E5D3B3]/30 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden relative"
                     >
-                      {/* Image Area - Linked to Product Details Page */}
+                      {/* Image Area */}
                       <div className="relative w-full h-40 sm:h-48 lg:h-56 bg-[#FDF6EE] overflow-hidden">
-                        <Link href={`/product/${productId}`} className="block w-full h-full">
+                        <Link
+                          href={`/product/${productId}`}
+                          className="block w-full h-full"
+                        >
                           <Image
                             src={getProductImage(product)}
                             alt={product.name}
@@ -389,26 +370,29 @@ function ShopContent() {
                         </div>
 
                         {/* Wishlist Button */}
-                        <button 
+                        <button
                           onClick={() => toggleWishlist(productId)}
                           aria-label="Add to Wishlist"
                           className={`absolute top-2 right-2 p-1.5 rounded-full transition shadow-sm z-10 ${
-                            isLiked 
-                              ? "bg-red-500 text-white" 
+                            isLiked
+                              ? "bg-red-500 text-white"
                               : "bg-white/80 hover:bg-white text-[#0B2523] hover:text-red-500"
                           }`}
                         >
-                          <FiHeart className={`size-3.5 ${isLiked ? "fill-current" : ""}`} />
+                          <FiHeart
+                            className={`size-3.5 ${
+                              isLiked ? "fill-current" : ""
+                            }`}
+                          />
                         </button>
                       </div>
 
-                      {/* Product Details Area */}
+                      {/* Product Details */}
                       <div className="p-3 sm:p-4 lg:p-5 flex-1 flex flex-col">
                         <span className="text-[9px] sm:text-[11px] text-[#0F3D39]/60 font-medium uppercase tracking-wider">
                           {product.category}
                         </span>
-                        
-                        {/* Title - Linked to Product Details Page */}
+
                         <Link href={`/product/${productId}`}>
                           <h2 className="text-xs sm:text-sm lg:text-[15px] font-bold text-[#0B2523] hover:text-[#0F3D39] transition line-clamp-2 mt-1">
                             {product.name}
@@ -420,8 +404,12 @@ function ShopContent() {
                           <div className="flex text-amber-500">
                             <FiStar className="size-3 fill-amber-500" />
                           </div>
-                          <span className="text-[10px] sm:text-xs font-bold text-[#0B2523]">{product.rating || 4.5}</span>
-                          <span className="text-[9px] sm:text-xs text-[#0F3D39]/50">(0)</span>
+                          <span className="text-[10px] sm:text-xs font-bold text-[#0B2523]">
+                            {product.rating || 4.5}
+                          </span>
+                          <span className="text-[9px] sm:text-xs text-[#0F3D39]/50">
+                            (0)
+                          </span>
                         </div>
 
                         {/* Price */}
@@ -445,7 +433,6 @@ function ShopContent() {
         </div>
       </div>
 
-      {/* Footer এর আগে স্পেসার */}
       <div className="h-16" />
 
       <Footer />
@@ -456,15 +443,17 @@ function ShopContent() {
 // ─── Main Export with Suspense ──────────────────────────────────────────────────
 export default function ShopPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex flex-col bg-[#FDF6EE]">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <PremiumLoader />
-        </main>
-        <Footer />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col bg-[#FDF6EE]">
+          <Navbar />
+          <main className="flex-1 flex items-center justify-center">
+            <PremiumLoader />
+          </main>
+          <Footer />
+        </div>
+      }
+    >
       <ShopContent />
     </Suspense>
   );

@@ -40,9 +40,7 @@ interface Showroom {
 // ─────────────────────────────────────────────
 
 const parseColor = (colorStr: string) => {
-  const match = colorStr.match(
-    /^(.+?)\s*\((#[A-Fa-f0-9]{3,8})\)$/
-  );
+  const match = colorStr.match(/^(.+?)\s*\((#[A-Fa-f0-9]{3,8})\)$/);
 
   if (match) {
     return {
@@ -61,16 +59,12 @@ const parseColor = (colorStr: string) => {
 // Discount Calculation Helper
 // ─────────────────────────────────────────────
 
-const getDiscountInfo = (
-  product: any,
-  currentPrice: number
-) => {
+const getDiscountInfo = (product: any, currentPrice: number) => {
   const price = Number(currentPrice) || 0;
 
   const originalPriceFromDB = Number(product.originalPrice) || 0;
   const discount = Number(product.discount) || 0;
 
-  // Database-এ Original Price থাকলে
   if (originalPriceFromDB > price) {
     const discountPercent = Math.round(
       ((originalPriceFromDB - price) / originalPriceFromDB) * 100
@@ -83,11 +77,8 @@ const getDiscountInfo = (
     };
   }
 
-  // Database-এ Discount Percentage থাকলে
   if (discount > 0 && discount < 100) {
-    const originalPrice = Math.round(
-      price / (1 - discount / 100)
-    );
+    const originalPrice = Math.round(price / (1 - discount / 100));
 
     return {
       hasDiscount: true,
@@ -135,7 +126,6 @@ export default function ProductDetailsPage() {
 
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
-  // Showrooms
   const [showrooms, setShowrooms] = useState<Showroom[]>([]);
   const [showroomsLoading, setShowroomsLoading] = useState(true);
 
@@ -157,10 +147,7 @@ export default function ProductDetailsPage() {
 
           if (Array.isArray(data)) {
             productArray = data;
-          } else if (
-            data?.success === true &&
-            Array.isArray(data.data)
-          ) {
+          } else if (data?.success === true && Array.isArray(data.data)) {
             productArray = data.data;
           } else if (Array.isArray(data?.data)) {
             productArray = data.data;
@@ -180,9 +167,7 @@ export default function ProductDetailsPage() {
           if (foundProduct) {
             setProduct(foundProduct);
 
-            // Initial Current Price
             setCurrentPrice(Number(foundProduct.price) || 0);
-
             setActiveImage(0);
 
             if (foundProduct.materials?.[0]) {
@@ -197,16 +182,12 @@ export default function ProductDetailsPage() {
               setSelectedSize(foundProduct.sizes[0]);
             }
 
-            // Related Products
             const related = productArray
               .filter(
                 (p: Product) =>
                   p.category === foundProduct.category &&
                   p._id !== productId &&
-                  !(
-                    p.id !== undefined &&
-                    p.id === numericId
-                  )
+                  !(p.id !== undefined && p.id === numericId)
               )
               .slice(0, 4);
 
@@ -257,10 +238,7 @@ export default function ProductDetailsPage() {
 
   useEffect(() => {
     if (productId && typeof window !== "undefined") {
-      const wishlist = JSON.parse(
-        localStorage.getItem("wishlist") || "[]"
-      );
-
+      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
       setLiked(wishlist.includes(productId));
     }
   }, [productId]);
@@ -268,30 +246,21 @@ export default function ProductDetailsPage() {
   const toggleWishlist = () => {
     if (!productId) return;
 
-    const wishlist = JSON.parse(
-      localStorage.getItem("wishlist") || "[]"
-    );
+    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
 
     let updatedWishlist;
 
     if (liked) {
-      updatedWishlist = wishlist.filter(
-        (id: string) => id !== productId
-      );
-
+      updatedWishlist = wishlist.filter((id: string) => id !== productId);
       setLiked(false);
       toast.success("Removed from wishlist");
     } else {
       updatedWishlist = [...wishlist, productId];
-
       setLiked(true);
       toast.success("Added to wishlist ❤️");
     }
 
-    localStorage.setItem(
-      "wishlist",
-      JSON.stringify(updatedWishlist)
-    );
+    localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
   };
 
   // ─────────────────────────────────────────────
@@ -305,9 +274,7 @@ export default function ProductDetailsPage() {
       const priceMatch = material.match(/৳\s*([\d,]+)/);
 
       if (priceMatch && priceMatch[1]) {
-        setCurrentPrice(
-          parseFloat(priceMatch[1].replace(/,/g, ""))
-        );
+        setCurrentPrice(parseFloat(priceMatch[1].replace(/,/g, "")));
       } else {
         setCurrentPrice(Number((product as any).price) || 0);
       }
@@ -336,7 +303,6 @@ export default function ProductDetailsPage() {
       addToCart(productToAdd, quantity);
 
       setShowSuccess(true);
-
       toast.success(`${quantity} item(s) added to cart!`);
 
       setTimeout(() => setShowSuccess(false), 3000);
@@ -344,7 +310,7 @@ export default function ProductDetailsPage() {
   };
 
   // ─────────────────────────────────────────────
-  // Loading State
+  // Loading / Not Found
   // ─────────────────────────────────────────────
 
   if (loading) {
@@ -358,10 +324,7 @@ export default function ProductDetailsPage() {
           Product Not Found
         </h1>
 
-        <Link
-          href="/shop"
-          className="text-[#0F3D39] underline text-sm"
-        >
+        <Link href="/shop" className="text-[#0F3D39] underline text-sm">
           Back to Shop
         </Link>
       </div>
@@ -374,12 +337,17 @@ export default function ProductDetailsPage() {
 
   const productAny = product as any;
 
-  const imagesList: string[] =
-    productAny.images && productAny.images.length > 0
-      ? productAny.images
-      : productAny.image
-        ? [productAny.image]
-        : ["/placeholder.jpg"];
+  // ✅ FIXED: main image first, then gallery (deduped)
+  const imagesList: string[] = (() => {
+    const main = productAny.image ? [productAny.image] : [];
+    const gallery = Array.isArray(productAny.images)
+      ? productAny.images.filter(
+          (img: string) => img && img !== productAny.image
+        )
+      : [];
+    const all = [...main, ...gallery];
+    return all.length > 0 ? all : ["/placeholder.jpg"];
+  })();
 
   const materialsList: string[] = productAny.materials?.length
     ? productAny.materials
@@ -400,15 +368,10 @@ export default function ProductDetailsPage() {
     ? productAny.sizes
     : ["Standard Size", "King Size"];
 
-  // ─────────────────────────────────────────────
-  // Discount Information
-  // ─────────────────────────────────────────────
-
-  const {
-    hasDiscount,
-    discountPercent,
-    originalPrice,
-  } = getDiscountInfo(productAny, currentPrice);
+  const { hasDiscount, discountPercent, originalPrice } = getDiscountInfo(
+    productAny,
+    currentPrice
+  );
 
   return (
     <>
@@ -416,9 +379,7 @@ export default function ProductDetailsPage() {
 
       <div className="bg-[#FDF6EE] min-h-screen pb-16">
         <div className="max-w-7xl mx-auto px-4 py-6">
-
           {/* Success Message */}
-
           {showSuccess && (
             <div className="fixed top-20 right-5 z-50 bg-[#0F3D39] text-[#E5D3B3] px-6 py-2.5 rounded shadow-lg text-sm">
               Added to cart successfully! 🛒
@@ -426,23 +387,15 @@ export default function ProductDetailsPage() {
           )}
 
           {/* MOBILE ONLY TITLE & PRICE HEADER */}
-
           <div className="lg:hidden border-b border-[#E5D3B3]/30 pb-3 mb-4">
-
-            <h1 className="text-xl font-bold text-[#0B2523]">
-              {product.name}
-            </h1>
+            <h1 className="text-xl font-bold text-[#0B2523]">{product.name}</h1>
 
             <p className="text-xs text-[#0B2523]/50 mt-0.5 uppercase tracking-wider">
               SARENG-{product._id?.slice(-8)}
             </p>
 
-            {/* Mobile Price Section */}
-
             <div className="mt-2">
-
               <div className="flex items-center gap-2 flex-wrap">
-
                 <span className="text-xl font-extrabold text-[#0F3D39]">
                   ৳ {currentPrice.toLocaleString("en-BD")}
                 </span>
@@ -452,7 +405,6 @@ export default function ProductDetailsPage() {
                     {discountPercent}% OFF
                   </span>
                 )}
-
               </div>
 
               {hasDiscount && (
@@ -460,28 +412,18 @@ export default function ProductDetailsPage() {
                   ৳ {originalPrice.toLocaleString("en-BD")}
                 </div>
               )}
-
             </div>
-
           </div>
 
           {/* MAIN GRID */}
-
           <div className="grid lg:grid-cols-12 gap-8 items-start">
-
             {/* LEFT SIDE */}
-
             <div className="lg:col-span-7 space-y-4">
-
               {/* Image Container */}
-
               <div className="flex flex-col lg:flex-row gap-4 items-start">
-
                 {/* Desktop Thumbnails */}
-
                 {imagesList.length > 0 && (
                   <div className="hidden lg:flex flex-col gap-2.5 w-20 shrink-0">
-
                     {imagesList.map((img: string, idx: number) => (
                       <button
                         key={idx}
@@ -501,14 +443,11 @@ export default function ProductDetailsPage() {
                         />
                       </button>
                     ))}
-
                   </div>
                 )}
 
                 {/* Main Image */}
-
                 <div className="w-full bg-[#FDF6EE] border border-[#E5D3B3]/30 rounded h-[320px] sm:h-[460px] md:h-[540px] relative flex items-center justify-center group overflow-hidden">
-
                   <Image
                     src={imagesList[activeImage]}
                     alt={product.name}
@@ -523,34 +462,24 @@ export default function ProductDetailsPage() {
                   >
                     <Maximize2 size={16} />
                   </button>
-
                 </div>
-
               </div>
 
               {/* Disclaimer */}
-
               <div className="border border-[#E5D3B3]/30 rounded lg:ml-24 bg-[#FDF6EE] p-3.5 flex items-start gap-2.5 text-[#0B2523]/60 text-[11px] leading-relaxed">
-
-                <Info
-                  size={16}
-                  className="shrink-0 text-[#0F3D39] mt-0.5"
-                />
+                <Info size={16} className="shrink-0 text-[#0F3D39] mt-0.5" />
 
                 <p>
-                  Please note: Actual product color, fabric, finish,
-                  texture, and appearance may slightly differ from the
-                  images shown due to photography, lighting, device
-                  display settings, and natural material variations.
+                  Please note: Actual product color, fabric, finish, texture,
+                  and appearance may slightly differ from the images shown due
+                  to photography, lighting, device display settings, and natural
+                  material variations.
                 </p>
-
               </div>
 
               {/* Mobile Thumbnails */}
-
               {imagesList.length > 0 && (
                 <div className="lg:hidden bg-[#FDF6EE] border border-[#E5D3B3]/30 p-2.5 rounded flex gap-2.5 overflow-x-auto scrollbar-none">
-
                   {imagesList.map((img: string, idx: number) => (
                     <button
                       key={idx}
@@ -570,20 +499,14 @@ export default function ProductDetailsPage() {
                       />
                     </button>
                   ))}
-
                 </div>
               )}
-
             </div>
 
             {/* RIGHT SIDE */}
-
             <div className="lg:col-span-5 space-y-4">
-
-              {/* DESKTOP ONLY TITLE & PRICE HEADER */}
-
+              {/* DESKTOP ONLY TITLE & PRICE */}
               <div className="hidden lg:block border-b border-[#E5D3B3]/30 pb-3">
-
                 <h1 className="text-xl md:text-2xl font-bold text-[#0B2523]">
                   {product.name}
                 </h1>
@@ -592,12 +515,8 @@ export default function ProductDetailsPage() {
                   SARENG-{product._id?.slice(-8)}
                 </p>
 
-                {/* Desktop Price Section */}
-
                 <div className="mt-2">
-
                   <div className="flex items-center gap-3 flex-wrap">
-
                     <span className="text-2xl font-extrabold text-[#0F3D39]">
                       ৳ {currentPrice.toLocaleString("en-BD")}
                     </span>
@@ -607,7 +526,6 @@ export default function ProductDetailsPage() {
                         {discountPercent}% OFF
                       </span>
                     )}
-
                   </div>
 
                   {hasDiscount && (
@@ -615,42 +533,28 @@ export default function ProductDetailsPage() {
                       ৳ {originalPrice.toLocaleString("en-BD")}
                     </div>
                   )}
-
                 </div>
-
               </div>
 
               {/* COLLAPSIBLE OPTIONS */}
-
               <div className="border border-[#E5D3B3]/30 rounded divide-y divide-[#E5D3B3]/20 bg-white">
-
                 {/* 1. Material */}
-
                 <div>
-
                   <button
                     type="button"
                     onClick={() =>
                       setOpenOption(
-                        openOption === "material"
-                          ? null
-                          : "material"
+                        openOption === "material" ? null : "material"
                       )
                     }
                     className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
                   >
-
                     <div className="flex items-center gap-3">
-
                       <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
-                        <Layers
-                          size={16}
-                          className="text-[#0F3D39]"
-                        />
+                        <Layers size={16} className="text-[#0F3D39]" />
                       </div>
 
                       <div>
-
                         <div className="text-xs font-bold text-[#0B2523]">
                           Material
                         </div>
@@ -660,27 +564,20 @@ export default function ProductDetailsPage() {
                             ? selectedMaterial.split("(")[0].trim()
                             : "Select Material"}
                         </div>
-
                       </div>
-
                     </div>
 
                     <ChevronDown
                       size={16}
                       className={`text-[#0B2523]/40 transition-transform duration-200 ${
-                        openOption === "material"
-                          ? "rotate-180"
-                          : ""
+                        openOption === "material" ? "rotate-180" : ""
                       }`}
                     />
-
                   </button>
 
                   {openOption === "material" && (
                     <div className="p-3 bg-[#FDF6EE] border-t border-[#E5D3B3]/20 flex flex-wrap gap-2">
-
                       {materialsList.map((m, i) => {
-
                         const cleanName = m.split("(")[0].trim();
                         const isSelected = selectedMaterial === m;
 
@@ -698,35 +595,23 @@ export default function ProductDetailsPage() {
                             {cleanName}
                           </button>
                         );
-
                       })}
-
                     </div>
                   )}
-
                 </div>
 
                 {/* 2. Color */}
-
                 <div>
-
                   <button
                     type="button"
                     onClick={() =>
-                      setOpenOption(
-                        openOption === "color" ? null : "color"
-                      )
+                      setOpenOption(openOption === "color" ? null : "color")
                     }
                     className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
                   >
-
                     <div className="flex items-center gap-3">
-
                       <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
-                        <Palette
-                          size={16}
-                          className="text-[#0F3D39]"
-                        />
+                        <Palette size={16} className="text-[#0F3D39]" />
                       </div>
 
                       <div>
@@ -734,34 +619,22 @@ export default function ProductDetailsPage() {
                           Color
                         </div>
                       </div>
-
                     </div>
 
                     <ChevronDown
                       size={16}
                       className={`text-[#0B2523]/40 transition-transform duration-200 ${
-                        openOption === "color"
-                          ? "rotate-180"
-                          : ""
+                        openOption === "color" ? "rotate-180" : ""
                       }`}
                     />
-
                   </button>
 
                   {openOption === "color" && (
                     <div className="p-3 bg-[#FDF6EE] border-t border-[#E5D3B3]/20">
-
                       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-
                         {colorsList.map(
-                          (
-                            c: { name: string; hex: string },
-                            i: number
-                          ) => {
-
-                            const isSelected = selectedColor.includes(
-                              c.name
-                            );
+                          (c: { name: string; hex: string }, i: number) => {
+                            const isSelected = selectedColor.includes(c.name);
 
                             return (
                               <button
@@ -770,17 +643,12 @@ export default function ProductDetailsPage() {
                                 title={c.name}
                                 aria-label={c.name}
                                 onClick={() => {
-
                                   const originalColor =
-                                    productAny.colors?.find(
-                                      (col: string) =>
-                                        col.includes(c.name)
+                                    productAny.colors?.find((col: string) =>
+                                      col.includes(c.name)
                                     );
 
-                                  setSelectedColor(
-                                    originalColor || c.name
-                                  );
-
+                                  setSelectedColor(originalColor || c.name);
                                   setOpenOption(null);
                                 }}
                                 className={`group overflow-hidden rounded-lg bg-white border text-left transition-all duration-200 flex items-center justify-center p-1 ${
@@ -789,52 +657,36 @@ export default function ProductDetailsPage() {
                                     : "border-[#E5D3B3]/30 hover:border-[#0F3D39]"
                                 }`}
                               >
-
                                 <div
                                   className="w-full h-9 rounded-md border border-black/5"
                                   style={{
                                     backgroundColor: c.hex,
                                   }}
                                 />
-
                               </button>
                             );
-
                           }
                         )}
-
                       </div>
-
                     </div>
                   )}
-
                 </div>
 
                 {/* 3. Size */}
-
                 <div>
-
                   <button
                     type="button"
                     onClick={() =>
-                      setOpenOption(
-                        openOption === "size" ? null : "size"
-                      )
+                      setOpenOption(openOption === "size" ? null : "size")
                     }
                     className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
                   >
-
                     <div className="flex items-center gap-3">
-
                       <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
-                        <Ruler
-                          size={16}
-                          className="text-[#0F3D39]"
-                        />
+                        <Ruler size={16} className="text-[#0F3D39]" />
                       </div>
 
                       <div>
-
                         <div className="text-xs font-bold text-[#0B2523]">
                           Size
                         </div>
@@ -844,27 +696,20 @@ export default function ProductDetailsPage() {
                             ? selectedSize.split("\n")[0].trim()
                             : "Select Size"}
                         </div>
-
                       </div>
-
                     </div>
 
                     <ChevronDown
                       size={16}
                       className={`text-[#0B2523]/40 transition-transform duration-200 ${
-                        openOption === "size"
-                          ? "rotate-180"
-                          : ""
+                        openOption === "size" ? "rotate-180" : ""
                       }`}
                     />
-
                   </button>
 
                   {openOption === "size" && (
                     <div className="p-4 bg-[#FDF6EE] border-t border-[#E5D3B3]/20 space-y-2">
-
                       {sizesList.map((sz, index) => {
-
                         const isSelected = selectedSize === sz;
 
                         let rawLines: string[] = [];
@@ -890,7 +735,6 @@ export default function ProductDetailsPage() {
                                 : "border-[#E5D3B3]/30 bg-white hover:border-[#0F3D39]/40"
                             }`}
                           >
-
                             {label && (
                               <p className="text-xs font-bold text-[#0B2523] mb-2">
                                 {label}
@@ -898,9 +742,7 @@ export default function ProductDetailsPage() {
                             )}
 
                             <div className="space-y-1.5">
-
                               {rawLines.map((lineItem, lineIndex) => {
-
                                 const trimmedLine = lineItem.trim();
 
                                 const unitMatch = trimmedLine.match(
@@ -920,13 +762,11 @@ export default function ProductDetailsPage() {
                                     key={lineIndex}
                                     className="flex items-center justify-between gap-3 bg-[#FDF6EE] rounded-lg px-3 py-2 border border-[#E5D3B3]/20"
                                   >
-
                                     <span className="text-xs font-medium text-[#0B2523] truncate min-w-0">
                                       {mainContent}
                                     </span>
 
                                     <div className="flex items-center gap-2 shrink-0">
-
                                       {unitBadge && (
                                         <span className="text-[11px] font-semibold text-[#0F3D39]/70 uppercase">
                                           {unitBadge}
@@ -948,38 +788,25 @@ export default function ProductDetailsPage() {
                                       >
                                         <Copy size={14} />
                                       </button>
-
                                     </div>
-
                                   </div>
                                 );
-
                               })}
-
                             </div>
-
                           </div>
                         );
-
                       })}
-
                     </div>
                   )}
-
                 </div>
-
               </div>
 
               {/* Action Buttons */}
-
               <div className="bg-[#0F3D39] rounded text-[#E5D3B3] flex items-center overflow-hidden shadow-sm h-12">
-
                 <div className="flex-1 px-3 text-center border-r border-[#E5D3B3]/20">
-
                   <div className="text-xs font-bold">
                     {(currentPrice * quantity).toLocaleString()} BDT
                   </div>
-
                 </div>
 
                 <button
@@ -989,103 +816,71 @@ export default function ProductDetailsPage() {
                     liked ? "bg-[#0B2523]" : ""
                   }`}
                 >
-
                   <Heart
                     size={18}
                     className={
-                      liked
-                        ? "fill-[#E5D3B3] text-[#E5D3B3]"
-                        : "text-[#E5D3B3]"
+                      liked ? "fill-[#E5D3B3] text-[#E5D3B3]" : "text-[#E5D3B3]"
                     }
                   />
-
                 </button>
-
               </div>
 
               {/* Right Side Accordions */}
-
               <div className="space-y-2 pt-2">
-
-                {/* Packaging Information */}
-
+                {/* Packaging */}
                 <div className="border border-[#E5D3B3]/30 rounded bg-white">
-
                   <button
                     type="button"
                     onClick={() =>
-                      setOpenAccordion(
-                        openAccordion === "pkg" ? null : "pkg"
-                      )
+                      setOpenAccordion(openAccordion === "pkg" ? null : "pkg")
                     }
                     className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
                   >
-
                     <span className="flex items-center gap-2">
-                      <Package
-                        size={14}
-                        className="text-[#0F3D39]"
-                      />
+                      <Package size={14} className="text-[#0F3D39]" />
                       Packaging Information
                     </span>
 
                     <ChevronDown
                       size={14}
                       className={`transition-transform ${
-                        openAccordion === "pkg"
-                          ? "rotate-180"
-                          : ""
+                        openAccordion === "pkg" ? "rotate-180" : ""
                       }`}
                     />
-
                   </button>
 
                   {openAccordion === "pkg" && (
                     <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2">
-                      Delivered in secure packaging, with direct home
-                      delivery and expert setup provided by our skilled
-                      technicians.
+                      Delivered in secure packaging, with direct home delivery
+                      and expert setup provided by our skilled technicians.
                     </div>
                   )}
-
                 </div>
 
                 {/* Need Help */}
-
                 <div className="border border-[#E5D3B3]/30 rounded bg-white">
-
                   <button
                     type="button"
                     onClick={() =>
-                      setOpenAccordion(
-                        openAccordion === "help" ? null : "help"
-                      )
+                      setOpenAccordion(openAccordion === "help" ? null : "help")
                     }
                     className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
                   >
-
                     <span className="flex items-center gap-2">
-                      <HelpCircle
-                        size={14}
-                        className="text-[#0F3D39]"
-                      />
+                      <HelpCircle size={14} className="text-[#0F3D39]" />
                       Need Help?
                     </span>
 
                     <ChevronDown
                       size={14}
                       className={`transition-transform ${
-                        openAccordion === "help"
-                          ? "rotate-180"
-                          : ""
+                        openAccordion === "help" ? "rotate-180" : ""
                       }`}
                     />
-
                   </button>
 
                   {openAccordion === "help" && (
                     <div className="px-3.5 pb-3.5 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-3.5">
-
                       <p className="mb-3 font-semibold text-[#0B2523]">
                         Contact your nearest showroom:
                       </p>
@@ -1100,13 +895,11 @@ export default function ProductDetailsPage() {
                         </p>
                       ) : (
                         <div className="space-y-1.5">
-
                           {showrooms.map((room, index) => (
                             <div
                               key={room._id}
                               className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0"
                             >
-
                               <span className="text-[#0B2523] font-medium">
                                 {index + 1}. {room.city} Showroom
                               </span>
@@ -1121,53 +914,38 @@ export default function ProductDetailsPage() {
                                 <Phone size={11} />
                                 {room.phone}
                               </a>
-
                             </div>
                           ))}
-
                         </div>
                       )}
 
                       <p className="mt-3 pt-3 border-t border-[#E5D3B3]/20 text-[#0B2523]/60">
                         Or visit our nearest showroom for assistance.
                       </p>
-
                     </div>
                   )}
-
                 </div>
 
                 {/* Warranty */}
-
                 <div className="border border-[#E5D3B3]/30 rounded bg-white">
-
                   <button
                     type="button"
                     onClick={() =>
-                      setOpenAccordion(
-                        openAccordion === "war" ? null : "war"
-                      )
+                      setOpenAccordion(openAccordion === "war" ? null : "war")
                     }
                     className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
                   >
-
                     <span className="flex items-center gap-2">
-                      <ShieldCheck
-                        size={14}
-                        className="text-[#0F3D39]"
-                      />
+                      <ShieldCheck size={14} className="text-[#0F3D39]" />
                       Warranty
                     </span>
 
                     <ChevronDown
                       size={14}
                       className={`transition-transform ${
-                        openAccordion === "war"
-                          ? "rotate-180"
-                          : ""
+                        openAccordion === "war" ? "rotate-180" : ""
                       }`}
                     />
-
                   </button>
 
                   {openAccordion === "war" && (
@@ -1176,23 +954,14 @@ export default function ProductDetailsPage() {
                         "Includes 1-year service warranty covering manufacturing defects."}
                     </div>
                   )}
-
                 </div>
-
               </div>
-
             </div>
-
           </div>
 
           {/* TABS SECTION */}
-
           <div className="mt-12 border border-[#E5D3B3]/30 rounded-xl bg-white overflow-hidden">
-
-            {/* Tab Headers */}
-
             <div className="flex border-b border-[#E5D3B3]/30 bg-[#FDF6EE]">
-
               <button
                 type="button"
                 onClick={() => setActiveTab("description")}
@@ -1216,137 +985,79 @@ export default function ProductDetailsPage() {
               >
                 Specifications
               </button>
-
             </div>
 
-            {/* Tab Content */}
-
             <div className="p-6 bg-white">
-
-              {/* Description Tab */}
-
               {activeTab === "description" && (
                 <div className="space-y-3 text-sm text-[#0B2523]/80 leading-relaxed">
-
                   {Array.isArray(product?.description) ? (
-
                     <ul className="space-y-3">
-
                       {product.description.map((item, index) => (
-                        <li
-                          key={index}
-                          className="flex items-start gap-3"
-                        >
-
+                        <li key={index} className="flex items-start gap-3">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-
                           <span>{item}</span>
-
                         </li>
                       ))}
-
                     </ul>
-
                   ) : typeof product?.description === "string" &&
                     product.description.trim() !== "" ? (
-
                     <div className="flex items-start gap-3">
-
                       <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-
                       <span>{product.description}</span>
-
                     </div>
-
                   ) : (
-
                     <ul className="space-y-3">
-
                       <li className="flex items-start gap-3">
-
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-
                         <span>
-                          Crafted with precision using top-tier
-                          sustainable materials to ensure superior
-                          structural stability and long-lasting durability.
+                          Crafted with precision using top-tier sustainable
+                          materials to ensure superior structural stability and
+                          long-lasting durability.
                         </span>
-
                       </li>
 
                       <li className="flex items-start gap-3">
-
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-
                         <span>
-                          Made from high-quality raw materials for
-                          superior durability.
+                          Made from high-quality raw materials for superior
+                          durability.
                         </span>
-
                       </li>
 
                       <li className="flex items-start gap-3">
-
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-
                         <span>Indoor use only.</span>
-
                       </li>
-
                     </ul>
-
                   )}
-
                 </div>
               )}
 
-              {/* Specifications Tab */}
-
               {activeTab === "specs" && (
-
                 <div className="overflow-hidden rounded-lg border border-[#E5D3B3]/30">
-
                   <table className="w-full text-sm">
-
                     <tbody>
-
                       {[
-                        [
-                          "Material",
-                          selectedMaterial || "Premium Wood",
-                        ],
+                        ["Material", selectedMaterial || "Premium Wood"],
                         [
                           "Color",
                           selectedColor
                             ? selectedColor
-                                .replace(
-                                  /\s*\(#[A-Fa-f0-9]{3,8}\)\s*$/,
-                                  ""
-                                )
+                                .replace(/\s*\(#[A-Fa-f0-9]{3,8}\)\s*$/, "")
                                 .trim()
                             : "Multiple Options",
                         ],
-                        [
-                          "Size",
-                          selectedSize || "Standard Size",
-                        ],
-                        [
-                          "Category",
-                          productAny.category || "Furniture",
-                        ],
+                        ["Size", selectedSize || "Standard Size"],
+                        ["Category", productAny.category || "Furniture"],
                         ["Brand", "Sareng"],
                         ["Warranty", "1 Year Service Warranty"],
                       ].map(([label, value], idx) => (
-
                         <tr
                           key={idx}
                           className={
-                            idx % 2 === 0
-                              ? "bg-[#FDF6EE]"
-                              : "bg-[#F4F5F7]"
+                            idx % 2 === 0 ? "bg-[#FDF6EE]" : "bg-[#F4F5F7]"
                           }
                         >
-
                           <td className="w-1/3 px-4 py-3 font-semibold text-[#0B2523]">
                             {label}
                           </td>
@@ -1354,59 +1065,35 @@ export default function ProductDetailsPage() {
                           <td className="px-4 py-3 text-[#0B2523]/70">
                             {value}
                           </td>
-
                         </tr>
-
                       ))}
-
                     </tbody>
-
                   </table>
-
                 </div>
-
               )}
-
             </div>
-
           </div>
 
           {/* RELATED PRODUCTS */}
-
           {relatedProducts.length > 0 && (
-
             <div className="mt-16">
-
               <h2 className="text-base font-bold text-[#0B2523] mb-4">
-                Related Products in{" "}
-                {product.category || "Same Category"}
+                Related Products in {product.category || "Same Category"}
               </h2>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-
                 {relatedProducts.map((item) => (
-                  <ProductCard
-                    key={item._id || item.id}
-                    product={item}
-                  />
+                  <ProductCard key={item._id || item.id} product={item} />
                 ))}
-
               </div>
-
             </div>
-
           )}
-
         </div>
-
       </div>
 
       {/* FULLSCREEN IMAGE ZOOM MODAL */}
-
       {isModalOpen && (
-
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-
           <button
             type="button"
             onClick={() => setIsModalOpen(false)}
@@ -1416,22 +1103,17 @@ export default function ProductDetailsPage() {
           </button>
 
           <div className="relative w-full max-w-4xl h-[80vh]">
-
             <Image
               src={imagesList[activeImage]}
               alt={product.name}
               fill
               className="object-contain"
             />
-
           </div>
-
         </div>
-
       )}
 
       <Footer />
-
     </>
   );
 }
