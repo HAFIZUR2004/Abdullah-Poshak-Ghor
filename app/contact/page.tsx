@@ -146,7 +146,7 @@ export default function ContactPage() {
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.1]">
                   Let&apos;s Build Something{" "}
                   <span className="text-[#d69a45]">
-                    Together.
+                    kjhkhkhkjhkhkhk.
                   </span>
                 </h1>
 
