@@ -56,37 +56,47 @@ const parseColor = (colorStr: string) => {
 };
 
 // ─────────────────────────────────────────────
-// Discount Calculation Helper
+// Discount Calculation Helper (FIXED)
 // ─────────────────────────────────────────────
 
-const getDiscountInfo = (product: any, currentPrice: number) => {
+const getDiscountInfo = (
+  product: any,
+  currentPrice: number,
+  basePrice: number
+) => {
   const price = Number(currentPrice) || 0;
+  const originalFromDB = Number(product.originalPrice) || 0;
+  const discountPercentFromDB = Number(product.discount) || 0;
 
-  const originalPriceFromDB = Number(product.originalPrice) || 0;
-  const discount = Number(product.discount) || 0;
-
-  if (originalPriceFromDB > price) {
-    const discountPercent = Math.round(
-      ((originalPriceFromDB - price) / originalPriceFromDB) * 100
+  // Case 1: DB তে originalPrice আছে — ratio scale করি
+  if (originalFromDB > basePrice && basePrice > 0) {
+    const ratio = originalFromDB / basePrice;
+    const scaledOriginal = Math.round(price * ratio);
+    const scaledDiscountPercent = Math.round(
+      ((scaledOriginal - price) / scaledOriginal) * 100
     );
 
     return {
       hasDiscount: true,
-      discountPercent,
-      originalPrice: originalPriceFromDB,
+      discountPercent: scaledDiscountPercent,
+      originalPrice: scaledOriginal,
     };
   }
 
-  if (discount > 0 && discount < 100) {
-    const originalPrice = Math.round(price / (1 - discount / 100));
+  // Case 2: DB তে discount % আছে
+  if (discountPercentFromDB > 0 && discountPercentFromDB < 100) {
+    const originalPrice = Math.round(
+      price / (1 - discountPercentFromDB / 100)
+    );
 
     return {
       hasDiscount: true,
-      discountPercent: discount,
+      discountPercent: discountPercentFromDB,
       originalPrice,
     };
   }
 
+  // Case 3: কোনো discount নেই
   return {
     hasDiscount: false,
     discountPercent: 0,
@@ -116,6 +126,7 @@ export default function ProductDetailsPage() {
   const [selectedSize, setSelectedSize] = useState("");
 
   const [currentPrice, setCurrentPrice] = useState(0);
+  const [basePrice, setBasePrice] = useState(0); // ✅ NEW: base price track করে
 
   const [openOption, setOpenOption] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
@@ -167,7 +178,9 @@ export default function ProductDetailsPage() {
           if (foundProduct) {
             setProduct(foundProduct);
 
-            setCurrentPrice(Number(foundProduct.price) || 0);
+            const baseP = Number(foundProduct.price) || 0;
+            setBasePrice(baseP); // ✅ base price সেভ
+            setCurrentPrice(baseP); // ✅ current price
             setActiveImage(0);
 
             if (foundProduct.materials?.[0]) {
@@ -264,7 +277,7 @@ export default function ProductDetailsPage() {
   };
 
   // ─────────────────────────────────────────────
-  // Material Change
+  // Material Change (FIXED)
   // ─────────────────────────────────────────────
 
   const handleMaterialChange = (material: string) => {
@@ -274,9 +287,11 @@ export default function ProductDetailsPage() {
       const priceMatch = material.match(/৳\s*([\d,]+)/);
 
       if (priceMatch && priceMatch[1]) {
-        setCurrentPrice(parseFloat(priceMatch[1].replace(/,/g, "")));
+        const newPrice = parseFloat(priceMatch[1].replace(/,/g, ""));
+        setCurrentPrice(newPrice);
       } else {
-        setCurrentPrice(Number((product as any).price) || 0);
+        // ✅ Base price এ ফিরে যাই — discount ও apply হবে
+        setCurrentPrice(basePrice);
       }
     }
 
@@ -368,9 +383,11 @@ export default function ProductDetailsPage() {
     ? productAny.sizes
     : ["Standard Size", "King Size"];
 
+  // ✅ basePrice pass করা হচ্ছে
   const { hasDiscount, discountPercent, originalPrice } = getDiscountInfo(
     productAny,
-    currentPrice
+    currentPrice,
+    basePrice
   );
 
   return (
@@ -463,6 +480,7 @@ export default function ProductDetailsPage() {
                     <Maximize2 size={16} />
                   </button>
                 </div>
+                
               </div>
 
               {/* Disclaimer */}
@@ -850,7 +868,7 @@ export default function ProductDetailsPage() {
                   </button>
 
                   {openAccordion === "pkg" && (
-                    <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2">
+                    <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2 whitespace-pre-line">
                       Delivered in secure packaging, with direct home delivery
                       and expert setup provided by our skilled technicians.
                     </div>
@@ -949,8 +967,8 @@ export default function ProductDetailsPage() {
                   </button>
 
                   {openAccordion === "war" && (
-                    <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2">
-                      {productAny.warrantyInfo ||
+                    <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2 whitespace-pre-line">
+                      {productAny.warrantyInfo?.trim() ||
                         "Includes 1-year service warranty covering manufacturing defects."}
                     </div>
                   )}
@@ -988,6 +1006,7 @@ export default function ProductDetailsPage() {
             </div>
 
             <div className="p-6 bg-white">
+              {/* ✅ DESCRIPTION — whitespace-pre-line দিয়ে space preserve */}
               {activeTab === "description" && (
                 <div className="space-y-3 text-sm text-[#0B2523]/80 leading-relaxed">
                   {Array.isArray(product?.description) ? (
@@ -995,7 +1014,7 @@ export default function ProductDetailsPage() {
                       {product.description.map((item, index) => (
                         <li key={index} className="flex items-start gap-3">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-                          <span>{item}</span>
+                          <span className="whitespace-pre-line">{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -1003,7 +1022,9 @@ export default function ProductDetailsPage() {
                     product.description.trim() !== "" ? (
                     <div className="flex items-start gap-3">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] mt-2 shrink-0" />
-                      <span>{product.description}</span>
+                      <span className="whitespace-pre-line">
+                        {product.description}
+                      </span>
                     </div>
                   ) : (
                     <ul className="space-y-3">
@@ -1033,6 +1054,7 @@ export default function ProductDetailsPage() {
                 </div>
               )}
 
+              {/* ✅ SPECIFICATIONS — Warranty dynamic */}
               {activeTab === "specs" && (
                 <div className="overflow-hidden rounded-lg border border-[#E5D3B3]/30">
                   <table className="w-full text-sm">
@@ -1050,7 +1072,12 @@ export default function ProductDetailsPage() {
                         ["Size", selectedSize || "Standard Size"],
                         ["Category", productAny.category || "Furniture"],
                         ["Brand", "Sareng"],
-                        ["Warranty", "1 Year Service Warranty"],
+                        // ✅ Dynamic Warranty
+                        [
+                          "Warranty",
+                          productAny.warrantyInfo?.trim() ||
+                            "1 Year Service Warranty",
+                        ],
                       ].map(([label, value], idx) => (
                         <tr
                           key={idx}
@@ -1062,7 +1089,7 @@ export default function ProductDetailsPage() {
                             {label}
                           </td>
 
-                          <td className="px-4 py-3 text-[#0B2523]/70">
+                          <td className="px-4 py-3 text-[#0B2523]/70 whitespace-pre-line">
                             {value}
                           </td>
                         </tr>
