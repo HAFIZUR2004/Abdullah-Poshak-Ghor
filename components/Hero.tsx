@@ -3,61 +3,70 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
-const DEFAULT_IMAGES: string[] = [
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-];
+interface HeroProps {
+  initialImages?: string[];
+}
 
-export default function Hero() {
-  const router = useRouter();
-
-  const [images, setImages] = useState<string[]>(DEFAULT_IMAGES);
+export default function Hero({ initialImages }: HeroProps) {
+  const [images, setImages] = useState<string[]>(initialImages ?? []);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [loading, setLoading] = useState(
+    !initialImages || initialImages.length === 0
+  );
 
   useEffect(() => {
+    if (initialImages && initialImages.length > 0) {
+      setImages(initialImages);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
     const fetchHero = async () => {
       try {
+        setLoading(true);
         const res = await fetch("/api/hero", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch hero data");
+        if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
-
-        if (
-          data?.success &&
-          Array.isArray(data.hero?.heroImages) &&
-          data.hero.heroImages.length > 0
-        ) {
+        if (!cancelled && data?.success && Array.isArray(data.hero?.heroImages)) {
           setImages(data.hero.heroImages);
         }
-      } catch (error) {
-        console.error("Failed to load hero images:", error);
+      } catch (err) {
+        console.error("Hero fetch error:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchHero();
-  }, []);
+    return () => { cancelled = true; };
+  }, [initialImages]);
 
   useEffect(() => {
     if (images.length < 2 || paused) return;
-
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % images.length);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [images.length, paused]);
 
   useEffect(() => {
-    if (images.length > 0 && current >= images.length) {
-      setCurrent(0);
-    }
+    if (images.length > 0 && current >= images.length) setCurrent(0);
   }, [images.length, current]);
 
-  const goTo = useCallback((idx: number) => {
-    setCurrent(idx);
-  }, []);
+  const goTo = useCallback((idx: number) => setCurrent(idx), []);
+
+  if (loading) {
+    return (
+      <section className="relative w-full bg-gray-100 animate-pulse">
+        <div className="w-full aspect-[16/9] sm:aspect-[16/8] lg:aspect-[16/7]" />
+      </section>
+    );
+  }
+
+  if (images.length === 0) return null;
 
   return (
     <section
@@ -65,16 +74,13 @@ export default function Hero() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* 
-        ✅ Mobile Response Fix:
-        ১. মোবাইলে aspect-[16/9] বা aspect-auto কাজ করবে এবং ডেস্কটপে aspect-[1900/768] থাকবে।
-        ২. min-h বাদ দেওয়া হয়েছে যা মোবাইলে ইমেজ ক্রপ করার মূল কারণ ছিল।
-      */}
-      <div className="relative w-full aspect-[16/9]  sm:aspect-[21/9] lg:aspect-[1900/768] overflow-hidden">
+      {/* ✅ Responsive aspect ratio — সব slide এর জন্য একই container */}
+      <div className="relative w-full aspect-[16/9] sm:aspect-[16/8] lg:aspect-[16/7] overflow-hidden">
+
         {/* SLIDES */}
         {images.map((src, idx) => (
           <div
-            key={idx}
+            key={`${src}-${idx}`}
             className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
               idx === current
                 ? "z-[1] opacity-100"
@@ -89,17 +95,17 @@ export default function Hero() {
               priority={idx === 0}
               quality={100}
               sizes="100vw"
-              className="object-cover object-center w-full h-full"
+              className="object-cover object-center"
               unoptimized={src.startsWith("data:")}
             />
           </div>
         ))}
 
-        {/* CONTENT OVERLAY (Optional Text/Content Layer) */}
+        {/* CONTENT OVERLAY */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           <div className="mx-auto flex h-full w-full max-w-[1400px] items-center px-4 sm:px-6 lg:px-8">
             <div className="pointer-events-auto w-full max-w-[560px] lg:w-[52%]">
-              {/* প্রয়োজন অনুযায়ী আপনার টেক্সট এখানে রাখতে পারেন */}
+              {/* আপনার টেক্সট এখানে */}
             </div>
           </div>
         </div>

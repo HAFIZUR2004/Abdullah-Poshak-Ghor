@@ -6,8 +6,8 @@ import { SearchProvider } from "@/context/SearchContext";
 import { AuthProvider } from "@/hooks/AuthContext";
 
 export const metadata: Metadata = {
-  title: "sareng furniture - বিশ্বস্ত পণ্য, আপনার জন্য",
-  description: "সেরা মানের পণ্য সবচেয়ে কম দামে | ইকমার্স সাইট বাংলাদেশ",
+  title: "sareng furniture - A House of Quality Furniture",
+  description: "সেরা মানের পণ্য সবচেয়ে কম দামে |",
 };
 
 export default function RootLayout({
