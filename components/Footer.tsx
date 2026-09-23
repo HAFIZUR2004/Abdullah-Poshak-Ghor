@@ -217,17 +217,17 @@ export default function Footer() {
                 </div>
                 +880 1806 971390
               </a>
-              <a href="mailto:support@solidbazzar.com" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
+              <a href="mailto:sarengfurniture1954.com" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
                 <div className="w-6 h-6 rounded-lg bg-[#FF7A00]/10 flex items-center justify-center shrink-0">
                   <FiMail size={12} className="text-[#FF7A00]" />
                 </div>
-                support@solidbazzar.com
+                sarengfurniture1954.com
               </a>
               <div className="flex items-start gap-2.5 text-xs text-[#0B2523]/80 font-medium">
                 <div className="w-6 h-6 rounded-lg bg-[#FF7A00]/10 flex items-center justify-center shrink-0 mt-0.5">
                   <FiMapPin size={12} className="text-[#FF7A00]" />
                 </div>
-                <span>Gangni, Mollarhat, Bagerhat, Khulna-9384</span>
+                <span>BSCIC Industrial Estate, Dhapar, Jhalakathi</span>
               </div>
             </div>
           </div>
