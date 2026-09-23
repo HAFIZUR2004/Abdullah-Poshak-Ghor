@@ -562,7 +562,7 @@ export default function ProductEntryPage() {
   const [colors, setColors] = useState("");
   const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([createEmptySize("size-1")]);
 
-  const [warrantyInfo, setWarrantyInfo] = useState("1 Year Service Warranty");
+  const [warrantyInfo, setWarrantyInfo] = useState("10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS");
   const [returnPolicy, setReturnPolicy] = useState("3 Days Easy Return & Replacement");
   const [note, setNote] = useState("");
 
@@ -784,7 +784,7 @@ export default function ProductEntryPage() {
     setSolidWoodPrice("");
     setMaterialOptions(defaultMaterials.map((item) => ({ ...item, basePrice: "", enabled: false })));
     setSizeOptions([createEmptySize("size-1")]);
-    setWarrantyInfo("1 Year Service Warranty");
+    setWarrantyInfo("10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS");
     setReturnPolicy("3 Days Easy Return & Replacement");
     setNote("");
     setEditingId(null);
@@ -806,7 +806,7 @@ export default function ProductEntryPage() {
     setImages(product.images || []);
     setMaterials(product.materials?.join(", ") || "");
     setColors(product.colors?.join(", ") || "");
-    setWarrantyInfo(product.warrantyInfo || "1 Year Service Warranty");
+    setWarrantyInfo(product.warrantyInfo || "10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS");
     setReturnPolicy(product.returnPolicy || "3 Days Easy Return & Replacement");
     setNote(product.note || "");
 
@@ -1283,7 +1283,7 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <FormInput label="Warranty Information" type="text" value={warrantyInfo} onChange={(e) => setWarrantyInfo(e.target.value)} placeholder="1 Year Service Warranty" />
+                  <FormInput label="Warranty Information" type="text" value={warrantyInfo} onChange={(e) => setWarrantyInfo(e.target.value)} placeholder="10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS" />
                   <FormInput label="Return Policy" type="text" value={returnPolicy} onChange={(e) => setReturnPolicy(e.target.value)} placeholder="3 Days Easy Return & Replacement" />
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-[#49352D]">Note</label>
