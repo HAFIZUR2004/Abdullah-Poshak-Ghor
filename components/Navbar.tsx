@@ -208,39 +208,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Announcement Bar */}
-      {showAnnouncement && (
-        <div className={`relative bg-[#0F3D39] text-[#E5D3B3] overflow-hidden ${inter.variable}`}>
-          <div className="flex items-center justify-center px-10 py-2">
-            <div className="overflow-hidden flex-1 max-w-3xl mx-auto">
-              <div className="marquee">
-                <div className="marquee-track">
-                  <span className="marquee-item">
-                    🚀 Free Delivery on orders above ৳999 &nbsp;·&nbsp; 💳 Cash on Delivery Available &nbsp;·&nbsp; ✨ New Arrivals Every Week &nbsp;·&nbsp; 🎁 Exclusive Deals for Members &nbsp;·&nbsp; 📦 7-Day Easy Returns
-                  </span>
-                  <span className="marquee-item">
-                    🚀 Free Delivery on orders above ৳999 &nbsp;·&nbsp; 💳 Cash on Delivery Available &nbsp;·&nbsp; ✨ New Arrivals Every Week &nbsp;·&nbsp; 🎁 Exclusive Deals for Members &nbsp;·&nbsp; 📦 7-Day Easy Returns
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowAnnouncement(false)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-[#E5D3B3]/80 hover:text-[#E5D3B3] transition rounded-full hover:bg-white/10"
-              aria-label="Close announcement"
-            >
-              <FiX size={12} />
-            </button>
-          </div>
-          <style>{`
-            .marquee { position: relative; width: 100%; overflow: hidden; }
-            .marquee-track { display: inline-flex; gap: 2.25rem; align-items: center; white-space: nowrap; will-change: transform; animation: marquee 18s linear infinite; min-width: max-content; }
-            .marquee-item { display: inline-block; color: #E5D3B3; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.01em; font-family: 'Inter', sans-serif !important; }
-            @keyframes marquee { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
-            @media (max-width: 420px) { .marquee-track { animation-duration: 22s; } .marquee-item { font-size: 0.72rem; } }
-          `}</style>
-        </div>
-      )}
+     
 
       {/* Main Header */}
       <header
