@@ -11,25 +11,22 @@ import MakeYourSpace from "@/components/todaydeals";
 import StatsBar from "@/components/StatsBar";
 import DealOfTheWeek from "@/components/DealOfTheWeek";
 import TopRatedProducts from "@/components/TopRatedProducts";
+import clientPromise from "@/lib/mongodb";
 
-// ✅ Server-side এ hero data fetch
+// ✅ ISR — 60 সেকেন্ডে একবার page rebuild
+export const revalidate = 60;
+
+// ✅ সরাসরি MongoDB থেকে — API route bypass
 async function getHeroImages(): Promise<string[]> {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000");
+    const client = await clientPromise;
+    const db = client.db("sareng_furniture");
+    const data = await db.collection("heroes").findOne({});
 
-    const res = await fetch(`${baseUrl}/api/hero`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) throw new Error("Failed to fetch hero");
-    const data = await res.json();
-
-    if (data?.success && Array.isArray(data.hero?.heroImages)) {
-      return data.hero.heroImages;
+    if (Array.isArray(data?.heroImages)) {
+      return data.heroImages.filter(
+        (img: unknown) => typeof img === "string" && img.trim() !== ""
+      );
     }
     return [];
   } catch (error) {
@@ -44,6 +41,7 @@ export default async function Home() {
   return (
     <>
       <Navbar />
+      {/* ✅ initialImages দিলে Hero client fetch করবে না, সাথে সাথে দেখাবে */}
       <Hero initialImages={heroImages} />
       <Categories />
       <CustomizationSection />

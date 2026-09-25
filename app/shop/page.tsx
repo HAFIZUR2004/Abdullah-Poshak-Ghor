@@ -143,7 +143,7 @@ function ShopContent() {
 
   const sortedProducts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    
+
     return products
       .filter((p) => {
         const matchCat =
@@ -165,7 +165,7 @@ function ShopContent() {
     (productId?: string | number) => {
       if (!productId) return;
       const id = String(productId);
-      
+
       setWishlist((prev) => {
         const isLiked = prev.includes(id);
         const updated = isLiked ? prev.filter((x) => x !== id) : [...prev, id];
@@ -247,7 +247,8 @@ function ShopContent() {
           <h3 className="text-base font-bold text-[#0B2523] border-b border-[#E5D3B3]/30 pb-3 mb-4">
             Categories
           </h3>
-          <ul className="space-y-1.5">
+          {/* ✅ Scrollable on mobile — max-h-[50vh] */}
+          <ul className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar">
             {categoryList.map((cat) => (
               <li key={cat}>
                 <button
@@ -261,8 +262,10 @@ function ShopContent() {
                       : "text-[#0F3D39]/80 hover:bg-[#FDF6EE]"
                   }`}
                 >
-                  <span>{cat}</span>
-                  {selectedCategory === cat && <FiCheck className="size-4" />}
+                  <span className="truncate">{cat}</span>
+                  {selectedCategory === cat && (
+                    <FiCheck className="size-4 shrink-0 ml-2" />
+                  )}
                 </button>
               </li>
             ))}
@@ -273,12 +276,13 @@ function ShopContent() {
       {/* MAIN LAYOUT */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* SIDEBAR */}
-        <aside className="hidden md:block md:col-span-1 space-y-6">
+        <aside className="hidden md:block md:col-span-1">
           <div className="bg-white p-5 rounded-xl border border-[#E5D3B3]/30 shadow-sm sticky top-24">
             <h3 className="text-base font-bold text-[#0B2523] border-b border-[#E5D3B3]/30 pb-3 mb-4">
               Categories
             </h3>
-            <ul className="space-y-1.5">
+            {/* ✅ Scrollable on desktop — max-h-[60vh], mouse wheel এ scroll হবে */}
+            <ul className="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
               {categoryList.map((cat) => (
                 <li key={cat}>
                   <button
@@ -289,9 +293,9 @@ function ShopContent() {
                         : "text-[#0F3D39]/80 hover:bg-[#FDF6EE]"
                     }`}
                   >
-                    <span>{cat}</span>
+                    <span className="truncate">{cat}</span>
                     {selectedCategory === cat && (
-                      <FiCheck className="size-4" />
+                      <FiCheck className="size-4 shrink-0 ml-2" />
                     )}
                   </button>
                 </li>

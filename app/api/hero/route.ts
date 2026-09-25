@@ -1,114 +1,144 @@
-// app/api/hero/route.ts
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 
 const DB_NAME = "sareng_furniture";
 const COLLECTION = "heroes";
 
-export const revalidate = 60; // 60 সেকেন্ড cache
+export const dynamic = "force-dynamic";
 
-// ==================== GET ====================
 export async function GET() {
   try {
     const client = await clientPromise;
+
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION);
 
     const heroData = await collection.findOne({});
 
-    // ✅ DB তে কিছু না থাকলে empty array পাঠাই, static কিছু না
     const heroImages: string[] = Array.isArray(heroData?.heroImages)
       ? heroData.heroImages.filter(
-          (img: unknown) => typeof img === "string" && img.trim() !== ""
+          (img: unknown) =>
+            typeof img === "string" && img.trim().length > 0
         )
       : [];
 
     return NextResponse.json(
-      { success: true, hero: { heroImages } },
+      {
+        success: true,
+        hero: {
+          heroImages,
+        },
+      },
       {
         status: 200,
         headers: {
           "Cache-Control":
-            "public, s-maxage=60, stale-while-revalidate=300",
+            "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
         },
       }
     );
-  } catch (error: any) {
-    console.error("GET Error:", error);
+  } catch (error) {
+    console.error("GET Hero Error:", error);
+
     return NextResponse.json(
-      { success: false, hero: { heroImages: [] } },
-      { status: 500 }
+      {
+        success: false,
+        hero: {
+          heroImages: [],
+        },
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }
 
-// ==================== PUT ====================
+// ==========================================================
+// PUT
+// ==========================================================
+
 export async function PUT(req: Request) {
   try {
     const client = await clientPromise;
+
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION);
 
     const body = await req.json();
+
     const heroImages = body?.heroImages;
 
-    // ✅ Array check (1 থেকে 10 টা image allow)
-    if (!Array.isArray(heroImages) || heroImages.length === 0) {
+    if (!Array.isArray(heroImages) || heroImages.length !== 3) {
       return NextResponse.json(
         {
           success: false,
-          message: "heroImages must be a non-empty array",
+          message: "Exactly 3 hero images are required",
         },
         { status: 400 }
       );
     }
 
-    if (heroImages.length > 10) {
+    const validImages = heroImages.every(
+      (img: unknown) =>
+        typeof img === "string" && img.trim().length > 0
+    );
+
+    if (!validImages) {
       return NextResponse.json(
         {
           success: false,
-          message: "Maximum 10 images allowed",
+          message: "All hero images must have valid URLs",
         },
         { status: 400 }
       );
     }
 
-    if (!heroImages.every((img) => typeof img === "string" && img.trim())) {
-      return NextResponse.json(
-        { success: false, message: "All images must have valid URLs" },
-        { status: 400 }
-      );
-    }
+    const cleanImages = heroImages.map((img: string) => img.trim());
 
-    // ✅ পুরোনো document মুছে fresh বানাই
     await collection.deleteMany({});
+
     const result = await collection.insertOne({
-      heroImages,
+      heroImages: cleanImages,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    const updatedHero = await collection.findOne({ _id: result.insertedId });
+    const updatedHero = await collection.findOne({
+      _id: result.insertedId,
+    });
 
-    // ✅ Cache revalidate
+    // Revalidate home page
     const { revalidatePath } = await import("next/cache");
+
     revalidatePath("/");
-    revalidatePath("/api/hero");
 
     return NextResponse.json(
-      { success: true, hero: updatedHero },
+      {
+        success: true,
+        hero: updatedHero,
+      },
       {
         status: 200,
         headers: {
-          "Cache-Control": "no-store, must-revalidate",
+          "Cache-Control": "no-store",
         },
       }
     );
   } catch (error: any) {
-    console.error("PUT Error:", error.message || error);
+    console.error("PUT Hero Error:", error);
+
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to update hero" },
-      { status: 500 }
+      {
+        success: false,
+        message: error?.message || "Failed to update hero",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
