@@ -34,7 +34,11 @@ export default function Categories() {
         const res = await fetch("/api/categories");
         const data = await res.json();
         if (!cancelled && data.success && data.categories?.length > 0) {
-          setCategories(data.categories);
+          // Alphabetical (A to Z) Sorting
+          const sortedCategories = [...data.categories].sort((a, b) =>
+            a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+          );
+          setCategories(sortedCategories);
         }
       } catch (error) {
         console.error("Failed to load categories:", error);
@@ -44,7 +48,9 @@ export default function Categories() {
     };
 
     fetchCategories();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Swiper state sync
