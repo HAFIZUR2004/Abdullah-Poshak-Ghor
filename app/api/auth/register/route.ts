@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const client = await clientPromise;
-    const db = client.db("sareng_furniture");
+    const db = client.db("Abdullah_Poshak_Ghor");
 
     // ✅ Email আগে থেকে আছে কিনা চেক
     const existingUser = await db.collection("users").findOne({ email });

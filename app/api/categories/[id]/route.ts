@@ -16,8 +16,18 @@ export async function PUT(
 ) {
   try {
     await connectDb();
-    const { id } = await params; // await added here
-    const { name, image } = await req.json();
+    const { id } = await params;
+    const body = await req.json();
+
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const image = typeof body.image === "string" ? body.image.trim() : "";
+
+    if (!name) {
+      return NextResponse.json(
+        { success: false, message: "Name is required" },
+        { status: 400 }
+      );
+    }
 
     const slug = name
       .toLowerCase()
@@ -25,11 +35,13 @@ export async function PUT(
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
 
-    const updatedCategory = await Category.findByIdAndUpdate(
-      id,
-      { name, slug, image },
-      { new: true }
-    );
+    // ✅ image থাকলে update, না থাকলে পুরোনোটা রেখে দেবে
+    const updateData: Record<string, unknown> = { name, slug };
+    if (image) updateData.image = image;
+
+    const updatedCategory = await Category.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedCategory) {
       return NextResponse.json(
@@ -42,7 +54,7 @@ export async function PUT(
       { success: true, category: updatedCategory },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to update category" },
       { status: 500 }
@@ -56,8 +68,7 @@ export async function DELETE(
 ) {
   try {
     await connectDb();
-    const { id } = await params; // await added here
-
+    const { id } = await params;
     const deletedCategory = await Category.findByIdAndDelete(id);
 
     if (!deletedCategory) {
@@ -71,7 +82,7 @@ export async function DELETE(
       { success: true, message: "Category deleted successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Failed to delete category" },
       { status: 500 }

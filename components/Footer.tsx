@@ -115,8 +115,8 @@ export default function Footer() {
       <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center overflow-hidden">
         <div className="w-[380px] h-[380px] lg:w-[650px] lg:h-[650px] opacity-[0.04] select-none transform translate-y-6">
           <Image
-            src="/images/newlogo.png"
-            alt="Sareng Furniture Watermark"
+            src="https://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpg"
+            alt="Abdullah Poshak Ghor"
             fill
             className="object-contain"
           />
@@ -132,8 +132,8 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center gap-3 group">
               <div className="relative flex items-center justify-center shrink-0 p-1 bg-white/60 rounded-xl border border-[#E5D3B3]/40 shadow-sm transition-transform group-hover:scale-105">
                 <Image
-                  src="/images/newlogo.png"
-                  alt="Sareng Furniture"
+                  src="https://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpghttps://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpg"
+                  alt="Abdullah Poshak Ghor"
                   width={40}
                   height={40}
                   className="w-10 h-10 object-contain"
@@ -141,10 +141,10 @@ export default function Footer() {
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-black tracking-wider leading-none text-[#0B2523] uppercase font-sans">
-                  Sareng
+                  Abdullah
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-[#0F3D39] font-bold mt-0.5">
-                  Furniture
+                  Poshak Ghor
                 </span>
               </div>
             </Link>
@@ -217,11 +217,11 @@ export default function Footer() {
                 </div>
                 +880 1806 971390
               </a>
-              <a href="mailto:sarengfurniture1954.com" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
+              <a href="mailto:Abdullah Poshak Ghor.com" className="flex items-center gap-2.5 text-xs text-[#0B2523]/80 hover:text-[#FF7A00] transition-colors font-medium">
                 <div className="w-6 h-6 rounded-lg bg-[#FF7A00]/10 flex items-center justify-center shrink-0">
                   <FiMail size={12} className="text-[#FF7A00]" />
                 </div>
-                sarengfurniture1954.com
+                AbdullahPoshakGhor.com
               </a>
               <div className="flex items-start gap-2.5 text-xs text-[#0B2523]/80 font-medium">
                 <div className="w-6 h-6 rounded-lg bg-[#FF7A00]/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -292,7 +292,7 @@ export default function Footer() {
         <div className="mt-14 pt-6 border-t border-[#0B2523]/10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             <p className="text-xs text-[#0B2523]/70 font-medium">
-              © {new Date().getFullYear()} <span className="font-bold text-[#0B2523]">Sareng Furniture</span>. All rights reserved.
+              © {new Date().getFullYear()} <span className="font-bold text-[#0B2523]">Abdullah Poshak Ghor</span>. All rights reserved.
             </p>
 
             <p className="text-xs text-[#0B2523]/70 font-medium flex items-center gap-1">

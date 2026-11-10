@@ -23,6 +23,9 @@ import {
   FiCompass,
   FiBox,
   FiArrowUpRight,
+  FiShoppingBag,
+  FiHeart,
+  FiScissors,
 } from "react-icons/fi";
 
 // ─── Scroll-trigger Hook ──────────────────────────────────────────────────────
@@ -88,80 +91,96 @@ function AnimatedNumber({
   );
 }
 
-// ─── Showroom Interface ───────────────────────────────────────────────────────
-interface Showroom {
-  _id: string;
-  city: string;
-  address: string;
-  phone: string;
-  createdAt?: string;
-}
+// ══════════════════════════════════════════════════════════════════════════════
+//  STATIC SHOWROOMS (fashion brand outlets)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const SHOWROOMS = [
+  {
+    id: "rupatoli",
+    name: "Rupatoli Housing",
+    city: "Barishal",
+    address:
+      "Rupatoli Housing Estate, Road # 7, Bangladesh Open University Area Office, Barishal 8200",
+    phone: "01761-758729",
+    hours: "Open Daily · 10:00 AM – 10:30 PM",
+  },
+  {
+    id: "banglabazar",
+    name: "Banglabazar More",
+    city: "Barishal",
+    address:
+      "Banglabazar More, Police Line, Barishal",
+    phone: "01767-473504",
+    hours: "Open Daily · 10:00 AM – 10:30 PM",
+  },
+];
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  DATA
 // ══════════════════════════════════════════════════════════════════════════════
 
 const STATS = [
-  { value: 1954, suffix: "", label: "Established", icon: FiCalendar },
-  { value: 8, suffix: "", label: "Showrooms", icon: FiMapPin },
-  { value: 25000, suffix: "+", label: "Happy Customers", icon: FiUsers },
-  { value: 500, suffix: "+", label: "Furniture Designs", icon: FiLayers },
-  { value: 50, suffix: "+", label: "Skilled Craftsmen", icon: FiAward },
+  { value: 2018, suffix: "", label: "Established", icon: FiCalendar },
+  { value: 2, suffix: "", label: "Outlets in Barishal", icon: FiMapPin },
+  { value: 25000, suffix: "+", label: "Happy Families", icon: FiUsers },
+  { value: 500, suffix: "+", label: "Styles & Designs", icon: FiLayers },
+  { value: 15, suffix: "+", label: "Years of Trust", icon: FiAward },
 ];
 
 const WHAT_WE_DO = [
   {
-    icon: FiHome,
-    title: "Residential Furniture",
-    desc: "Premium dining sets, luxury beds, wardrobes, and cabinets built to bring warmth to modern households.",
+    icon: FiShoppingBag,
+    title: "Men's Ready-Made",
+    desc: "Shirts, Punjabis, trousers, and casual wear — tailored to fit every Bangladeshi man's everyday style.",
   },
   {
-    icon: FiBriefcase,
-    title: "Commercial Fittings",
-    desc: "Conference tables, reception counters, and ergonomic office desks optimized for productivity.",
+    icon: FiHeart,
+    title: "Women's Collection",
+    desc: "Sarees, salwar kameez, three-piece sets and modest daily wear that celebrates our heritage and comfort.",
   },
   {
-    icon: FiBox,
-    title: "Solid Wood Doors",
-    desc: "Seasoned teak and local hardwood doors carved with traditional patterns or modern flush veneers.",
+    icon: FiUsers,
+    title: "Kids & Family Wear",
+    desc: "Colourful, comfortable, and affordable clothing for every member of the family — from toddlers to grandparents.",
   },
   {
-    icon: FiCompass,
-    title: "Interior Woodwork",
-    desc: "Custom wall paneling, display racks, and specialized TV units crafted to match interior layouts.",
+    icon: FiScissors,
+    title: "School & Office Uniforms",
+    desc: "Bulk-ready uniforms crafted with premium cotton blends for schools, offices, and institutions across Barishal.",
   },
 ];
 
 const WHY_CHOOSE = [
   {
     icon: FiShield,
-    title: "Premium Seasoned Timber",
-    desc: "We use only genuine Chittagong Teak (সেগুন), Mahogany, and Silkoroi wood, thoroughly seasoned to prevent split or warp.",
+    title: "Quality You Can Feel",
+    desc: "We handpick fabric quality and stitching standards before every piece reaches our shelf. No compromises.",
   },
   {
     icon: FiAward,
-    title: "Traditional Joinery",
-    desc: "Our carpenters specialize in hand-fitted joinery methods like mortise-and-tenon to secure long-term structural integrity.",
+    title: "Modest & Family Fashion",
+    desc: "Curated to honour the modest sensibilities of Bangladeshi families — elegant without overcomplicating.",
   },
   {
     icon: FiCompass,
-    title: "Bespoke Customization",
-    desc: "Every piece of furniture can be tailored down to the exact millimeter, polish hue, and timber species.",
+    title: "Everyday Affordability",
+    desc: "Direct-sourcing means premium fashion at prices that work for everyday families, not just special occasions.",
   },
   {
     icon: FiDollarSign,
-    title: "Factory Direct Value",
-    desc: "By manufacturing locally in our Barishal factory, we deliver luxury solid wood furniture at sensible prices.",
+    title: "Two Outlets, One Promise",
+    desc: "Whether you visit Rupatoli Housing or Banglabazar More, you get the same honest pricing and warm service.",
   },
   {
     icon: FiTruck,
-    title: "Nationwide Installation",
-    desc: "Our in-house logistics team handles secure shipping, loading, and direct set-up inside your home.",
+    title: "Local Delivery & WhatsApp",
+    desc: "Message us on WhatsApp, place an order, and we deliver within Barishal quickly and reliably.",
   },
   {
     icon: FiThumbsUp,
-    title: "Structural Warranty",
-    desc: "Every product is backed by our workshop warranty against wood pests and natural timber structural defects.",
+    title: "Trusted by Families",
+    desc: "Thousands of families have trusted us since 2018 for their daily, festival, and ceremonial wardrobes.",
   },
 ];
 
@@ -188,55 +207,22 @@ export default function AboutPage() {
   const whyIn = useInView(whyRef);
   const showroomIn = useInView(showroomRef);
 
-  // ─── Dynamic Showrooms ─────────────────────────────────────────────────
-  const [showrooms, setShowrooms] = useState<Showroom[]>([]);
-  const [showroomsLoading, setShowroomsLoading] = useState(true);
-  const [showroomsError, setShowroomsError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchShowrooms = async () => {
-      try {
-        setShowroomsLoading(true);
-        setShowroomsError(null);
-        const res = await fetch("/api/showrooms", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load showrooms");
-        const result = await res.json();
-        if (result.success) {
-          setShowrooms(result.data || []);
-        } else {
-          throw new Error(result.error || "Failed to load showrooms");
-        }
-      } catch (err: any) {
-        console.error("Failed to fetch showrooms:", err);
-        setShowroomsError(err.message || "Could not load showrooms");
-        setShowrooms([]);
-      } finally {
-        setShowroomsLoading(false);
-      }
-    };
-    fetchShowrooms();
-  }, []);
-
-  // ─── Live stats: replace hardcoded showroom count ──────────────────────
-  const liveStats = STATS.map((s) =>
-    s.label === "Showrooms" && showrooms.length > 0
-      ? { ...s, value: showrooms.length }
-      : s
-  );
-
   return (
     <>
       <Navbar />
 
       {/* ═══════════════════════════════════════════════════════════════════
-          1. HERO — Premium Editorial Split
+          1. HERO — Fashion Editorial Split
       ═══════════════════════════════════════════════════════════════════ */}
       <section className="relative min-h-[520px] sm:min-h-[600px] flex items-center overflow-hidden">
         <div className="absolute inset-0 -z-20">
           <img
-            src="/images/side.jpg"
-            alt="Premium solid wood furniture"
+            src="/images/fashion-hero.jpg"
+            alt="Abdullah Poshak Ghor fashion collection"
             className="w-full h-full object-cover object-center scale-105"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/images/side.jpg";
+            }}
           />
         </div>
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#2e3a2c]/95 via-[#3a4739]/90 to-[#2e3a2c]/95" />
@@ -260,24 +246,24 @@ export default function AboutPage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.05]">
-              Where Timber
+              Everyday Fashion,
               <br />
-              Meets <span className="text-[#d69a45]">Tradition.</span>
+              Woven with <span className="text-[#d69a45]">Trust.</span>
             </h1>
 
             <p className="text-white/70 text-sm sm:text-base leading-relaxed font-light max-w-xl">
-              Born in the heart of Barishal, Sareng Furniture has been crafting
-              premium seasoned hardwood pieces since 2018 — pairing legacy
-              carpentry with modern design integrity and factory-direct
-              honesty.
+              From the heart of Barishal, <strong className="text-white font-semibold">Abdullah Poshak Ghor</strong> has
+              been dressing families since 2018 — offering quality ready-made
+              garments for men, women, and children at honest,
+              everyday prices.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={() => router.push("/products")}
+                onClick={() => router.push("/shop")}
                 className="inline-flex items-center gap-2 bg-[#d69a45] hover:bg-[#c0873a] text-white text-[11px] font-black uppercase tracking-widest px-7 py-4 rounded-sm transition-all shadow-lg group"
               >
-                Explore Catalog
+                Explore Collection
                 <FiArrowRight
                   size={14}
                   className="group-hover:translate-x-1 transition-transform"
@@ -287,7 +273,7 @@ export default function AboutPage() {
                 onClick={() => router.push("/contact")}
                 className="inline-flex items-center gap-2 text-white/80 hover:text-white text-[11px] font-bold uppercase tracking-widest px-5 py-4 transition-colors"
               >
-                Visit Workshop
+                Visit Our Outlets
                 <FiArrowUpRight size={14} />
               </button>
             </div>
@@ -296,7 +282,7 @@ export default function AboutPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          2. OUR STORY — Barishal Origin
+          2. OUR STORY
       ═══════════════════════════════════════════════════════════════════ */}
       <section
         ref={storyRef}
@@ -317,9 +303,12 @@ export default function AboutPage() {
             >
               <div className="relative rounded-2xl overflow-hidden shadow-xl bg-white p-2">
                 <img
-                  src="/images/side1.jpg"
-                  alt="Sareng Furniture workshop and showroom"
+                  src="/images/fashion-story.jpg"
+                  alt="Abdullah Poshak Ghor storefront and collection"
                   className="w-full h-[420px] sm:h-[520px] object-cover rounded-xl"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/images/side1.jpg";
+                  }}
                 />
               </div>
 
@@ -330,7 +319,7 @@ export default function AboutPage() {
                     <FiMapPin size={14} className="text-[#d69a45]" />
                   </div>
                   <span className="text-[10px] font-bold text-[#d69a45] uppercase tracking-widest">
-                    Origin
+                    Proudly Local
                   </span>
                 </div>
                 <p className="text-sm font-extrabold text-[#2e3a2c] leading-tight">
@@ -357,55 +346,49 @@ export default function AboutPage() {
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] leading-[1.1] tracking-tight">
-                Roots in the riverside workshops of{" "}
-                <span className="text-[#d69a45]">Barishal.</span>
+                Rooted in Barishal&apos;s{" "}
+                <span className="text-[#d69a45]">family fashion.</span>
               </h2>
 
               <div className="text-gray-600 text-sm sm:text-[15px] leading-relaxed space-y-5 font-light">
                 <p>
-                  Sareng Furniture was born in 2018 in the riverside city of{" "}
                   <strong className="font-semibold text-[#2e3a2c]">
-                    Barishal
-                  </strong>
-                  , where generations of carpenters have shaped some of the
-                  finest hardwood in southern Bangladesh. What began as a
-                  modest workshop with three craftsmen and a single seasoning
-                  yard has grown into a trusted name in premium solid-wood
-                  furniture.
-                </p>
-                <p>
-                  The market at the time was flooded with cheap, pressed-board
-                  imports that cracked, warped, and fell apart within years. We
-                  took the opposite path — building exclusively with{" "}
-                  <strong className="font-semibold text-[#2e3a2c]">
-                    slow-seasoned solid wood logs
+                    Abdullah Poshak Ghor
                   </strong>{" "}
-                  sourced from the Barishal region&apos;s finest timber
-                  suppliers and seasoned under natural airflow for months.
+                  opened its doors in 2018 with one simple idea — that everyday
+                  Bangladeshi families deserve good clothing at honest prices.
+                  What started as a single outlet in Rupatoli Housing has since
+                  grown into a trusted name across Barishal.
                 </p>
                 <p>
-                  By focusing on wood-drying discipline, legacy hand-jointing
-                  techniques, and honest factory-direct pricing, we grew from
-                  local door and dining-set commissions into a nationwide
-                  operation — furnishing homes, offices, and developments
-                  across Bangladesh. Through it all, our heart still beats in
-                  Barishal.
+                  We specialize in{" "}
+                  <strong className="font-semibold text-[#2e3a2c]">
+                    ready-made garments for men, women, and children
+                  </strong>{" "}
+                  — from Punjabis and shirts to sarees, salwar kameez, three-piece
+                  sets, school uniforms, and comfortable cotton wear. Every
+                  piece is selected for fabric quality, fit, and modesty.
                 </p>
                 <p>
-                  Today, we invite clients to visit our yards, inspect raw
-                  timber, and oversee the customized drawing phase — because
-                  transparency has always been the foundation of our craft.
+                  Today we proudly operate{" "}
+                  <strong className="font-semibold text-[#2e3a2c]">
+                    two outlets
+                  </strong>{" "}
+                  — one at Rupatoli Housing Estate (Road #7) and another at
+                  Banglabazar More, Police Line. Whether you visit us in person
+                  or message on WhatsApp, you&apos;ll always find the same warm
+                  service and fair pricing.
                 </p>
               </div>
 
               {/* Founder quote */}
               <div className="border-l-2 border-[#d69a45] pl-5 py-2">
                 <p className="text-[#2e3a2c] font-medium italic text-sm leading-relaxed">
-                  &ldquo;Wood remembers every hand that shaped it. In Barishal,
-                  we learned to shape it slowly, honestly, and to last.&rdquo;
+                  &ldquo;Simplicity and style can live together. We dress
+                  Barishal&apos;s families the way we&apos;d dress our own.&rdquo;
                 </p>
                 <p className="text-[10px] font-bold text-[#d69a45] uppercase tracking-widest mt-3">
-                  — Founder, Sareng Furniture
+                  — Abdullah Poshak Ghor
                 </p>
               </div>
             </div>
@@ -414,7 +397,7 @@ export default function AboutPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          3. MISSION, VISION & CORE VALUES
+          3. MISSION, VISION & VALUES
       ═══════════════════════════════════════════════════════════════════ */}
       <section
         ref={valuesRef}
@@ -423,7 +406,6 @@ export default function AboutPage() {
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            {/* Left Content */}
             <div
               className={`w-full lg:col-span-7 space-y-10 transition-all duration-700 ease-out ${
                 valuesIn
@@ -439,23 +421,23 @@ export default function AboutPage() {
                   </span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] tracking-tight leading-[1.1]">
-                  Our Core Directives.
+                  Our Core Values.
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-4">
                 {[
                   {
-                    label: "The Mission",
-                    text: "To construct solid hardwood furniture designed to last generations, utilizing factory-direct logistics to bypass commercial showroom inflation.",
+                    label: "Our Mission",
+                    text: "To provide quality ready-made garments for every member of the Barishal family — honestly priced, modestly styled, and reliably available.",
                   },
                   {
-                    label: "The Vision",
-                    text: "To scale custom furniture carpentry across Bangladesh without compromising traditional seasoned timber jointing and direct artisan employment.",
+                    label: "Our Vision",
+                    text: "To grow as Bangladesh's most trusted local fashion destination, expanding our outlets without ever compromising on quality or affordability.",
                   },
                   {
-                    label: "Our Values",
-                    text: "Honesty in wood selection, pride in jointing craftsmanship, and total accountability in every customer relationship.",
+                    label: "Our Promise",
+                    text: "Fabric that feels right. Fit that respects you. Prices that stay honest. Service that remembers your name.",
                   },
                 ].map((item) => (
                   <div key={item.label} className="space-y-3">
@@ -471,7 +453,6 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Right Image */}
             <div
               className={`w-full lg:col-span-5 relative transition-all duration-700 ease-out delay-150 ${
                 valuesIn
@@ -481,9 +462,13 @@ export default function AboutPage() {
             >
               <div className="relative rounded-2xl overflow-hidden shadow-xl bg-white p-2">
                 <img
-                  src="/images/onno-zGKRmwzplVc-unsplash.jpg"
-                  alt="Premium finished solid wood side table"
+                  src="/images/fashion-values.jpg"
+                  alt="Premium fabric and clothing collection"
                   className="w-full h-[420px] sm:h-[520px] object-cover rounded-xl"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "/images/onno-zGKRmwzplVc-unsplash.jpg";
+                  }}
                 />
               </div>
             </div>
@@ -505,7 +490,7 @@ export default function AboutPage() {
 
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 text-center">
-            {liveStats.map((s, i) => {
+            {STATS.map((s, i) => {
               const Icon = s.icon;
               return (
                 <div
@@ -533,27 +518,27 @@ export default function AboutPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          5. WHAT WE DO
+          5. WHAT WE OFFER
       ═══════════════════════════════════════════════════════════════════ */}
       <section
         ref={whatRef}
         className="py-20 lg:py-32 bg-white"
-        aria-label="Capabilities"
+        aria-label="Our Collections"
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-16 space-y-3">
             <div className="inline-flex items-center gap-2 bg-[#d69a45]/10 border border-[#d69a45]/30 rounded-full px-3.5 py-1">
               <span className="w-1.5 h-1.5 bg-[#d69a45] rounded-full" />
               <span className="text-[10px] font-bold text-[#d69a45] uppercase tracking-[0.2em]">
-                Chapter 03 — Expertise
+                Chapter 03 — Collections
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] tracking-tight leading-[1.1]">
-              Our Work Areas.
+              What We Offer.
             </h2>
             <p className="text-gray-400 text-sm font-light">
-              We manufacture solid-timber furniture and custom structural fits
-              tailored to spaces.
+              Everyday wear for the whole family — curated with care, priced
+              honestly.
             </p>
             <div className="w-12 h-[2px] bg-[#d69a45] mt-5" />
           </div>
@@ -587,16 +572,15 @@ export default function AboutPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          6. CUSTOM FURNITURE  ← FIXED SECTION
+          6. WHATSAPP / ORDER
       ═══════════════════════════════════════════════════════════════════ */}
       <section
         ref={customRef}
         className="py-20 lg:py-32 bg-[#faf8f5] relative overflow-hidden"
-        aria-label="Custom Carpentry"
+        aria-label="WhatsApp Orders"
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: Content */}
             <div
               className={`w-full space-y-7 transition-all duration-700 ${
                 customIn
@@ -607,29 +591,27 @@ export default function AboutPage() {
               <div className="inline-flex items-center gap-2 bg-[#d69a45]/10 border border-[#d69a45]/30 rounded-full px-3.5 py-1">
                 <span className="w-1.5 h-1.5 bg-[#d69a45] rounded-full" />
                 <span className="text-[10px] font-bold text-[#d69a45] uppercase tracking-[0.2em]">
-                  Chapter 04 — Bespoke Orders
+                  Chapter 04 — Order via WhatsApp
                 </span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] tracking-tight leading-[1.1]">
-                Crafted to your{" "}
-                <span className="text-[#d69a45]">
-                  sizing specifications.
-                </span>
+                Shop from home —{" "}
+                <span className="text-[#d69a45]">just message us.</span>
               </h2>
 
               <p className="text-gray-500 text-sm leading-relaxed font-light max-w-lg">
-                We accommodate fully custom furniture dimensions, wood
-                specifications, and lacquer shades. Simply contact our
-                workshop with your references or sketches.
+                Can&apos;t visit the outlet? Send us a WhatsApp message with
+                your size and preferred style — our team will reply with photos,
+                prices, and delivery options within Barishal.
               </p>
 
               <div className="space-y-3 max-w-sm pt-2">
                 {[
-                  "Custom sizing to fit exact walls",
-                  "Premium wood log selection (Teak / Mahogany)",
-                  "Tailored color tints and Italian lacquer finish",
-                  "Draft sketches and design approval",
+                  "Send us a WhatsApp with your style preference",
+                  "Get photos, sizes, and prices instantly",
+                  "Confirm your order and address",
+                  "Fast local delivery within Barishal",
                 ].map((opt) => (
                   <div key={opt} className="flex items-center gap-3">
                     <FiCheckCircle
@@ -643,21 +625,26 @@ export default function AboutPage() {
                 ))}
               </div>
 
-              <div className="pt-3">
-                <button
-                  onClick={() => router.push("/contact")}
-                  className="inline-flex items-center gap-2 bg-[#3a4739] hover:bg-[#2e3a2c] text-white text-[11px] font-black uppercase tracking-widest px-8 py-4 rounded-sm transition-all shadow-lg group"
+              <div className="pt-3 flex flex-wrap gap-3">
+                <a
+                  href="https://wa.me/8801761758729"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white text-[11px] font-black uppercase tracking-widest px-7 py-4 rounded-sm transition-all shadow-lg"
                 >
-                  Request a Custom Order
-                  <FiArrowRight
-                    size={14}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </button>
+                  WhatsApp · 01761-758729
+                </a>
+                <a
+                  href="https://wa.me/8801767473504"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#3a4739] hover:bg-[#2e3a2c] text-white text-[11px] font-black uppercase tracking-widest px-7 py-4 rounded-sm transition-all shadow-lg"
+                >
+                  WhatsApp · 01767-473504
+                </a>
               </div>
             </div>
 
-            {/* Right: Image */}
             <div
               className={`w-full transition-all duration-700 delay-150 ${
                 customIn
@@ -667,11 +654,11 @@ export default function AboutPage() {
             >
               <div className="relative rounded-2xl overflow-hidden shadow-xl bg-white p-2">
                 <img
-                  src="/images/customfur.avif"
-                  alt="Custom woodwork details at factory"
+                  src="/images/fashion-whatsapp.jpg"
+                  alt="Shop clothing via WhatsApp"
                   className="w-full h-[420px] sm:h-[520px] object-cover rounded-xl"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/images/side1.jpg";
+                    (e.target as HTMLImageElement).src = "/images/customfur.avif";
                   }}
                 />
               </div>
@@ -686,22 +673,21 @@ export default function AboutPage() {
       <section
         ref={whyRef}
         className="py-20 lg:py-32 bg-white"
-        aria-label="Quality Standards"
+        aria-label="Why Choose Us"
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-16 space-y-3">
             <div className="inline-flex items-center gap-2 bg-[#d69a45]/10 border border-[#d69a45]/30 rounded-full px-3.5 py-1">
               <span className="w-1.5 h-1.5 bg-[#d69a45] rounded-full" />
               <span className="text-[10px] font-bold text-[#d69a45] uppercase tracking-[0.2em]">
-                Chapter 05 — Quality Pillars
+                Chapter 05 — Why Families Choose Us
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] tracking-tight leading-[1.1]">
-              Our Standards.
+              Our Promise to You.
             </h2>
             <p className="text-gray-400 text-sm font-light">
-              Why we focus purely on solid structural timber joinery rather
-              than mass production.
+              Honest pricing, quality fabrics, and a warm welcome — every visit.
             </p>
             <div className="w-12 h-[2px] bg-[#d69a45] mt-5" />
           </div>
@@ -735,7 +721,7 @@ export default function AboutPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          8. OUR SHOWROOMS (DYNAMIC)
+          8. OUR SHOWROOMS (STATIC)
       ═══════════════════════════════════════════════════════════════════ */}
       <section
         ref={showroomRef}
@@ -747,90 +733,70 @@ export default function AboutPage() {
             <div className="inline-flex items-center gap-2 bg-[#d69a45]/10 border border-[#d69a45]/30 rounded-full px-3.5 py-1">
               <span className="w-1.5 h-1.5 bg-[#d69a45] rounded-full" />
               <span className="text-[10px] font-bold text-[#d69a45] uppercase tracking-[0.2em]">
-                Chapter 06 — Outlets
+                Chapter 06 — Our Outlets
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2e3a2c] tracking-tight leading-[1.1]">
-              Our Showrooms.
+              Visit Us in Barishal.
             </h2>
             <p className="text-gray-400 text-sm font-light">
-              Divisional outlets to experience the catalog quality in person.
+              Two convenient outlets to experience the collection in person.
             </p>
             <div className="w-12 h-[2px] bg-[#d69a45] mt-5" />
           </div>
 
-          {showroomsLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div
-                  key={n}
-                  className="bg-white border border-gray-100 rounded-2xl p-6 space-y-3 animate-pulse"
-                >
-                  <div className="h-4 w-32 bg-gray-200 rounded" />
-                  <div className="h-3 w-full bg-gray-200 rounded" />
-                  <div className="h-3 w-2/3 bg-gray-200 rounded" />
-                  <div className="h-3 w-28 bg-gray-200 rounded mt-4" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!showroomsLoading && showroomsError && (
-            <div className="p-5 bg-red-50 border border-red-100 rounded-2xl text-sm text-red-600 max-w-lg">
-              {showroomsError}. Please refresh the page.
-            </div>
-          )}
-
-          {!showroomsLoading && !showroomsError && showrooms.length === 0 && (
-            <div className="p-10 bg-white border border-gray-100 rounded-2xl text-center max-w-lg">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[#d69a45]/10 flex items-center justify-center">
-                <FiMapPin size={20} className="text-[#d69a45]" />
-              </div>
-              <p className="text-sm font-semibold text-gray-700 mb-1">
-                Showroom information coming soon
-              </p>
-              <p className="text-xs text-gray-400 font-light">
-                Please check back shortly or contact us for outlet details.
-              </p>
-            </div>
-          )}
-
-          {!showroomsLoading && !showroomsError && showrooms.length > 0 && (
-            <div
-              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${
-                showroomIn
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-6"
-              }`}
-            >
-              {showrooms.map((s) => (
-                <div
-                  key={s._id}
-                  className="group bg-white border border-gray-100 rounded-2xl p-7 hover:shadow-xl hover:shadow-gray-100 hover:border-[#d69a45]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 gap-6 transition-all duration-700 ${
+              showroomIn
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-6"
+            }`}
+          >
+            {SHOWROOMS.map((s) => (
+              <div
+                key={s.id}
+                className="group bg-white border border-gray-100 rounded-2xl p-7 hover:shadow-xl hover:shadow-gray-100 hover:border-[#d69a45]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
                     <div className="w-10 h-10 rounded-xl bg-[#faf8f5] flex items-center justify-center text-[#d69a45] group-hover:bg-[#d69a45] group-hover:text-white transition-all duration-300">
                       <FiMapPin size={16} />
                     </div>
-                    <h3 className="font-extrabold text-base text-[#2e3a2c] group-hover:text-[#d69a45] transition-colors tracking-tight">
-                      {s.city} Showroom
-                    </h3>
-                    <p className="text-xs text-gray-500 leading-relaxed font-light">
-                      {s.address}
-                    </p>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#d69a45]">
+                      {s.city}
+                    </span>
                   </div>
+                  <h3 className="font-extrabold text-base text-[#2e3a2c] group-hover:text-[#d69a45] transition-colors tracking-tight">
+                    {s.name} Showroom
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-relaxed font-light">
+                    {s.address}
+                  </p>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                    {s.hours}
+                  </p>
+                </div>
 
+                <div className="flex flex-wrap items-center gap-4 mt-5 pt-4 border-t border-gray-100">
                   <a
-                    href={`tel:${s.phone.replace(/\s+/g, "")}`}
-                    className="inline-flex items-center gap-2 mt-5 text-[11px] font-bold text-[#3a4739] hover:text-[#d69a45] transition-colors uppercase tracking-widest"
+                    href={`tel:${s.phone.replace(/[^\d+]/g, "")}`}
+                    className="inline-flex items-center gap-2 text-[11px] font-bold text-[#3a4739] hover:text-[#d69a45] transition-colors uppercase tracking-widest"
                   >
                     <FiPhone size={12} className="text-[#d69a45]" />
                     {s.phone}
                   </a>
+                  <a
+                    href={`https://wa.me/88${s.phone.replace(/[^\d]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-[11px] font-bold text-[#25D366] hover:text-[#1ebe5b] transition-colors uppercase tracking-widest"
+                  >
+                    WhatsApp
+                  </a>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -845,9 +811,12 @@ export default function AboutPage() {
           <div className="relative bg-[#2e3a2c] rounded-3xl overflow-hidden shadow-2xl">
             <div className="absolute inset-0">
               <img
-                src="/images/side2.jpg"
-                alt="Modern living spaces showcase"
+                src="/images/fashion-cta.jpg"
+                alt="Abdullah Poshak Ghor collection"
                 className="w-full h-full object-cover opacity-20"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/side2.jpg";
+                }}
               />
             </div>
             <div className="absolute inset-0 bg-gradient-to-br from-[#2e3a2c]/80 via-transparent to-[#2e3a2c]/80" />
@@ -859,15 +828,15 @@ export default function AboutPage() {
                 </span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight tracking-tight">
-                Our Quality Promise.
+                Simplicity and Style Await.
               </h2>
               <p className="text-white/70 text-sm leading-relaxed font-light max-w-md mx-auto">
-                Every piece that leaves our Barishal workshop is built to look
-                beautiful and last a lifetime. Get in touch with our design
-                leads to start your layout.
+                Whether you&apos;re dressing for Eid, school, office, or
+                everyday comfort — we&apos;re here. Visit our outlets or
+                WhatsApp us today.
               </p>
 
-              <div className="pt-3">
+              <div className="pt-3 flex flex-wrap justify-center gap-3">
                 <button
                   onClick={() => router.push("/contact")}
                   className="inline-flex items-center gap-2 bg-[#d69a45] hover:bg-[#c0873a] text-white text-[11px] font-black uppercase tracking-widest px-9 py-4 rounded-sm transition-all shadow-lg group"
@@ -877,6 +846,12 @@ export default function AboutPage() {
                     size={14}
                     className="group-hover:translate-x-1 transition-transform"
                   />
+                </button>
+                <button
+                  onClick={() => router.push("/shop")}
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-widest px-7 py-4 rounded-sm transition-all"
+                >
+                  Shop Now
                 </button>
               </div>
             </div>

@@ -20,7 +20,7 @@ export const revalidate = 60;
 async function getHeroImages(): Promise<string[]> {
   try {
     const client = await clientPromise;
-    const db = client.db("sareng_furniture");
+    const db = client.db("Abdullah_Poshak");
     const data = await db.collection("heroes").findOne({});
 
     if (Array.isArray(data?.heroImages)) {
@@ -44,7 +44,7 @@ export default async function Home() {
       {/* ✅ initialImages দিলে Hero client fetch করবে না, সাথে সাথে দেখাবে */}
       <Hero initialImages={heroImages} />
       <Categories />
-      <CustomizationSection />
+      {/* <CustomizationSection /> */}
       <BestSellers />
       <CraftedForComfortBanner />
       <NewArrivalsPage />

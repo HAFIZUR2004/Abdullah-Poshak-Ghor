@@ -21,7 +21,7 @@ const inter = Inter({
   display: "swap",
 });
 
-const LOGO_URL = "https://i.ibb.co.com/Y7ZZrcJ5/newlogo.png";
+const LOGO_URL = "https://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpg";
 
 const navLinks = [
   { name: "Home", href: "/", icon: FiHome },
@@ -222,11 +222,11 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0 group">
               <div className="relative w-22 h-22 rounded-full flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
-                <img src={LOGO_URL} alt="Sareng Furniture" width={40} height={40} className="w-16 h-17 object-contain" />
+                <img src={LOGO_URL} alt="Abdullah Poshak Ghor" width={40} height={40} className="w-16 h-17 object-contain" />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="text-xl font-bold tracking-wider leading-none text-[#0B2523] uppercase font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>Sareng</span>
-                <span className="text-[9px] uppercase tracking-widest text-[#0F3D39] font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>Furniture</span>
+                <span className="text-xl font-bold tracking-wider leading-none text-[#0B2523] uppercase font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>Abdullah</span>
+                <span className="text-[9px] uppercase tracking-widest text-[#0F3D39] font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>Poshak Ghor</span>
               </div>
             </Link>
 
@@ -352,7 +352,7 @@ export default function Navbar() {
             </nav>
             <div className="flex items-center gap-1.5 text-[#0B2523]/80 text-xs">
               <FiHeadphones size={13} className="text-[#0F3D39]" />
-              <span>Need Help? +880 1806-971390</span>
+              <span>Need Help? +880 1761-758729</span>
             </div>
           </div>
         </div>

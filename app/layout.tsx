@@ -6,8 +6,8 @@ import { SearchProvider } from "@/context/SearchContext";
 import { AuthProvider } from "@/hooks/AuthContext";
 
 export const metadata: Metadata = {
-  title: "sareng furniture - A House of Quality Furniture",
-  description: "সেরা মানের পণ্য সবচেয়ে কম দামে |",
+  title: "Abdullah Poshak Ghor - A House of Quality Style",
+  description: "সেবার লক্ষে অগ্রগামী |",
 };
 
 export default function RootLayout({

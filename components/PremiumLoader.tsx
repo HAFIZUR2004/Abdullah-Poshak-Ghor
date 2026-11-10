@@ -7,8 +7,9 @@ export default function PremiumLoader() {
         {/* Logo */}
         <div className="w-20 h-20 mb-4 flex items-center justify-center">
           <Image
-            src="https://i.ibb.co.com/FkcbNmzJ/Logo-2-removebg-preview.webp"
-            alt="Sareng Furniture"
+            src="https://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpg"
+            alt="Abdullah Poshak Ghor
+"
             width={80}
             height={80}
             className="object-contain"
@@ -18,10 +19,12 @@ export default function PremiumLoader() {
 
         {/* Brand Name */}
         <h1 className="text-lg font-extrabold tracking-[0.2em] text-[#3a4739] uppercase leading-none">
-          Sareng
+          Abdullah 
+
         </h1>
         <p className="text-[9px] uppercase tracking-[0.35em] text-[#d69a45] font-semibold mt-1.5">
-          Furniture
+     Poshak Ghor
+
         </p>
 
         {/* Simple Loading Line */}

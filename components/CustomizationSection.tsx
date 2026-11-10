@@ -44,7 +44,7 @@ export default function CustomizationSection() {
             Customization Services
           </p>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-medium text-[#0B2523] leading-[1.1] tracking-tight">
-            Your Dream Furniture,
+            Your Fashion,
             <span className="block text-[#0F3D39]">Made Your Way</span>
           </h2>
           <p className="mt-6 text-sm sm:text-base text-[#0B2523]/70 leading-relaxed max-w-2xl mx-auto">

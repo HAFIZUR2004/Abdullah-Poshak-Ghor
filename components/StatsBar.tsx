@@ -105,7 +105,7 @@ export default function StatsBar({
         {/* Heading */}
         <h2 className="text-[30px] font-extrabold leading-tight tracking-[-1px] text-[#101817] sm:text-[36px] lg:text-[42px]">
           Why Choose{" "}
-          <span className="text-[#0F3D39]">Sareng Furniture?</span>
+          <span className="text-[#0F3D39]">Abdullah Poshak Ghor </span>
         </h2>
 
         {/* Gold divider line */}

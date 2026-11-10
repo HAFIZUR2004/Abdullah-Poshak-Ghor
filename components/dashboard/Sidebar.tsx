@@ -104,11 +104,11 @@ export default function Sidebar() {
       icon: <FiHome />,
       path: "/dashboard",
     },
-    {
-      label: "Hero",
-      icon: <FiHome />,
-      path: "/dashboard/hero",
-    },
+    // {
+    //   label: "Hero",
+    //   icon: <FiHome />,
+    //   path: "/dashboard/hero",
+    // },
     {
       label: "Products",
       icon: <FiPackage />,
@@ -119,26 +119,26 @@ export default function Sidebar() {
       icon: <FiFolder />,
       path: "/dashboard/categories",
     },
-    {
-      label: "Banner",
-      icon: <FiImage />,
-      path: "/dashboard/banner",
-    },
-    {
-      label: "Custom Section",
-      icon: <FiSliders />,
-      path: "/dashboard/custom-section",
-    },
+    // {
+    //   label: "Banner",
+    //   icon: <FiImage />,
+    //   path: "/dashboard/banner",
+    // },
+    // {
+    //   label: "Custom Section",
+    //   icon: <FiSliders />,
+    //   path: "/dashboard/custom-section",
+    // },
     {
       label: "Users",
       icon: <FiUsers />,
       path: "/dashboard/users",
     },
-    {
-      label: "Showrooms",
-      icon: <FiMapPin />, // Icon changed to Map Pin
-      path: "/dashboard/showrooms",
-    },
+    // {
+    //   label: "Showrooms",
+    //   icon: <FiMapPin />, // Icon changed to Map Pin
+    //   path: "/dashboard/showrooms",
+    // },
    
   ];
 
@@ -203,8 +203,9 @@ export default function Sidebar() {
           >
             <div className="transition-transform group-hover:scale-105">
               <Image
-                src="https://i.ibb.co.com/Y7ZZrcJ5/newlogo.png"
-                alt="Sareng Furniture"
+                src="https://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpg"
+                alt="Abdullah Poshak Ghor
+"
                 width={50}
                 height={50}
                 className="rounded-full border-2 border-white/30 object-contain"
@@ -214,7 +215,8 @@ export default function Sidebar() {
 
             <div>
               <h2 className="text-lg font-bold text-white leading-none tracking-tight">
-                Sareng
+                Abdullah
+
               </h2>
               <p className="text-[10px] text-white/70 font-medium tracking-[0.2em] uppercase">
                 Dashboard

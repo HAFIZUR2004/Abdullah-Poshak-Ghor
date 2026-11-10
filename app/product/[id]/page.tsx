@@ -12,11 +12,7 @@ import {
   Package,
   HelpCircle,
   Info,
-  Palette,
-  Layers,
-  Ruler,
   ShieldCheck,
-  Copy,
   Phone,
 } from "lucide-react";
 import { Product } from "@/types";
@@ -36,27 +32,7 @@ interface Showroom {
 }
 
 // ─────────────────────────────────────────────
-// Parse Color
-// ─────────────────────────────────────────────
-
-const parseColor = (colorStr: string) => {
-  const match = colorStr.match(/^(.+?)\s*\((#[A-Fa-f0-9]{3,8})\)$/);
-
-  if (match) {
-    return {
-      name: match[1].trim(),
-      hex: match[2],
-    };
-  }
-
-  return {
-    name: colorStr,
-    hex: "#CCCCCC",
-  };
-};
-
-// ─────────────────────────────────────────────
-// Discount Calculation Helper (FIXED)
+// Discount Calculation Helper
 // ─────────────────────────────────────────────
 
 const getDiscountInfo = (
@@ -68,14 +44,12 @@ const getDiscountInfo = (
   const originalFromDB = Number(product.originalPrice) || 0;
   const discountPercentFromDB = Number(product.discount) || 0;
 
-  // Case 1: DB তে originalPrice আছে — ratio scale করি
   if (originalFromDB > basePrice && basePrice > 0) {
     const ratio = originalFromDB / basePrice;
     const scaledOriginal = Math.round(price * ratio);
     const scaledDiscountPercent = Math.round(
       ((scaledOriginal - price) / scaledOriginal) * 100
     );
-
     return {
       hasDiscount: true,
       discountPercent: scaledDiscountPercent,
@@ -83,12 +57,10 @@ const getDiscountInfo = (
     };
   }
 
-  // Case 2: DB তে discount % আছে
   if (discountPercentFromDB > 0 && discountPercentFromDB < 100) {
     const originalPrice = Math.round(
       price / (1 - discountPercentFromDB / 100)
     );
-
     return {
       hasDiscount: true,
       discountPercent: discountPercentFromDB,
@@ -96,12 +68,7 @@ const getDiscountInfo = (
     };
   }
 
-  // Case 3: কোনো discount নেই
-  return {
-    hasDiscount: false,
-    discountPercent: 0,
-    originalPrice: price,
-  };
+  return { hasDiscount: false, discountPercent: 0, originalPrice: price };
 };
 
 // ─────────────────────────────────────────────
@@ -121,18 +88,13 @@ export default function ProductDetailsPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [selectedMaterial, setSelectedMaterial] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
-
   const [currentPrice, setCurrentPrice] = useState(0);
-  const [basePrice, setBasePrice] = useState(0); // ✅ NEW: base price track করে
+  const [basePrice, setBasePrice] = useState(0);
 
-  const [openOption, setOpenOption] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<
-    "description" | "specs" | "reviews"
+    "description" | "specs"
   >("description");
 
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -179,21 +141,9 @@ export default function ProductDetailsPage() {
             setProduct(foundProduct);
 
             const baseP = Number(foundProduct.price) || 0;
-            setBasePrice(baseP); // ✅ base price সেভ
-            setCurrentPrice(baseP); // ✅ current price
+            setBasePrice(baseP);
+            setCurrentPrice(baseP);
             setActiveImage(0);
-
-            if (foundProduct.materials?.[0]) {
-              setSelectedMaterial(foundProduct.materials[0]);
-            }
-
-            if (foundProduct.colors?.[0]) {
-              setSelectedColor(foundProduct.colors[0]);
-            }
-
-            if (foundProduct.sizes?.[0]) {
-              setSelectedSize(foundProduct.sizes[0]);
-            }
 
             const related = productArray
               .filter(
@@ -226,10 +176,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchShowrooms = async () => {
       try {
-        const res = await fetch("/api/showrooms", {
-          cache: "no-store",
-        });
-
+        const res = await fetch("/api/showrooms", { cache: "no-store" });
         const data = await res.json();
 
         if (data?.success && Array.isArray(data.data)) {
@@ -277,28 +224,6 @@ export default function ProductDetailsPage() {
   };
 
   // ─────────────────────────────────────────────
-  // Material Change (FIXED)
-  // ─────────────────────────────────────────────
-
-  const handleMaterialChange = (material: string) => {
-    setSelectedMaterial(material);
-
-    if (product) {
-      const priceMatch = material.match(/৳\s*([\d,]+)/);
-
-      if (priceMatch && priceMatch[1]) {
-        const newPrice = parseFloat(priceMatch[1].replace(/,/g, ""));
-        setCurrentPrice(newPrice);
-      } else {
-        // ✅ Base price এ ফিরে যাই — discount ও apply হবে
-        setCurrentPrice(basePrice);
-      }
-    }
-
-    setOpenOption(null);
-  };
-
-  // ─────────────────────────────────────────────
   // Add To Cart
   // ─────────────────────────────────────────────
 
@@ -307,11 +232,6 @@ export default function ProductDetailsPage() {
       const productToAdd = {
         ...product,
         price: currentPrice,
-        selectedOptions: {
-          material: selectedMaterial,
-          color: selectedColor,
-          size: selectedSize,
-        },
         id: product.id ?? undefined,
       };
 
@@ -352,7 +272,6 @@ export default function ProductDetailsPage() {
 
   const productAny = product as any;
 
-  // ✅ FIXED: main image first, then gallery (deduped)
   const imagesList: string[] = (() => {
     const main = productAny.image ? [productAny.image] : [];
     const gallery = Array.isArray(productAny.images)
@@ -364,26 +283,6 @@ export default function ProductDetailsPage() {
     return all.length > 0 ? all : ["/placeholder.jpg"];
   })();
 
-  const materialsList: string[] = productAny.materials?.length
-    ? productAny.materials
-    : ["VNR Finish", "PVC Finish", "Veneered Red Oak"];
-
-  const colorsList: {
-    name: string;
-    hex: string;
-  }[] = productAny.colors?.length
-    ? productAny.colors.map(parseColor)
-    : [
-        { name: "Antique Walnut", hex: "#8B4513" },
-        { name: "Natural Teak", hex: "#D2B48C" },
-        { name: "Dark Brown", hex: "#654321" },
-      ];
-
-  const sizesList: string[] = productAny.sizes?.length
-    ? productAny.sizes
-    : ["Standard Size", "King Size"];
-
-  // ✅ basePrice pass করা হচ্ছে
   const { hasDiscount, discountPercent, originalPrice } = getDiscountInfo(
     productAny,
     currentPrice,
@@ -408,7 +307,7 @@ export default function ProductDetailsPage() {
             <h1 className="text-xl font-bold text-[#0B2523]">{product.name}</h1>
 
             <p className="text-xs text-[#0B2523]/50 mt-0.5 uppercase tracking-wider">
-              SARENG-{product._id?.slice(-8)}
+              ABDULLAH-{product._id?.slice(-8)}
             </p>
 
             <div className="mt-2">
@@ -480,7 +379,6 @@ export default function ProductDetailsPage() {
                     <Maximize2 size={16} />
                   </button>
                 </div>
-                
               </div>
 
               {/* Disclaimer */}
@@ -530,7 +428,7 @@ export default function ProductDetailsPage() {
                 </h1>
 
                 <p className="text-xs text-[#0B2523]/50 mt-0.5 uppercase tracking-wider">
-                  SARENG-{product._id?.slice(-8)}
+                  ABDULLAH-{product._id?.slice(-8)}
                 </p>
 
                 <div className="mt-2">
@@ -549,271 +447,6 @@ export default function ProductDetailsPage() {
                   {hasDiscount && (
                     <div className="text-sm text-[#0F3D39]/50 line-through mt-1">
                       ৳ {originalPrice.toLocaleString("en-BD")}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* COLLAPSIBLE OPTIONS */}
-              <div className="border border-[#E5D3B3]/30 rounded divide-y divide-[#E5D3B3]/20 bg-white">
-                {/* 1. Material */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenOption(
-                        openOption === "material" ? null : "material"
-                      )
-                    }
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
-                        <Layers size={16} className="text-[#0F3D39]" />
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-bold text-[#0B2523]">
-                          Material
-                        </div>
-
-                        <div className="text-[11px] text-[#0B2523]/60 font-medium">
-                          {selectedMaterial
-                            ? selectedMaterial.split("(")[0].trim()
-                            : "Select Material"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <ChevronDown
-                      size={16}
-                      className={`text-[#0B2523]/40 transition-transform duration-200 ${
-                        openOption === "material" ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {openOption === "material" && (
-                    <div className="p-3 bg-[#FDF6EE] border-t border-[#E5D3B3]/20 flex flex-wrap gap-2">
-                      {materialsList.map((m, i) => {
-                        const cleanName = m.split("(")[0].trim();
-                        const isSelected = selectedMaterial === m;
-
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => handleMaterialChange(m)}
-                            className={`px-3 py-1.5 rounded text-xs transition border ${
-                              isSelected
-                                ? "bg-[#0F3D39] text-[#E5D3B3] border-[#0F3D39] font-semibold shadow-sm"
-                                : "bg-white text-[#0B2523] border-[#E5D3B3]/40 hover:border-[#0F3D39] hover:text-[#0F3D39]"
-                            }`}
-                          >
-                            {cleanName}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Color */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenOption(openOption === "color" ? null : "color")
-                    }
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
-                        <Palette size={16} className="text-[#0F3D39]" />
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-bold text-[#0B2523]">
-                          Color
-                        </div>
-                      </div>
-                    </div>
-
-                    <ChevronDown
-                      size={16}
-                      className={`text-[#0B2523]/40 transition-transform duration-200 ${
-                        openOption === "color" ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {openOption === "color" && (
-                    <div className="p-3 bg-[#FDF6EE] border-t border-[#E5D3B3]/20">
-                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                        {colorsList.map(
-                          (c: { name: string; hex: string }, i: number) => {
-                            const isSelected = selectedColor.includes(c.name);
-
-                            return (
-                              <button
-                                key={i}
-                                type="button"
-                                title={c.name}
-                                aria-label={c.name}
-                                onClick={() => {
-                                  const originalColor =
-                                    productAny.colors?.find((col: string) =>
-                                      col.includes(c.name)
-                                    );
-
-                                  setSelectedColor(originalColor || c.name);
-                                  setOpenOption(null);
-                                }}
-                                className={`group overflow-hidden rounded-lg bg-white border text-left transition-all duration-200 flex items-center justify-center p-1 ${
-                                  isSelected
-                                    ? "border-2 border-[#0F3D39] shadow-sm"
-                                    : "border-[#E5D3B3]/30 hover:border-[#0F3D39]"
-                                }`}
-                              >
-                                <div
-                                  className="w-full h-9 rounded-md border border-black/5"
-                                  style={{
-                                    backgroundColor: c.hex,
-                                  }}
-                                />
-                              </button>
-                            );
-                          }
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Size */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenOption(openOption === "size" ? null : "size")
-                    }
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FDF6EE] transition"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#0F3D39]/10 flex items-center justify-center">
-                        <Ruler size={16} className="text-[#0F3D39]" />
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-bold text-[#0B2523]">
-                          Size
-                        </div>
-
-                        <div className="text-[11px] text-[#0B2523]/60 font-medium truncate max-w-[200px]">
-                          {selectedSize
-                            ? selectedSize.split("\n")[0].trim()
-                            : "Select Size"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <ChevronDown
-                      size={16}
-                      className={`text-[#0B2523]/40 transition-transform duration-200 ${
-                        openOption === "size" ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {openOption === "size" && (
-                    <div className="p-4 bg-[#FDF6EE] border-t border-[#E5D3B3]/20 space-y-2">
-                      {sizesList.map((sz, index) => {
-                        const isSelected = selectedSize === sz;
-
-                        let rawLines: string[] = [];
-
-                        if (typeof sz === "string") {
-                          rawLines = sz
-                            .split(/[\n|-]/)
-                            .map((item) => item.trim())
-                            .filter(Boolean);
-                        }
-
-                        const label = sz.includes(":")
-                          ? sz.split(":")[0].trim()
-                          : "";
-
-                        return (
-                          <div
-                            key={index}
-                            onClick={() => setSelectedSize(sz)}
-                            className={`cursor-pointer rounded-xl border p-3 transition ${
-                              isSelected
-                                ? "border-[#0F3D39] bg-[#0F3D39]/5"
-                                : "border-[#E5D3B3]/30 bg-white hover:border-[#0F3D39]/40"
-                            }`}
-                          >
-                            {label && (
-                              <p className="text-xs font-bold text-[#0B2523] mb-2">
-                                {label}
-                              </p>
-                            )}
-
-                            <div className="space-y-1.5">
-                              {rawLines.map((lineItem, lineIndex) => {
-                                const trimmedLine = lineItem.trim();
-
-                                const unitMatch = trimmedLine.match(
-                                  /(.*?)\s+(cm|mm|in|ft|m)$/i
-                                );
-
-                                let mainContent = trimmedLine;
-                                let unitBadge = "";
-
-                                if (unitMatch) {
-                                  mainContent = unitMatch[1].trim();
-                                  unitBadge = unitMatch[2].trim().toUpperCase();
-                                }
-
-                                return (
-                                  <div
-                                    key={lineIndex}
-                                    className="flex items-center justify-between gap-3 bg-[#FDF6EE] rounded-lg px-3 py-2 border border-[#E5D3B3]/20"
-                                  >
-                                    <span className="text-xs font-medium text-[#0B2523] truncate min-w-0">
-                                      {mainContent}
-                                    </span>
-
-                                    <div className="flex items-center gap-2 shrink-0">
-                                      {unitBadge && (
-                                        <span className="text-[11px] font-semibold text-[#0F3D39]/70 uppercase">
-                                          {unitBadge}
-                                        </span>
-                                      )}
-
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-
-                                          navigator.clipboard.writeText(
-                                            trimmedLine
-                                          );
-
-                                          toast.success("Copied!");
-                                        }}
-                                        className="text-[#0B2523]/40 hover:text-[#0F3D39] transition p-1"
-                                      >
-                                        <Copy size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
                     </div>
                   )}
                 </div>
@@ -869,80 +502,78 @@ export default function ProductDetailsPage() {
 
                   {openAccordion === "pkg" && (
                     <div className="px-3.5 pb-3 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-2 whitespace-pre-line">
-                      Delivered in secure packaging, with direct home delivery
-                      and expert setup provided by our skilled technicians.
+                      Whether you are in Rupatali or Bangla Bazar, style is now right at your fingertips—thanks to the fast and secure home delivery service from Abdullah Poshak Ghar!
                     </div>
                   )}
                 </div>
 
                 {/* Need Help */}
-                <div className="border border-[#E5D3B3]/30 rounded bg-white">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenAccordion(openAccordion === "help" ? null : "help")
-                    }
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
-                  >
-                    <span className="flex items-center gap-2">
-                      <HelpCircle size={14} className="text-[#0F3D39]" />
-                      Need Help?
-                    </span>
+               {/* Need Help */}
+<div className="border border-[#E5D3B3]/30 rounded bg-white">
+  <button
+    type="button"
+    onClick={() =>
+      setOpenAccordion(openAccordion === "help" ? null : "help")
+    }
+    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-[#0B2523]"
+  >
+    <span className="flex items-center gap-2">
+      <HelpCircle size={14} className="text-[#0F3D39]" />
+      Need Help?
+    </span>
 
-                    <ChevronDown
-                      size={14}
-                      className={`transition-transform ${
-                        openAccordion === "help" ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+    <ChevronDown
+      size={14}
+      className={`transition-transform ${
+        openAccordion === "help" ? "rotate-180" : ""
+      }`}
+    />
+  </button>
 
-                  {openAccordion === "help" && (
-                    <div className="px-3.5 pb-3.5 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-3.5">
-                      <p className="mb-3 font-semibold text-[#0B2523]">
-                        Contact your nearest showroom:
-                      </p>
+  {openAccordion === "help" && (
+    <div className="px-3.5 pb-3.5 text-xs text-[#0B2523]/60 border-t border-[#E5D3B3]/20 pt-3.5">
+      <p className="mb-3 font-semibold text-[#0B2523]">
+        Contact your nearest showroom:
+      </p>
 
-                      {showroomsLoading ? (
-                        <p className="text-[#0B2523]/50 text-xs py-2">
-                          Loading showrooms...
-                        </p>
-                      ) : showrooms.length === 0 ? (
-                        <p className="text-[#0B2523]/50 text-xs py-2">
-                          No showrooms available.
-                        </p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {showrooms.map((room, index) => (
-                            <div
-                              key={room._id}
-                              className="flex items-center justify-between py-1 border-b border-[#FDF6EE] last:border-0"
-                            >
-                              <span className="text-[#0B2523] font-medium">
-                                {index + 1}. {room.city} Showroom
-                              </span>
+      <div className="space-y-1.5">
+        {/* Showroom 1 — Rupatoli */}
+        <div className="flex items-center justify-between py-1 border-b border-[#FDF6EE]">
+          <span className="text-[#0B2523] font-medium">
+            1. Rupatoli Housing Showroom
+          </span>
 
-                              <a
-                                href={`tel:${room.phone.replace(
-                                  /[^\d+]/g,
-                                  ""
-                                )}`}
-                                className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors"
-                              >
-                                <Phone size={11} />
-                                {room.phone}
-                              </a>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+          <a
+            href="tel:01761758729"
+            className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors"
+          >
+            <Phone size={11} />
+            01761-758729
+          </a>
+        </div>
 
-                      <p className="mt-3 pt-3 border-t border-[#E5D3B3]/20 text-[#0B2523]/60">
-                        Or visit our nearest showroom for assistance.
-                      </p>
-                    </div>
-                  )}
-                </div>
+        {/* Showroom 2 — Bangla Bazar */}
+        <div className="flex items-center justify-between py-1">
+          <span className="text-[#0B2523] font-medium">
+            2. Bangla Bazar Showroom
+          </span>
+
+          <a
+            href="tel:01761758729"
+            className="flex items-center gap-1.5 font-semibold text-[#0F3D39] hover:text-[#0B2523] transition-colors"
+          >
+            <Phone size={11} />
+            01761-758729
+          </a>
+        </div>
+      </div>
+
+      <p className="mt-3 pt-3 border-t border-[#E5D3B3]/20 text-[#0B2523]/60">
+        Or visit our nearest showroom for assistance.
+      </p>
+    </div>
+  )}
+</div>
 
                 {/* Warranty */}
                 <div className="border border-[#E5D3B3]/30 rounded bg-white">
@@ -1006,7 +637,6 @@ export default function ProductDetailsPage() {
             </div>
 
             <div className="p-6 bg-white">
-              {/* ✅ DESCRIPTION — whitespace-pre-line দিয়ে space preserve */}
               {activeTab === "description" && (
                 <div className="space-y-3 text-sm text-[#0B2523]/80 leading-relaxed">
                   {Array.isArray(product?.description) ? (
@@ -1054,25 +684,13 @@ export default function ProductDetailsPage() {
                 </div>
               )}
 
-              {/* ✅ SPECIFICATIONS — Warranty dynamic */}
               {activeTab === "specs" && (
                 <div className="overflow-hidden rounded-lg border border-[#E5D3B3]/30">
                   <table className="w-full text-sm">
                     <tbody>
                       {[
-                        ["Material", selectedMaterial || "Premium Wood"],
-                        [
-                          "Color",
-                          selectedColor
-                            ? selectedColor
-                                .replace(/\s*\(#[A-Fa-f0-9]{3,8}\)\s*$/, "")
-                                .trim()
-                            : "Multiple Options",
-                        ],
-                        ["Size", selectedSize || "Standard Size"],
-                        ["Category", productAny.category || "Furniture"],
-                        ["Brand", "Sareng"],
-                        // ✅ Dynamic Warranty
+                        ["Category", productAny.category || "Fashion"],
+                        ["Brand", "ABDULLAH"],
                         [
                           "Warranty",
                           productAny.warrantyInfo?.trim() ||

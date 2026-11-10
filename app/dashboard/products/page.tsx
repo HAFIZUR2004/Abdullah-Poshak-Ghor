@@ -1,64 +1,19 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from "react";
-
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AlertCircle,
-  Check,
-  ChevronDown,
-  Clock,
-  Edit3,
-  Flame,
-  Image as ImageIcon,
-  Layers,
-  PackageOpen,
-  Palette,
-  Plus,
-  PlusCircle,
-  Ruler,
-  Save,
-  ShieldCheck,
-  Star,
-  Trash2,
-  TrendingUp,
-  X,
-  Box,
-  Calendar,
-  Award,
-  Search,
-  Filter,
-  Grid3X3,
-  List,
-  Star as StarIcon,
-  Clock as ClockIcon,
-  TrendingUp as TrendingUpIcon,
-  Calendar as CalendarIcon,
-  Award as AwardIcon,
+  AlertCircle, Check, ChevronDown, Clock, Edit3, Flame, Image as ImageIcon,
+  Layers, PackageOpen, Palette, Plus, Ruler, Save, ShieldCheck, Star,
+  Trash2, TrendingUp, X, Box, Search, Grid3X3, List, Award, Shirt,
+  Scissors, Users, Tag, Percent,
 } from "lucide-react";
-
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import Swal from "sweetalert2";
 
 // ======================================================
 // TYPES
 // ======================================================
-
-type ProductStatus =
-  | "Active"
-  | "Draft"
-  | "Trending"
-  | "Featured"
-  | "OutOfStock";
-
-type Unit = "M" | "FT" | "INC" | "CM" | "MM";
-
-type DimensionType = "width" | "depth" | "height";
+type ProductStatus = "Active" | "Draft" | "Trending" | "Featured" | "OutOfStock";
 
 interface Product {
   _id?: string;
@@ -68,15 +23,24 @@ interface Product {
   price: number;
   originalPrice?: number;
   category: string;
+  subCategory?: string;
+  brand?: string;
   image: string;
   images?: string[];
   stock: number;
   status: ProductStatus;
   rating?: number;
   discount?: number;
-  materials?: string[];
-  colors?: string[];
   sizes?: string[];
+  colors?: string[];
+  fabric?: string;
+  fit?: string;
+  pattern?: string;
+  gender?: string;
+  sleeve?: string;
+  neckType?: string;
+  sizeChart?: { size: string; price?: number; stock?: number; sku?: string }[];
+  sizeGuide?: { size: string; chest?: string; waist?: string; length?: string; shoulder?: string }[];
   warrantyInfo?: string;
   returnPolicy?: string;
   note?: string;
@@ -95,146 +59,61 @@ interface Category {
   image: string;
 }
 
-interface SizeValues {
-  M: string;
-  FT: string;
-  INC: string;
-  CM: string;
-  MM: string;
-}
-
-interface DimensionValues {
-  width: SizeValues;
-  depth: SizeValues;
-  height: SizeValues;
-}
-
-interface SizeOption {
-  id: string;
-  label: string;
-  primaryUnit: Unit;
-  dimensions: DimensionValues;
-  price: string;
-}
-
-interface MaterialOption {
-  id: string;
-  label: string;
-  description: string;
-  basePrice: string;
-  enabled: boolean;
-}
-
 // ======================================================
-// UNIT CONVERSION
+// FASHION PRESETS
 // ======================================================
+const SIZE_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "Free Size"];
+const GENDER_OPTIONS = ["Men", "Women", "Unisex", "Kids"];
+const FIT_OPTIONS = ["Slim", "Regular", "Oversized", "Relaxed", "Skinny"];
+const PATTERN_OPTIONS = ["Solid", "Striped", "Printed", "Checkered", "Embroidered", "Floral", "Graphic"];
+const SLEEVE_OPTIONS = ["Full Sleeve", "Half Sleeve", "Sleeveless", "3/4 Sleeve"];
+const NECK_OPTIONS = ["Round Neck", "V-Neck", "Collar", "Polo", "Hooded", "Boat Neck"];
 
-const unitConversions: Record<
-  Unit,
-  {
-    toMM: number;
-    label: string;
-  }
-> = {
-  M: { toMM: 1000, label: "Meter" },
-  FT: { toMM: 304.8, label: "Feet" },
-  INC: { toMM: 25.4, label: "Inch" },
-  CM: { toMM: 10, label: "Centimeter" },
-  MM: { toMM: 1, label: "Millimeter" },
-};
-
-const unitOrder: Unit[] = ["FT", "INC", "M", "CM"];
-
-const convertUnit = (value: number, from: Unit, to: Unit): number => {
-  const mm = value * unitConversions[from].toMM;
-  return mm / unitConversions[to].toMM;
-};
-
-const formatNumber = (value: number): string => {
-  if (!Number.isFinite(value)) return "";
-  if (Number.isInteger(value)) return String(value);
-  return value.toFixed(2).replace(/\.?0+$/, "");
-};
-
-const createEmptySizeValues = (): SizeValues => ({
-  M: "",
-  FT: "",
-  INC: "",
-  CM: "",
-  MM: "",
-});
-
-const createEmptyDimensions = (): DimensionValues => ({
-  width: createEmptySizeValues(),
-  depth: createEmptySizeValues(),
-  height: createEmptySizeValues(),
-});
-
-// ======================================================
-// COLOR SAMPLES
-// ======================================================
-
-const colorOptions = [
-  { name: "Champagne Gold", value: "Champagne Gold", hex: "#D0B798" },
-  { name: "Rose Gold", value: "Rose Gold", hex: "#D8CAC1" },
-  { name: "Pearl White", value: "Pearl White", hex: "#EEF0EA" },
-  { name: "Duco White", value: "Duco White", hex: "#ECF0F9" },
-  { name: "Lacquer No. 1", value: "Lacquer No. 1", hex: "#9F4010" },
-  { name: "Lacquer No. 2", value: "Lacquer No. 2", hex: "#421917" },
-  { name: "Lacquer No. 2 Deep", value: "Lacquer No. 2 Deep", hex: "#311919" },
-  { name: "Lacquer No. 3", value: "Lacquer No. 3", hex: "#1B1515" },
-  { name: "Veneer No. 1", value: "Veneer No. 1", hex: "#B06F2B" },
-  { name: "Veneer No. 2", value: "Veneer No. 2", hex: "#813B0A" },
-  { name: "Veneer No. 3", value: "Veneer No. 3", hex: "#360D09" },
-  { name: "MDF Board with Veneer No. 1", value: "MDF & Veneer No. 1", hex: "#320C01" },
+const FABRIC_OPTIONS = [
+  "Cotton", "Linen", "Silk", "Denim", "Polyester", "Viscose",
+  "Rayon", "Wool", "Lycra", "Chiffon", "Georgette", "Khadi", "Terry",
 ];
 
-// ======================================================
-// MATERIAL OPTIONS
-// ======================================================
-
-const defaultMaterials: MaterialOption[] = [
-  { id: "mdf-18", label: "MDF - 18 mm", description: "Medium Density Fiberboard - 18mm", basePrice: "", enabled: false },
-  { id: "mdf-classic-15", label: "MDF - Classic - 15 mm", description: "Medium Density Fiberboard Classic - 15mm", basePrice: "", enabled: false },
-  { id: "vnr-18", label: "VNR - 18 mm", description: "Veneer - 18mm", basePrice: "", enabled: false },
-  { id: "vnr-classic-15", label: "VNR - Classic - 15 mm", description: "Veneer Classic - 15mm", basePrice: "", enabled: false },
-  { id: "partical-melamine", label: "Partical Melamine Board", description: "Particle Board with Melamine Finish", basePrice: "", enabled: false },
-  { id: "uv-board", label: "UV Board", description: "UV Coated Board", basePrice: "", enabled: false },
-  { id: "pvc-board", label: "PVC Board", description: "Polyvinyl Chloride Board", basePrice: "", enabled: false },
+const FASHION_COLORS = [
+  { name: "Black", hex: "#111111" },
+  { name: "White", hex: "#FFFFFF" },
+  { name: "Navy", hex: "#1E2A4A" },
+  { name: "Grey", hex: "#8E8E8E" },
+  { name: "Beige", hex: "#E5D6BD" },
+  { name: "Brown", hex: "#6B4A2B" },
+  { name: "Maroon", hex: "#7A1E2B" },
+  { name: "Red", hex: "#D62828" },
+  { name: "Pink", hex: "#F48FB1" },
+  { name: "Purple", hex: "#7B3FA0" },
+  { name: "Blue", hex: "#2F6FED" },
+  { name: "Sky", hex: "#87CEEB" },
+  { name: "Teal", hex: "#008080" },
+  { name: "Green", hex: "#2E7D32" },
+  { name: "Olive", hex: "#6B8E23" },
+  { name: "Yellow", hex: "#F4C430" },
+  { name: "Orange", hex: "#FB8C00" },
+  { name: "Cream", hex: "#FFF4E1" },
 ];
 
-// ======================================================
-// HELPERS
-// ======================================================
+const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const createEmptySize = (id: string): SizeOption => ({
-  id,
-  label: "",
-  primaryUnit: "FT",
-  dimensions: createEmptyDimensions(),
-  price: "",
-});
-
-const calculateDiscount = (currentPrice: number, originalPrice: number) => {
-  if (!currentPrice || !originalPrice || originalPrice <= currentPrice) return 0;
-  return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+const calculateDiscount = (price: number, original: number) => {
+  if (!price || !original || original <= price) return 0;
+  return Math.round(((original - price) / original) * 100);
 };
 
 // ======================================================
-// INPUT COMPONENT
+// SMALL INPUT
 // ======================================================
-
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   required?: boolean;
 }
-
 const FormInput = React.memo(function FormInput({ label, required, className = "", ...props }: TextInputProps) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-[#49352D]">
-        {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {label}{required && <span className="ml-1 text-red-500">*</span>}
       </label>
       <input
         {...props}
@@ -243,271 +122,29 @@ const FormInput = React.memo(function FormInput({ label, required, className = "
     </div>
   );
 });
-
 FormInput.displayName = "FormInput";
-
-// ======================================================
-// DIMENSION INPUT
-// ======================================================
-
-interface DimensionInputProps {
-  label: string;
-  dimensionType: DimensionType;
-  values: SizeValues;
-  primaryUnit: Unit;
-  onChange: (dimensionType: DimensionType, values: SizeValues) => void;
-}
-
-const DimensionInput = React.memo(function DimensionInput({
-  label,
-  dimensionType,
-  values,
-  primaryUnit,
-  onChange,
-}: DimensionInputProps) {
-  const handleValueChange = (unit: Unit, value: string) => {
-    const nextValues: SizeValues = { ...values, [unit]: value };
-
-    if (value === "") {
-      const emptyValues = createEmptySizeValues();
-      emptyValues[unit] = "";
-      onChange(dimensionType, emptyValues);
-      return;
-    }
-
-    const numericValue = Number(value);
-    if (!Number.isFinite(numericValue) || numericValue <= 0) {
-      onChange(dimensionType, nextValues);
-      return;
-    }
-
-    const converted = createEmptySizeValues();
-    converted[unit] = value;
-
-    unitOrder.forEach((targetUnit) => {
-      if (targetUnit === unit) return;
-      converted[targetUnit] = formatNumber(convertUnit(numericValue, unit, targetUnit));
-    });
-
-    onChange(dimensionType, converted);
-  };
-
-  return (
-    <div className="rounded-xl border border-[#E7D9CC] bg-white p-3">
-      <div className="mb-3 flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-          <Ruler size={12} className="text-[#B98A5A]" />
-        </div>
-        <p className="text-xs font-bold text-[#49352D]">{label}</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {unitOrder.map((unit) => {
-          const isPrimary = unit === primaryUnit;
-          return (
-            <div key={unit}>
-              <label className="mb-1 block text-[9px] font-bold text-[#6A584E]">{unit}</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={values[unit]}
-                onChange={(e) => handleValueChange(unit, e.target.value)}
-                placeholder="0"
-                className={`h-8 w-full rounded-lg border px-2 text-[10px] font-semibold outline-none transition ${
-                  isPrimary
-                    ? "border-[#B98A5A] bg-[#FFF7ED] text-[#4A3021]"
-                    : "border-[#E7D9CC] bg-gray-50 text-[#514139] focus:border-[#B98A5A]"
-                }`}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-});
-
-DimensionInput.displayName = "DimensionInput";
-
-// ======================================================
-// SIZE ROW
-// ======================================================
-
-interface SizeOptionRowProps {
-  size: SizeOption;
-  onChange: (id: string, field: keyof SizeOption, value: string | DimensionValues) => void;
-  onRemove: (id: string) => void;
-  canRemove: boolean;
-}
-
-const SizeOptionRow = React.memo(function SizeOptionRow({
-  size,
-  onChange,
-  onRemove,
-  canRemove,
-}: SizeOptionRowProps) {
-  const [label, setLabel] = useState(size.label);
-  const [primaryUnit, setPrimaryUnit] = useState<Unit>(size.primaryUnit);
-  const [dimensions, setDimensions] = useState<DimensionValues>(size.dimensions);
-  const [price, setPrice] = useState(size.price);
-
-  useEffect(() => setLabel(size.label), [size.label]);
-  useEffect(() => setPrimaryUnit(size.primaryUnit), [size.primaryUnit]);
-  useEffect(() => setDimensions(size.dimensions), [size.dimensions]);
-  useEffect(() => setPrice(size.price), [size.price]);
-
-  const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nextValue = e.target.value;
-    setLabel(nextValue);
-    onChange(size.id, "label", nextValue);
-  };
-
-  const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextUnit = e.target.value as Unit;
-    setPrimaryUnit(nextUnit);
-    onChange(size.id, "primaryUnit", nextUnit);
-  };
-
-  const handleDimensionChange = (dimensionType: DimensionType, values: SizeValues) => {
-    const nextDimensions = { ...dimensions, [dimensionType]: values };
-    setDimensions(nextDimensions);
-    onChange(size.id, "dimensions", nextDimensions);
-  };
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nextValue = e.target.value;
-    setPrice(nextValue);
-    onChange(size.id, "price", nextValue);
-  };
-
-  return (
-    <div className="rounded-2xl border border-[#E7D9CC] bg-gradient-to-br from-[#FFFCF8] to-[#FBF5EE] p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-            <Ruler size={15} className="text-[#B98A5A]" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-[#4A342A]">Size Option</p>
-            <p className="text-[10px] text-[#9B8C82]">Width × Depth × Height - all units auto convert</p>
-          </div>
-        </div>
-
-        {canRemove && (
-          <button
-            type="button"
-            onClick={() => onRemove(size.id)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-red-100 bg-white text-red-400 transition hover:bg-red-50 hover:text-red-600"
-          >
-            <Trash2 size={14} />
-          </button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">Size Name</label>
-          <input
-            type="text"
-            value={label}
-            onChange={handleLabelChange}
-            placeholder="e.g. Large, 3 Seater"
-            className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white px-3 text-xs text-[#30231E] outline-none transition placeholder:text-[#B6A79E] focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">Primary Unit</label>
-          <div className="relative">
-            <select
-              value={primaryUnit}
-              onChange={handleUnitChange}
-              className="h-10 w-full appearance-none rounded-xl border border-[#E7D9CC] bg-white px-3 pr-9 text-xs font-semibold text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
-            >
-              <option value="M">M — Meter</option>
-              <option value="FT">FT — Feet</option>
-              <option value="INC">INC — Inch</option>
-              <option value="CM">CM — Centimeter</option>
-              <option value="MM">MM — Millimeter</option>
-            </select>
-            <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8A7D]" />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 space-y-3">
-        <DimensionInput label="Width" dimensionType="width" values={dimensions.width} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
-        <DimensionInput label="Depth" dimensionType="depth" values={dimensions.depth} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
-        <DimensionInput label="Height" dimensionType="height" values={dimensions.height} primaryUnit={primaryUnit} onChange={handleDimensionChange} />
-      </div>
-
-      <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2">
-        <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
-        <p className="text-[10px] leading-relaxed text-[#89776C]">
-          Enter a value in any one unit and the others will convert automatically. Provide Width, Depth, and Height separately.
-        </p>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">
-            Extra Size Price
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9A806D]">
-              ৳
-            </span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={price}
-              onChange={handlePriceChange}
-              placeholder="Optional"
-              className="h-10 w-full rounded-xl border border-[#E7D9CC] bg-white pl-8 pr-3 text-xs text-[#30231E] outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-lg bg-[#B98A5A]/5 px-3 py-2 h-10 mt-[26px]">
-          <Ruler size={12} className="shrink-0 text-[#B98A5A]" />
-          <p className="text-[10px] leading-tight text-[#89776C]">
-            Additional price for this size (optional)
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-SizeOptionRow.displayName = "SizeOptionRow";
 
 // ======================================================
 // STATUS BADGE
 // ======================================================
-
 function StatusBadge({ status }: { status: ProductStatus }) {
-  const badges: Record<ProductStatus, { className: string; icon: React.ReactNode }> = {
-    Active: { className: "bg-green-50 text-green-700 border-green-200", icon: <Check size={12} /> },
-    Draft: { className: "bg-gray-50 text-gray-600 border-gray-200", icon: <Clock size={12} /> },
-    Trending: { className: "bg-orange-50 text-orange-700 border-orange-200", icon: <TrendingUp size={12} /> },
-    Featured: { className: "bg-purple-50 text-purple-700 border-purple-200", icon: <Flame size={12} /> },
-    OutOfStock: { className: "bg-red-50 text-red-700 border-red-200", icon: <AlertCircle size={12} /> },
+  const map: Record<ProductStatus, string> = {
+    Active: "bg-green-50 text-green-700 border-green-200",
+    Draft: "bg-gray-50 text-gray-600 border-gray-200",
+    Trending: "bg-orange-50 text-orange-700 border-orange-200",
+    Featured: "bg-purple-50 text-purple-700 border-purple-200",
+    OutOfStock: "bg-red-50 text-red-700 border-red-200",
   };
-
-  const badge = badges[status] || badges.Active;
-
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold ${badge.className}`}>
-      {badge.icon}
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold ${map[status]}`}>
       {status}
     </span>
   );
 }
 
 // ======================================================
-// TOGGLE COLLECTION BUTTON
+// TOGGLE COLLECTION
 // ======================================================
-
 interface ToggleCollectionButtonProps {
   isActive: boolean;
   onClick: () => void;
@@ -515,27 +152,22 @@ interface ToggleCollectionButtonProps {
   icon: React.ReactNode;
   activeColor: string;
 }
-
-const ToggleCollectionButton = ({ isActive, onClick, label, icon, activeColor }: ToggleCollectionButtonProps) => {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-bold transition ${
-        isActive ? `${activeColor} text-white` : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-};
+const ToggleCollectionButton = ({ isActive, onClick, label, icon, activeColor }: ToggleCollectionButtonProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-bold transition ${
+      isActive ? `${activeColor} text-white` : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+    }`}
+  >
+    {icon}{label}
+  </button>
+);
 
 // ======================================================
-// MAIN COMPONENT
+// MAIN PAGE
 // ======================================================
-
-export default function ProductEntryPage() {
+export default function FashionProductEntryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -543,31 +175,49 @@ export default function ProductEntryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
+  // basic
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [category, setCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
+  const [brand, setBrand] = useState("");
   const [stock, setStock] = useState("10");
   const [status, setStatus] = useState<ProductStatus>("Active");
   const [rating, setRating] = useState("5");
 
+  // images
   const [image, setImage] = useState("");
   const [images, setImages] = useState<string[]>([]);
 
-  const [materials, setMaterials] = useState("");
-  const [solidWoodPrice, setSolidWoodPrice] = useState("");
-  const [materialOptions, setMaterialOptions] = useState<MaterialOption[]>(defaultMaterials);
+  // fashion specs
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [fabric, setFabric] = useState("");
+  const [fit, setFit] = useState("");
+  const [pattern, setPattern] = useState("");
+  const [gender, setGender] = useState("");
+  const [sleeve, setSleeve] = useState("");
+  const [neckType, setNeckType] = useState("");
 
-  const [colors, setColors] = useState("");
-  const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([createEmptySize("size-1")]);
+  // per-size stock / price
+  const [sizeRows, setSizeRows] = useState<
+    { size: string; price: string; stock: string; sku: string }[]
+  >([]);
 
-  const [warrantyInfo, setWarrantyInfo] = useState("10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS");
-  const [returnPolicy, setReturnPolicy] = useState("3 Days Easy Return & Replacement");
+  // size guide measurements
+  const [sizeGuide, setSizeGuide] = useState<
+    { size: string; chest: string; waist: string; length: string; shoulder: string }[]
+  >([]);
+
+  // policies
+  const [warrantyInfo, setWarrantyInfo] = useState("7 Days Easy Return");
+  const [returnPolicy, setReturnPolicy] = useState("7 Days Easy Return & Exchange");
   const [note, setNote] = useState("");
 
+  // misc
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -576,137 +226,97 @@ export default function ProductEntryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const multiFileInputRef = useRef<HTMLInputElement>(null);
 
+  // ----- fetch categories -----
   const fetchCategories = useCallback(async () => {
     try {
       setLoadingCategories(true);
       const res = await fetch("/api/categories");
       const data = await res.json();
-
       if (data.success && Array.isArray(data.categories)) {
         setCategories(data.categories);
-        if (data.categories.length > 0 && !category) {
-          setCategory(data.categories[0].name);
-        }
+        if (data.categories.length > 0 && !category) setCategory(data.categories[0].name);
+      } else {
+        throw new Error("no categories");
       }
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-      const fallbackCategories = [
-        "Sofa & Sectionals",
-        "Center & Coffee Tables",
-        "TV Units & Media Centers",
-        "Accent Chairs & Ottomans",
-        "Recliner & Rocking Chairs",
-        "Wall Shelves & Floating Shelves",
-        "Dining Tables & Chairs",
-        "Beds & Headboards",
-        "Wardrobes & Almirah",
-        "Office Chairs",
-        "Study & Computer Desks",
-        "Outdoor & Garden Furniture",
-        "Mattresses & Protectors",
+    } catch {
+      const fallback = [
+        "Men's Fashion", "Women's Fashion", "Kids' Fashion", "Panjabi & Kurta",
+        "Shirts & T-Shirts", "Pants & Jeans", "Saree & Three Piece",
+        "Hoodies & Jackets", "Shoes & Sneakers", "Bags & Wallets",
+        "Watches & Accessories", "Jewelry",
       ];
-      setCategories(fallbackCategories.map((name, index) => ({
-        _id: String(index),
-        name,
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        image: "",
+      setCategories(fallback.map((name, i) => ({
+        _id: String(i), name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), image: "",
       })));
-      if (fallbackCategories.length > 0) {
-        setCategory(fallbackCategories[0]);
-      }
+      if (fallback.length) setCategory(fallback[0]);
     } finally {
       setLoadingCategories(false);
     }
-  }, []);
+  }, [category]);
 
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
+  // ----- fetch products -----
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/products");
       const data = await res.json();
-
-      if (!res.ok) throw new Error(data?.error || "Failed to fetch products");
-
+      if (!res.ok) throw new Error(data?.error || "Failed");
       const formatted: Product[] = Array.isArray(data)
-        ? data.map((product: Product) => ({ ...product, id: product._id || product.id }))
+        ? data.map((p: Product) => ({ ...p, id: p._id || p.id }))
         : [];
-
       setProducts(formatted);
-    } catch (error) {
-      console.error("Fetch products error:", error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = filterCategory === "all" || product.category === filterCategory;
-      const matchesStatus = filterStatus === "all" || product.status === filterStatus;
-
-      return matchesSearch && matchesCategory && matchesStatus;
+    return products.filter((p) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        p.name.toLowerCase().includes(q) &&
+        (filterCategory === "all" || p.category === filterCategory) &&
+        (filterStatus === "all" || p.status === filterStatus)
+      );
     });
   }, [products, searchQuery, filterCategory, filterStatus]);
 
+  // ----- collection toggle -----
   const handleToggleCollection = async (
     productId: string,
-    collectionType: "best-seller" | "today-deal" | "new-arrival" | "deal-of-the-week" | "top-rated"
+    type: "best-seller" | "today-deal" | "new-arrival" | "deal-of-the-week" | "top-rated"
   ) => {
     try {
-      const currentProduct = products.find((p) => p.id === productId);
+      const fieldMap = {
+        "best-seller": "isBestSeller",
+        "today-deal": "isTodayDeal",
+        "new-arrival": "isNewArrival",
+        "deal-of-the-week": "isDealOfTheWeek",
+        "top-rated": "isTopRated",
+      } as const;
+      const field = fieldMap[type];
+      const current = products.find((p) => p.id === productId);
+      const value = !current?.[field];
 
-      const shouldAdd = !currentProduct?.[
-        collectionType === "best-seller" ? "isBestSeller" :
-        collectionType === "today-deal" ? "isTodayDeal" :
-        collectionType === "new-arrival" ? "isNewArrival" :
-        collectionType === "deal-of-the-week" ? "isDealOfTheWeek" :
-        "isTopRated"
-      ];
-
-      const res = await fetch("/api/collections", {
-        method: "POST",
+      const res = await fetch("/api/products", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: collectionType,
-          productIds: [productId],
-          action: shouldAdd ? "add" : "remove",
-        }),
+        body: JSON.stringify({ id: productId, field, value }),
       });
-
-      if (!res.ok) throw new Error("Failed to update collection");
-
+      if (!res.ok) throw new Error();
       await fetchProducts();
-
-      Swal.fire({
-        title: "Success!",
-        text: shouldAdd ? "Product added to collection." : "Product removed from collection.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Toggle collection error:", error);
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to update collection.",
-        icon: "error",
-      });
+      Swal.fire({ title: "Updated", icon: "success", timer: 1200, showConfirmButton: false });
+    } catch {
+      Swal.fire({ title: "Failed", icon: "error" });
     }
   };
 
+  // ----- images -----
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onloadend = () => setImage(reader.result as string);
     reader.readAsDataURL(file);
@@ -715,303 +325,236 @@ export default function ProductEntryPage() {
   const handleMultipleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-
     const available = Math.max(0, 5 - images.length);
     const selected = files.slice(0, available);
-
-    const readers = selected.map(
-      (file) =>
-        new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        })
-    );
-
-    Promise.all(readers).then((newImages) => {
-      setImages((prev) => [...prev, ...newImages]);
-    });
-
+    Promise.all(
+      selected.map(
+        (f) =>
+          new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onloadend = () => resolve(r.result as string);
+            r.readAsDataURL(f);
+          })
+      )
+    ).then((urls) => setImages((prev) => [...prev, ...urls]));
     e.target.value = "";
   };
 
-  const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index));
+  const removeImage = (i: number) => setImages((prev) => prev.filter((_, idx) => idx !== i));
 
-  const addSize = () => setSizeOptions((prev) => [...prev, createEmptySize(`size-${Date.now()}`)]);
-
-  const removeSize = (id: string) => setSizeOptions((prev) => prev.filter((item) => item.id !== id));
-
-  const updateSize = (id: string, field: keyof SizeOption, value: string | DimensionValues) => {
-    setSizeOptions((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+  // ----- size toggle (also manages sizeRows) -----
+  const toggleSize = (size: string) => {
+    setSelectedSizes((prev) => {
+      if (prev.includes(size)) {
+        setSizeRows((r) => r.filter((x) => x.size !== size));
+        setSizeGuide((g) => g.filter((x) => x.size !== size));
+        return prev.filter((s) => s !== size);
+      }
+      setSizeRows((r) => [...r, { size, price: "", stock: "", sku: "" }]);
+      setSizeGuide((g) => [...g, { size, chest: "", waist: "", length: "", shoulder: "" }]);
+      return [...prev, size];
+    });
   };
 
-  const toggleMaterial = (id: string) => {
-    setMaterialOptions((prev) => prev.map((item) => (item.id === id ? { ...item, enabled: !item.enabled } : item)));
+  const updateSizeRow = (size: string, key: "price" | "stock" | "sku", value: string) => {
+    setSizeRows((prev) => prev.map((r) => (r.size === size ? { ...r, [key]: value } : r)));
   };
 
-  const updateMaterialPrice = (id: string, value: string) => {
-    setMaterialOptions((prev) => prev.map((item) => (item.id === id ? { ...item, basePrice: value } : item)));
+  const updateSizeGuide = (
+    size: string,
+    key: "chest" | "waist" | "length" | "shoulder",
+    value: string
+  ) => {
+    setSizeGuide((prev) => prev.map((g) => (g.size === size ? { ...g, [key]: value } : g)));
   };
 
-  const getSelectedColors = () => colors.split(",").map((item) => item.trim()).filter(Boolean);
-
+  // ----- colors -----
   const toggleColor = (color: string) => {
-    const selected = getSelectedColors();
-    if (selected.includes(color)) {
-      setColors(selected.filter((item) => item !== color).join(", "));
-    } else {
-      setColors([...selected, color].join(", "));
-    }
+    setSelectedColors((prev) =>
+      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
+    );
   };
 
-  const removeSelectedColor = (color: string) => {
-    setColors(getSelectedColors().filter((item) => item !== color).join(", "));
-  };
-
+  // ----- reset / edit -----
   const resetForm = () => {
-    setName("");
-    setDescription("");
-    setPrice("");
-    setOriginalPrice("");
-    setCategory(categories[0]?.name || "");
-    setStock("10");
-    setStatus("Active");
-    setRating("5");
-    setImage("");
-    setImages([]);
-    setMaterials("");
-    setColors("");
-    setSolidWoodPrice("");
-    setMaterialOptions(defaultMaterials.map((item) => ({ ...item, basePrice: "", enabled: false })));
-    setSizeOptions([createEmptySize("size-1")]);
-    setWarrantyInfo("10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS");
-    setReturnPolicy("3 Days Easy Return & Replacement");
-    setNote("");
-    setEditingId(null);
+    setName(""); setDescription(""); setPrice(""); setOriginalPrice("");
+    setCategory(categories[0]?.name || ""); setSubCategory(""); setBrand("");
+    setStock("10"); setStatus("Active"); setRating("5");
+    setImage(""); setImages([]);
+    setSelectedSizes([]); setSelectedColors([]);
+    setFabric(""); setFit(""); setPattern(""); setGender(""); setSleeve(""); setNeckType("");
+    setSizeRows([]); setSizeGuide([]);
+    setWarrantyInfo("7 Days Easy Return");
+    setReturnPolicy("7 Days Easy Return & Exchange");
+    setNote(""); setEditingId(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (multiFileInputRef.current) multiFileInputRef.current.value = "";
   };
 
-  const startEdit = (product: Product) => {
-    setEditingId(product.id);
-    setName(product.name || "");
-    setDescription(product.description || "");
-    setPrice(product.price?.toString() || "");
-    setOriginalPrice(product.originalPrice?.toString() || "");
-    setCategory(product.category || categories[0]?.name || "");
-    setStock(product.stock?.toString() || "0");
-    setStatus(product.status || "Active");
-    setRating(product.rating?.toString() || "5");
-    setImage(product.image || "");
-    setImages(product.images || []);
-    setMaterials(product.materials?.join(", ") || "");
-    setColors(product.colors?.join(", ") || "");
-    setWarrantyInfo(product.warrantyInfo || "10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS");
-    setReturnPolicy(product.returnPolicy || "3 Days Easy Return & Replacement");
-    setNote(product.note || "");
-
-    if (product.sizes && product.sizes.length) {
-      const parsedSizes = product.sizes.map((sizeText, index) => {
-        const match = sizeText.match(/^(.+?):\s*(.*?)\s+(M|FT|INC|CM|MM)/);
-        if (match) {
-          const label = match[1]?.trim() || "";
-          const value = match[2]?.trim() || "";
-          const unit = match[3] as Unit;
-          const numeric = Number(value);
-          const values: SizeValues = createEmptySizeValues();
-          if (Number.isFinite(numeric)) {
-            unitOrder.forEach((target) => {
-              values[target] = formatNumber(convertUnit(numeric, unit, target));
-            });
-          }
-          return {
-            id: `edit-${index}`,
-            label,
-            primaryUnit: unit,
-            dimensions: { width: { ...values }, depth: { ...values }, height: { ...values } },
-            price: sizeText.match(/-\s*৳([\d.]+)/)?.[1] || "",
-          };
-        }
-        return createEmptySize(`edit-${index}`);
-      });
-      setSizeOptions(parsedSizes);
-    } else {
-      setSizeOptions([createEmptySize("size-1")]);
-    }
+  const startEdit = (p: Product) => {
+    setEditingId(p.id);
+    setName(p.name || ""); setDescription(p.description || "");
+    setPrice(p.price?.toString() || ""); setOriginalPrice(p.originalPrice?.toString() || "");
+    setCategory(p.category || categories[0]?.name || ""); setSubCategory(p.subCategory || "");
+    setBrand(p.brand || "");
+    setStock(p.stock?.toString() || "0"); setStatus(p.status || "Active");
+    setRating(p.rating?.toString() || "5");
+    setImage(p.image || ""); setImages(p.images || []);
+    setSelectedSizes(p.sizes || []); setSelectedColors(p.colors || []);
+    setFabric(p.fabric || ""); setFit(p.fit || ""); setPattern(p.pattern || "");
+    setGender(p.gender || ""); setSleeve(p.sleeve || ""); setNeckType(p.neckType || "");
+    setSizeRows(
+      (p.sizeChart || []).map((s) => ({
+        size: s.size, price: s.price?.toString() || "",
+        stock: s.stock?.toString() || "", sku: s.sku || "",
+      }))
+    );
+    setSizeGuide(
+      (p.sizeGuide || []).map((s) => ({
+        size: s.size, chest: s.chest || "", waist: s.waist || "",
+        length: s.length || "", shoulder: s.shoulder || "",
+      }))
+    );
+    setWarrantyInfo(p.warrantyInfo || "7 Days Easy Return");
+    setReturnPolicy(p.returnPolicy || "7 Days Easy Return & Exchange");
+    setNote(p.note || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const deleteProduct = async (id: string) => {
-    const confirmed = window.confirm("Are you sure you want to delete this product?");
-    if (!confirmed) return;
-
+    if (!window.confirm("Delete this product?")) return;
     try {
       const res = await fetch(`/api/products?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete product");
-      setProducts((prev) => prev.filter((product) => product.id !== id));
+      if (!res.ok) throw new Error();
+      setProducts((prev) => prev.filter((p) => p.id !== id));
       if (editingId === id) resetForm();
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("Failed to delete product.");
-    }
+    } catch { alert("Delete failed"); }
   };
 
+  // ----- submit -----
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !price || (!image && images.length === 0)) {
       alert("Please fill required fields and upload an image.");
       return;
     }
-
     setUploading(true);
-
     try {
-      let finalImageUrl = image;
-      if (!finalImageUrl && images.length) finalImageUrl = images[0];
-
-      if (finalImageUrl.startsWith("data:")) {
-        const response = await fetch(finalImageUrl);
-        const blob = await response.blob();
-        const file = new File([blob], "product-main-image.jpg", { type: blob.type });
+      let finalImageUrl = image || images[0];
+      if (finalImageUrl?.startsWith("data:")) {
+        const blob = await (await fetch(finalImageUrl)).blob();
+        const file = new File([blob], "main.jpg", { type: blob.type });
         finalImageUrl = await uploadImageToCloudinary(file);
       }
-
       let finalImages = [...images];
-      if (finalImages.some((img) => img.startsWith("data:"))) {
+      if (finalImages.some((i) => i.startsWith("data:"))) {
         finalImages = await Promise.all(
           finalImages.map(async (img) => {
             if (!img.startsWith("data:")) return img;
-            const response = await fetch(img);
-            const blob = await response.blob();
-            const file = new File([blob], "product-gallery-image.jpg", { type: blob.type });
-            return await uploadImageToCloudinary(file);
+            const blob = await (await fetch(img)).blob();
+            const file = new File([blob], "gallery.jpg", { type: blob.type });
+            return uploadImageToCloudinary(file);
           })
         );
       }
 
       const finalPrice = parseFloat(price);
-      const finalOriginalPrice = originalPrice ? parseFloat(originalPrice) : undefined;
-      const discount = finalOriginalPrice && finalOriginalPrice > finalPrice ? calculateDiscount(finalPrice, finalOriginalPrice) : 0;
+      const finalOriginal = originalPrice ? parseFloat(originalPrice) : undefined;
+      const discount =
+        finalOriginal && finalOriginal > finalPrice
+          ? calculateDiscount(finalPrice, finalOriginal)
+          : 0;
 
-      // ✅ Size save order: FT → INC → M → CM (no MM) + Extra Size Price at the end
-      const formattedSizes = sizeOptions
-        .filter((size) => {
-          const widthValue = size.dimensions.width[size.primaryUnit];
-          return widthValue && Number(widthValue) > 0;
-        })
-        .map((size) => {
-          const getDimensionValues = (dimensionType: DimensionType) => {
-            const primaryValue = size.dimensions[dimensionType][size.primaryUnit];
-            const numeric = Number(primaryValue);
-            if (!primaryValue || !Number.isFinite(numeric) || numeric <= 0) return null;
-            return {
-              ft: formatNumber(convertUnit(numeric, size.primaryUnit, "FT")),
-              in: formatNumber(convertUnit(numeric, size.primaryUnit, "INC")),
-              m: formatNumber(convertUnit(numeric, size.primaryUnit, "M")),
-              cm: formatNumber(convertUnit(numeric, size.primaryUnit, "CM")),
-            };
-          };
+      const cleanSizeChart = sizeRows
+        .filter((r) => r.size)
+        .map((r) => ({
+          size: r.size,
+          price: r.price ? Number(r.price) : undefined,
+          stock: r.stock ? Number(r.stock) : undefined,
+          sku: r.sku || undefined,
+        }));
 
-          const L = getDimensionValues("depth");
-          const W = getDimensionValues("width");
-          const H = getDimensionValues("height");
-          if (!L || !W || !H) return "";
-
-          const sizeString = `${size.label ? size.label + ": " : ""}
-L${L.ft} X W${W.ft} X H${H.ft} ft
-L${L.in} X W${W.in} X H${H.in} in
-L${L.m} X W${W.m} X H${H.m} m
-L${L.cm} X W${W.cm} X H${H.cm} cm`;
-
-          return size.price ? `${sizeString} - ৳${size.price}` : sizeString;
-        })
-        .filter(Boolean);
-
-      const materialStrings: string[] = [];
-      if (materials.trim()) {
-        const customMaterials = materials.split(",").map((item) => item.trim()).filter(Boolean);
-        materialStrings.push(...customMaterials);
-      }
-      materialOptions.forEach((material) => {
-        if (material.enabled) {
-          const priceStr = material.basePrice ? ` (৳${material.basePrice})` : "";
-          materialStrings.push(`${material.label}${priceStr}`);
-        }
-      });
-
-      const selectedColorObjects = getSelectedColors().map((colorName) => {
-        const colorOption = colorOptions.find((c) => c.value === colorName);
-        return colorOption ? `${colorName} (${colorOption.hex})` : colorName;
-      });
+      const cleanSizeGuide = sizeGuide
+        .filter((g) => g.size && (g.chest || g.waist || g.length || g.shoulder))
+        .map((g) => ({
+          size: g.size,
+          chest: g.chest || "",
+          waist: g.waist || "",
+          length: g.length || "",
+          shoulder: g.shoulder || "",
+        }));
 
       const payload = {
         name: name.trim(),
         description: description.trim(),
         price: finalPrice,
-        originalPrice: finalOriginalPrice,
+        originalPrice: finalOriginal,
         category,
+        subCategory: subCategory.trim(),
+        brand: brand.trim(),
         image: finalImageUrl,
         images: finalImages,
         stock: parseInt(stock) || 0,
         status,
         rating: parseFloat(rating) || 0,
         discount,
-        materials: materialStrings,
-        colors: selectedColorObjects,
-        sizes: formattedSizes,
+        sizes: selectedSizes,
+        colors: selectedColors.map((c) => {
+          const match = FASHION_COLORS.find((x) => x.name === c);
+          return match ? `${match.name} (${match.hex})` : c;
+        }),
+        fabric, fit, pattern, gender, sleeve, neckType,
+        sizeChart: cleanSizeChart,
+        sizeGuide: cleanSizeGuide,
         warrantyInfo: warrantyInfo.trim(),
         returnPolicy: returnPolicy.trim(),
         note: note.trim(),
       };
 
-      let res: Response;
-      if (editingId) {
-        res = await fetch("/api/products", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: editingId, ...payload }),
-        });
-      } else {
-        res = await fetch("/api/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      }
-
+      const res = await fetch("/api/products", {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingId ? { id: editingId, ...payload } : payload),
+      });
       const result = await res.json();
-      if (!res.ok) throw new Error(result?.error || "Failed to save product");
+      if (!res.ok) throw new Error(result?.error || "Save failed");
 
       await fetchProducts();
-      alert(editingId ? "Product updated successfully!" : "Product added successfully!");
+      alert(editingId ? "Product updated!" : "Product added!");
       resetForm();
-    } catch (error) {
-      console.error("Submit error:", error);
-      alert(error instanceof Error ? error.message : "Something went wrong.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setUploading(false);
     }
   };
 
-  const liveDiscount = price && originalPrice ? calculateDiscount(parseFloat(price) || 0, parseFloat(originalPrice) || 0) : 0;
-  const selectedColors = getSelectedColors();
+  const liveDiscount =
+    price && originalPrice
+      ? calculateDiscount(parseFloat(price) || 0, parseFloat(originalPrice) || 0)
+      : 0;
 
+  // ======================================================
+  // RENDER
+  // ======================================================
   return (
     <div className="min-h-screen bg-[#F7F2EC] px-4 py-6 text-[#30231E] md:px-8 md:py-8">
       <div className="mx-auto max-w-[1500px]">
-        {/* Header */}
+        {/* HEADER */}
         <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B98A5A] text-white shadow-md">
-                <Box size={20} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-[#402B22] md:text-3xl">Product Entry</h1>
-                <p className="text-xs text-[#8C7A6D] md:text-sm">Add and manage your furniture products</p>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B98A5A] text-white shadow-md">
+              <Shirt size={20} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-[#402B22] md:text-3xl">
+                Fashion Product Entry
+              </h1>
+              <p className="text-xs text-[#8C7A6D] md:text-sm">
+                Add and manage clothing & accessories
+              </p>
             </div>
           </div>
-
           <div className="flex items-center gap-2 rounded-xl border border-[#E5D8CB] bg-white px-4 py-2 shadow-sm">
             <PackageOpen size={17} className="text-[#B98A5A]" />
             <span className="text-sm font-bold text-[#57443A]">{products.length}</span>
@@ -1019,51 +562,41 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[480px_minmax(0,1fr)] gap-7">
-          {/* LEFT: Form */}
+        <div className="grid grid-cols-1 gap-7 xl:grid-cols-[480px_minmax(0,1fr)]">
+          {/* ============ LEFT: FORM ============ */}
           <div className="rounded-3xl border border-[#E6D8CB] bg-white p-5 shadow-[0_15px_50px_rgba(75,50,30,0.08)] md:p-6">
             <div className="mb-6 flex items-center justify-between border-b border-[#EEE4DC] pb-5">
-              <div>
-                <div className="flex items-center gap-2">
-                  {editingId ? <Edit3 size={19} className="text-[#B98A5A]" /> : <Plus size={19} className="text-[#B98A5A]" />}
-                  <h2 className="text-lg font-black text-[#432E25]">{editingId ? "Update Product" : "Add New Product"}</h2>
+              <div className="flex items-center gap-2">
+                {editingId ? <Edit3 size={19} className="text-[#B98A5A]" /> : <Plus size={19} className="text-[#B98A5A]" />}
+                <div>
+                  <h2 className="text-lg font-black text-[#432E25]">
+                    {editingId ? "Update Product" : "Add New Fashion Product"}
+                  </h2>
+                  <p className="mt-1 text-[11px] text-[#9C8A7E]">Fill in the details below</p>
                 </div>
-                <p className="mt-1 text-[11px] text-[#9C8A7E]">Fill in the product details below</p>
               </div>
-
               {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F0E9] text-[#8D7768] transition hover:bg-red-50 hover:text-red-500"
-                >
+                <button type="button" onClick={resetForm} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F0E9] text-[#8D7768] hover:bg-red-50 hover:text-red-500">
                   <X size={15} />
                 </button>
               )}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* IMAGE */}
+              {/* MAIN IMAGE */}
               <div>
                 <label className="mb-2 block text-sm font-bold text-[#49352D]">
-                  Main Product Image <span className="ml-1 text-red-500">*</span>
+                  Main Image <span className="ml-1 text-red-500">*</span>
                 </label>
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="group relative h-52 cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-[#DECDBC] bg-[#FCF8F3] transition hover:border-[#B98A5A]"
                 >
                   {image ? (
-                    <>
-                      <img src={image} alt="Product preview" className="h-full w-full object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
-                        <div className="rounded-full bg-white p-3 text-[#6D503D]"><ImageIcon size={20} /></div>
-                      </div>
-                    </>
+                    <img src={image} alt="preview" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center">
-                      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#B98A5A]/10">
-                        <ImageIcon size={26} className="text-[#B98A5A]" />
-                      </div>
+                      <ImageIcon size={26} className="mb-2 text-[#B98A5A]" />
                       <p className="text-sm font-bold text-[#695247]">Upload Main Image</p>
                       <p className="mt-1 text-[10px] text-[#A7988E]">PNG, JPG or WEBP</p>
                     </div>
@@ -1079,16 +612,16 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
                   <span className="text-[10px] font-semibold text-[#A08E81]">{images.length}/5</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {images.map((img, index) => (
-                    <div key={`${img}-${index}`} className="group relative h-16 w-16 overflow-hidden rounded-xl border border-[#E5D8CB] bg-[#FCF8F3]">
-                      <img src={img} alt={`Gallery ${index + 1}`} className="h-full w-full object-cover" />
-                      <button type="button" onClick={() => removeImage(index)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition group-hover:opacity-100">
+                  {images.map((img, i) => (
+                    <div key={`${img}-${i}`} className="group relative h-16 w-16 overflow-hidden rounded-xl border border-[#E5D8CB]">
+                      <img src={img} alt="" className="h-full w-full object-cover" />
+                      <button type="button" onClick={() => removeImage(i)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100">
                         <X size={10} />
                       </button>
                     </div>
                   ))}
                   {images.length < 5 && (
-                    <button type="button" onClick={() => multiFileInputRef.current?.click()} className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-dashed border-[#DECDBC] bg-[#FCF8F3] text-[#B98A5A] transition hover:border-[#B98A5A] hover:bg-[#FFF7ED]">
+                    <button type="button" onClick={() => multiFileInputRef.current?.click()} className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-dashed border-[#DECDBC] bg-[#FCF8F3] text-[#B98A5A] hover:border-[#B98A5A]">
                       <Plus size={21} />
                     </button>
                   )}
@@ -1098,236 +631,177 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
 
               {/* BASIC INFO */}
               <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-                    <Layers size={15} className="text-[#B98A5A]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-[#49352D]">Basic Information</h3>
-                    <p className="text-[9px] text-[#A09289]">Product identity and pricing</p>
-                  </div>
-                </div>
-
+                <SectionHeader icon={<Layers size={15} />} title="Basic Information" sub="Product identity and pricing" />
                 <div className="space-y-4">
-                  <FormInput label="Product Name" required type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Modern Luxury Sofa" />
+                  <FormInput label="Product Name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Premium Cotton Panjabi" />
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-[#49352D]">Description</label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Enter product description..." rows={4} className="w-full resize-y rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm text-[#30231E] outline-none transition placeholder:text-[#B6A79E] focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" />
+                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Enter product description..." className="w-full resize-y rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-2 block text-sm font-semibold text-[#49352D]">Price <span className="ml-1 text-red-500">*</span></label>
+                      <label className="mb-2 block text-sm font-semibold text-[#49352D]">Price <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#A0836E]">৳</span>
-                        <input type="text" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="15000" className="w-full rounded-xl border border-[#E7D9CC] bg-white py-3 pl-8 pr-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" required />
+                        <input type="text" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} required placeholder="1500" className="w-full rounded-xl border border-[#E7D9CC] bg-white py-3 pl-8 pr-3 text-sm outline-none focus:border-[#B98A5A]" />
                       </div>
                     </div>
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#49352D]">Original Price</label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#A0836E]">৳</span>
-                        <input type="text" inputMode="decimal" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} placeholder="18000" className="w-full rounded-xl border border-[#E7D9CC] bg-white py-3 pl-8 pr-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" />
+                        <input type="text" inputMode="decimal" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} placeholder="2000" className="w-full rounded-xl border border-[#E7D9CC] bg-white py-3 pl-8 pr-3 text-sm outline-none focus:border-[#B98A5A]" />
                       </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-[#49352D]">Materials</label>
-                    <input type="text" value={materials} onChange={(e) => setMaterials(e.target.value)} placeholder="e.g. Solid Wood, Fabric, Glass..." className="w-full rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" />
                   </div>
 
                   {liveDiscount > 0 && (
-                    <div className="rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-xs font-bold text-green-700">🎉 Discount: {liveDiscount}%</div>
+                    <div className="rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-xs font-bold text-green-700">
+                      🎉 Discount: {liveDiscount}%
+                    </div>
                   )}
 
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-[#49352D]">Category</label>
-                    {loadingCategories ? (
-                      <div className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm text-gray-400">Loading categories...</div>
-                    ) : (
-                      <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10">
-                        <option value="">Select Category</option>
-                        {categories.map((cat) => (
-                          <option key={cat._id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* MATERIAL OPTIONS */}
-              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-                    <Layers size={15} className="text-[#B98A5A]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-[#49352D]">Material Options</h3>
-                    <p className="text-[9px] text-[#A09289]">Select materials with optional prices</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {materialOptions.map((material) => (
-                    <div key={material.id} className={`rounded-xl border p-3 transition ${material.enabled ? "border-[#C8A77F] bg-[#FFF8EF]" : "border-[#E7D9CC] bg-white"}`}>
-                      <div className="flex items-center justify-between gap-3">
-                        <label className="flex min-w-0 cursor-pointer items-center gap-3">
-                          <input type="checkbox" checked={material.enabled} onChange={() => toggleMaterial(material.id)} className="h-4 w-4 accent-[#B98A5A]" />
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#4A352B]">{material.label}</p>
-                            <p className="truncate text-[9px] text-[#9D8C81]">{material.description}</p>
-                          </div>
-                        </label>
-                        {material.enabled && (
-                          <div className="relative w-28 shrink-0">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#9A806D]">৳</span>
-                            <input type="text" inputMode="decimal" value={material.basePrice} onChange={(e) => updateMaterialPrice(material.id, e.target.value)} placeholder="Price" className="w-full rounded-lg border border-[#E7D9CC] bg-white py-2 pl-6 pr-2 text-[11px] outline-none focus:border-[#B98A5A]" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* COLORS */}
-              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-                      <Palette size={15} className="text-[#B98A5A]" />
-                    </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <h3 className="text-sm font-black text-[#49352D]">Color & Finish</h3>
-                      <p className="text-[9px] text-[#A09289]">Click a sample to select</p>
+                      <label className="mb-2 block text-sm font-semibold text-[#49352D]">Category</label>
+                      {loadingCategories ? (
+                        <div className="rounded-xl border border-[#E7D9CC] px-3 py-3 text-sm text-gray-400">Loading...</div>
+                      ) : (
+                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm outline-none focus:border-[#B98A5A]">
+                          <option value="">Select Category</option>
+                          {categories.map((c) => <option key={c._id} value={c.name}>{c.name}</option>)}
+                        </select>
+                      )}
                     </div>
+                    <FormInput label="Sub Category" value={subCategory} onChange={(e) => setSubCategory(e.target.value)} placeholder="e.g. Panjabi" />
                   </div>
-                  <span className="rounded-full bg-[#F7EEE5] px-2 py-1 text-[9px] font-bold text-[#96785F]">{selectedColors.length} Selected</span>
+
+                  <FormInput label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g. Aarong, Yellow" />
                 </div>
+              </div>
 
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {colorOptions.map((color) => {
-                    const selected = selectedColors.includes(color.value);
-                    return (
-                      <button key={color.value} type="button" onClick={() => toggleColor(color.value)} className={`group relative overflow-hidden rounded-xl border-2 bg-white text-left transition ${selected ? "border-[#B98A5A] shadow-md ring-2 ring-[#B98A5A]/15" : "border-[#E8DDD4] hover:border-[#C9AA8B]"}`}>
-                        <div className="h-16 w-full transition group-hover:scale-[1.02]" style={{ backgroundColor: color.hex }} />
-                        <div className="flex min-h-[42px] items-center justify-between gap-1 px-2 py-1.5">
-                          <span className="text-[9px] font-bold leading-tight text-[#514139]">{color.name}</span>
-                          {selected && (
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#B98A5A] text-white"><Check size={11} /></span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selectedColors.length > 0 && (
-                  <div className="mt-4 rounded-xl border border-[#E7D9CC] bg-white p-3">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-[#9A8779]">Selected Colors</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedColors.map((color) => {
-                        const option = colorOptions.find((item) => item.value === color);
-                        return (
-                          <button type="button" key={color} onClick={() => removeSelectedColor(color)} className="flex items-center gap-1.5 rounded-full border border-[#E7D9CC] bg-[#FCF8F3] px-2 py-1 text-[9px] font-bold text-[#5C493F]">
-                            <span className="h-3 w-3 rounded-full border border-black/10" style={{ backgroundColor: option?.hex || "#ddd" }} />
-                            {color}
-                            <X size={10} className="text-red-400" />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-4">
-                  <label className="mb-2 block text-[10px] font-bold text-[#6A584E]">Custom Color</label>
-                  <input type="text" value={colors} onChange={(e) => setColors(e.target.value)} placeholder="Or type custom colors..." className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-xs outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" />
+              {/* FASHION SPECS */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <SectionHeader icon={<Scissors size={15} />} title="Fashion Specs" sub="Fabric, fit, pattern etc." />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <SelectField label="Fabric" value={fabric} onChange={setFabric} options={FABRIC_OPTIONS} placeholder="Select fabric" />
+                  <SelectField label="Fit" value={fit} onChange={setFit} options={FIT_OPTIONS} placeholder="Select fit" />
+                  <SelectField label="Pattern" value={pattern} onChange={setPattern} options={PATTERN_OPTIONS} placeholder="Select pattern" />
+                  <SelectField label="Gender" value={gender} onChange={setGender} options={GENDER_OPTIONS} placeholder="Select gender" />
+                  <SelectField label="Sleeve" value={sleeve} onChange={setSleeve} options={SLEEVE_OPTIONS} placeholder="Select sleeve" />
+                  <SelectField label="Neck Type" value={neckType} onChange={setNeckType} options={NECK_OPTIONS} placeholder="Select neck" />
                 </div>
               </div>
 
               {/* SIZES */}
               <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-                      <Ruler size={15} className="text-[#B98A5A]" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-[#49352D]">Size Options</h3>
-                      <p className="text-[9px] text-[#A09289]">Width × Depth × Height - all units auto convert</p>
-                    </div>
-                  </div>
-                  <button type="button" onClick={addSize} className="flex items-center gap-1 rounded-lg bg-[#B98A5A] px-3 py-2 text-[10px] font-bold text-white transition hover:bg-[#9F754B]">
-                    <Plus size={12} /> Add Size
-                  </button>
+                <SectionHeader icon={<Ruler size={15} />} title="Available Sizes" sub="Tap to select sizes" />
+                <div className="flex flex-wrap gap-2">
+                  {SIZE_OPTIONS.map((s) => {
+                    const active = selectedSizes.includes(s);
+                    return (
+                      <button key={s} type="button" onClick={() => toggleSize(s)} className={`flex h-10 min-w-[52px] items-center justify-center rounded-xl border-2 px-3 text-xs font-bold transition ${active ? "border-[#B98A5A] bg-[#B98A5A] text-white" : "border-[#E7D9CC] bg-white text-[#5C493F] hover:border-[#C9AA8B]"}`}>
+                        {s}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="space-y-3">
-                  {sizeOptions.map((size) => (
-                    <SizeOptionRow key={size.id} size={size} onChange={updateSize} onRemove={removeSize} canRemove={sizeOptions.length > 1} />
-                  ))}
+
+                {/* per-size stock / price */}
+                {sizeRows.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-[10px] font-bold uppercase text-[#9A8779]">Stock & Price per Size</p>
+                    {sizeRows.map((r) => (
+                      <div key={r.size} className="grid grid-cols-[56px_1fr_1fr_1fr] items-center gap-2 rounded-xl border border-[#E7D9CC] bg-white p-2">
+                        <span className="rounded-lg bg-[#B98A5A]/10 py-2 text-center text-xs font-black text-[#B98A5A]">{r.size}</span>
+                        <input value={r.stock} onChange={(e) => updateSizeRow(r.size, "stock", e.target.value)} placeholder="Stock" inputMode="numeric" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[11px] outline-none focus:border-[#B98A5A]" />
+                        <input value={r.price} onChange={(e) => updateSizeRow(r.size, "price", e.target.value)} placeholder="Price ৳" inputMode="decimal" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[11px] outline-none focus:border-[#B98A5A]" />
+                        <input value={r.sku} onChange={(e) => updateSizeRow(r.size, "sku", e.target.value)} placeholder="SKU" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[11px] outline-none focus:border-[#B98A5A]" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SIZE GUIDE (measurements) */}
+              {selectedSizes.length > 0 && (
+                <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                  <SectionHeader icon={<Ruler size={15} />} title="Size Guide" sub="Measurements in inches (optional)" />
+                  <div className="space-y-2">
+                    {sizeGuide.map((g) => (
+                      <div key={g.size} className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] items-center gap-2 rounded-xl border border-[#E7D9CC] bg-white p-2">
+                        <span className="rounded-lg bg-[#B98A5A]/10 py-2 text-center text-xs font-black text-[#B98A5A]">{g.size}</span>
+                        <input value={g.chest} onChange={(e) => updateSizeGuide(g.size, "chest", e.target.value)} placeholder="Chest" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[10px] outline-none focus:border-[#B98A5A]" />
+                        <input value={g.waist} onChange={(e) => updateSizeGuide(g.size, "waist", e.target.value)} placeholder="Waist" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[10px] outline-none focus:border-[#B98A5A]" />
+                        <input value={g.length} onChange={(e) => updateSizeGuide(g.size, "length", e.target.value)} placeholder="Length" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[10px] outline-none focus:border-[#B98A5A]" />
+                        <input value={g.shoulder} onChange={(e) => updateSizeGuide(g.size, "shoulder", e.target.value)} placeholder="Shoulder" className="rounded-lg border border-[#E7D9CC] px-2 py-2 text-[10px] outline-none focus:border-[#B98A5A]" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* COLORS */}
+              <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <SectionHeader icon={<Palette size={15} />} title="Colors" sub="Tap to select" />
+                  <span className="rounded-full bg-[#F7EEE5] px-2 py-1 text-[9px] font-bold text-[#96785F]">{selectedColors.length} selected</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {FASHION_COLORS.map((c) => {
+                    const active = selectedColors.includes(c.name);
+                    return (
+                      <button key={c.name} type="button" onClick={() => toggleColor(c.name)} className={`group overflow-hidden rounded-xl border-2 bg-white text-left transition ${active ? "border-[#B98A5A] ring-2 ring-[#B98A5A]/15" : "border-[#E8DDD4] hover:border-[#C9AA8B]"}`}>
+                        <div className="h-12 w-full" style={{ backgroundColor: c.hex }} />
+                        <div className="flex items-center justify-between px-2 py-1.5">
+                          <span className="text-[9px] font-bold text-[#514139]">{c.name}</span>
+                          {active && <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#B98A5A] text-white"><Check size={10} /></span>}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* POLICIES */}
               <div className="rounded-2xl border border-[#EEE4DC] bg-[#FFFCF9] p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10">
-                    <ShieldCheck size={15} className="text-[#B98A5A]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-[#49352D]">Product Policies</h3>
-                    <p className="text-[9px] text-[#A09289]">Warranty, return and notes</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <FormInput label="Warranty Information" type="text" value={warrantyInfo} onChange={(e) => setWarrantyInfo(e.target.value)} placeholder="10-YEAR WARRANTY AGAINST TERMITES AND MANUFACTURING COLOR DEFECTS" />
-                  <FormInput label="Return Policy" type="text" value={returnPolicy} onChange={(e) => setReturnPolicy(e.target.value)} placeholder="3 Days Easy Return & Replacement" />
+                <SectionHeader icon={<ShieldCheck size={15} />} title="Policies" sub="Warranty, return & note" />
+                <div className="space-y-3">
+                  <FormInput label="Warranty Info" value={warrantyInfo} onChange={(e) => setWarrantyInfo(e.target.value)} />
+                  <FormInput label="Return Policy" value={returnPolicy} onChange={(e) => setReturnPolicy(e.target.value)} />
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-[#49352D]">Note</label>
-                    <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Additional product information..." className="w-full resize-y rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10" />
+                    <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} className="w-full resize-y rounded-xl border border-[#E7D9CC] bg-white px-4 py-3 text-sm outline-none focus:border-[#B98A5A]" />
                   </div>
                 </div>
               </div>
 
-              {/* STOCK STATUS */}
+              {/* STOCK / STATUS / RATING */}
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="Stock" type="text" inputMode="numeric" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="10" />
+                <FormInput label="Total Stock" inputMode="numeric" value={stock} onChange={(e) => setStock(e.target.value)} />
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-[#49352D]">Status</label>
-                  <select value={status} onChange={(e) => setStatus(e.target.value as ProductStatus)} className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm outline-none focus:border-[#B98A5A] focus:ring-4 focus:ring-[#B98A5A]/10">
-                    <option value="Active">Active</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Trending">Trending</option>
-                    <option value="Featured">Featured</option>
-                    <option value="OutOfStock">Out of Stock</option>
+                  <select value={status} onChange={(e) => setStatus(e.target.value as ProductStatus)} className="w-full rounded-xl border border-[#E7D9CC] bg-white px-3 py-3 text-sm outline-none focus:border-[#B98A5A]">
+                    {["Active", "Draft", "Trending", "Featured", "OutOfStock"].map((s) => <option key={s}>{s}</option>)}
                   </select>
                 </div>
               </div>
-
-              <FormInput label="Rating" type="text" inputMode="decimal" value={rating} onChange={(e) => setRating(e.target.value)} placeholder="5" />
+              <FormInput label="Rating (0-5)" inputMode="decimal" value={rating} onChange={(e) => setRating(e.target.value)} />
 
               {/* SUBMIT */}
               <div className="border-t border-[#EEE4DC] pt-5">
-                <button type="submit" disabled={uploading} className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60 ${editingId ? "bg-[#49332A] hover:bg-[#38251E]" : "bg-[#B98A5A] hover:bg-[#9F754B]"}`}>
+                <button type="submit" disabled={uploading} className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black text-white shadow-lg transition disabled:opacity-60 ${editingId ? "bg-[#49332A] hover:bg-[#38251E]" : "bg-[#B98A5A] hover:bg-[#9F754B]"}`}>
                   {uploading ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Processing...
-                    </>
+                    <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Processing...</>
                   ) : editingId ? (
-                    <>
-                      <Check size={17} /> Update Product
-                    </>
+                    <><Check size={17} /> Update Product</>
                   ) : (
-                    <>
-                      <Save size={17} /> Add Product
-                    </>
+                    <><Save size={17} /> Add Product</>
                   )}
                 </button>
                 {editingId && (
-                  <button type="button" onClick={resetForm} className="mt-2 w-full rounded-2xl border border-[#E7D9CC] bg-white py-3 text-xs font-bold text-[#735F53] transition hover:bg-[#FCF7F2]">
+                  <button type="button" onClick={resetForm} className="mt-2 w-full rounded-2xl border border-[#E7D9CC] bg-white py-3 text-xs font-bold text-[#735F53] hover:bg-[#FCF7F2]">
                     Cancel Editing
                   </button>
                 )}
@@ -1335,167 +809,108 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
             </form>
           </div>
 
-          {/* RIGHT: Inventory */}
+          {/* ============ RIGHT: LIST ============ */}
           <div className="min-w-0 rounded-3xl border border-[#E6D8CB] bg-white p-5 shadow-[0_15px_50px_rgba(75,50,30,0.08)] md:p-6">
+            {/* filters */}
             <div className="mb-6 space-y-4">
               <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                <div className="flex-1 relative">
+                <div className="relative flex-1">
                   <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products by name..."
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#B98A5A] focus:ring-2 focus:ring-[#B98A5A]/10"
-                  />
+                  <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search products..." className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-sm focus:border-[#B98A5A] focus:outline-none" />
                 </div>
-
                 <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-md transition ${viewMode === "list" ? "bg-white shadow-sm text-[#B98A5A]" : "text-gray-500"}`}
-                    title="List View"
-                  >
-                    <List size={16} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-2 rounded-md transition ${viewMode === "grid" ? "bg-white shadow-sm text-[#B98A5A]" : "text-gray-500"}`}
-                    title="Grid View"
-                  >
-                    <Grid3X3 size={16} />
-                  </button>
+                  <button onClick={() => setViewMode("list")} className={`p-2 rounded-md ${viewMode === "list" ? "bg-white shadow-sm text-[#B98A5A]" : "text-gray-500"}`}><List size={16} /></button>
+                  <button onClick={() => setViewMode("grid")} className={`p-2 rounded-md ${viewMode === "grid" ? "bg-white shadow-sm text-[#B98A5A]" : "text-gray-500"}`}><Grid3X3 size={16} /></button>
                 </div>
               </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-[#B98A5A] focus:ring-2 focus:ring-[#B98A5A]/10"
-                >
+              <div className="flex gap-3">
+                <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#B98A5A]">
                   <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat.name}>{cat.name}</option>
-                  ))}
+                  {categories.map((c) => <option key={c._id} value={c.name}>{c.name}</option>)}
                 </select>
-
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-[#B98A5A] focus:ring-2 focus:ring-[#B98A5A]/10"
-                >
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#B98A5A]">
                   <option value="all">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Draft">Draft</option>
-                  <option value="Trending">Trending</option>
-                  <option value="Featured">Featured</option>
-                  <option value="OutOfStock">Out of Stock</option>
+                  {["Active", "Draft", "Trending", "Featured", "OutOfStock"].map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                Showing <span className="font-bold text-[#B98A5A]">{filteredProducts.length}</span> of {products.length} products
+                Showing <span className="font-bold text-[#B98A5A]">{filteredProducts.length}</span> of {products.length}
               </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterCategory("all");
-                  setFilterStatus("all");
-                }}
-                className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1"
-              >
-                <X size={12} /> Clear Filters
+              <button onClick={() => { setSearchQuery(""); setFilterCategory("all"); setFilterStatus("all"); }} className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500">
+                <X size={12} /> Clear
               </button>
             </div>
 
             {loading ? (
-              <div className="flex min-h-[400px] flex-col items-center justify-center">
+              <div className="flex min-h-[400px] items-center justify-center">
                 <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#B98A5A] border-t-transparent" />
-                <p className="mt-3 text-sm text-[#96857A]">Loading products...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5D8CB] bg-[#FCF8F3]">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#B98A5A]/10">
-                  <PackageOpen size={30} className="text-[#B98A5A]" />
-                </div>
-                <h3 className="text-sm font-black text-[#57443A]">No Products Found</h3>
-                <p className="mt-1 text-xs text-[#9A8A80]">Try adjusting your search or filters.</p>
+                <PackageOpen size={30} className="mb-3 text-[#B98A5A]" />
+                <p className="text-sm font-black text-[#57443A]">No products</p>
+                <p className="mt-1 text-xs text-[#9A8A80]">Try a different filter.</p>
               </div>
             ) : viewMode === "list" ? (
               <div className="overflow-x-auto rounded-2xl border border-[#EEE4DC]">
-                <table className="w-full min-w-[1200px] border-collapse text-left">
+                <table className="w-full min-w-[1100px] text-left">
                   <thead>
                     <tr className="bg-[#FCF8F3] text-[10px] uppercase tracking-wide text-[#89786D]">
-                      <th className="px-4 py-4 font-bold">Product</th>
-                      <th className="px-4 py-4 font-bold">Category</th>
-                      <th className="px-4 py-4 font-bold">Price</th>
-                      <th className="px-4 py-4 font-bold">Stock</th>
-                      <th className="px-4 py-4 font-bold">Status</th>
-                      <th className="px-4 py-4 font-bold">Collections</th>
-                      <th className="px-4 py-4 text-right font-bold">Actions</th>
+                      <th className="px-4 py-4">Product</th>
+                      <th className="px-4 py-4">Category</th>
+                      <th className="px-4 py-4">Price</th>
+                      <th className="px-4 py-4">Sizes / Colors</th>
+                      <th className="px-4 py-4">Status</th>
+                      <th className="px-4 py-4">Collections</th>
+                      <th className="px-4 py-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EEE4DC]">
-                    {filteredProducts.map((product) => {
-                      const discount = product.originalPrice && product.originalPrice > product.price ? calculateDiscount(product.price, product.originalPrice) : 0;
+                    {filteredProducts.map((p) => {
+                      const discount = p.originalPrice && p.originalPrice > p.price ? calculateDiscount(p.price, p.originalPrice) : 0;
                       return (
-                        <tr key={product.id} className="group transition hover:bg-[#FFFCF8]">
+                        <tr key={p.id} className="hover:bg-[#FFFCF8]">
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#E5D8CB] bg-[#FCF8F3]">
-                                <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                              </div>
+                              <img src={p.image} alt={p.name} className="h-14 w-14 rounded-xl border border-[#E5D8CB] object-cover" />
                               <div className="min-w-0">
-                                <h4 className="max-w-[220px] truncate text-sm font-bold text-[#49342B]">{product.name}</h4>
-                                <div className="mt-1 flex items-center gap-2">
-                                  <span className="text-[9px] font-mono text-[#A29389]">ID: {product.id.slice(-6)}</span>
-                                  {product.rating !== undefined && (
-                                    <span className="flex items-center gap-0.5 text-[9px] text-[#806F63]">
-                                      <Star size={10} className="fill-yellow-400 text-yellow-400" /> {product.rating}
-                                    </span>
-                                  )}
-                                  {discount > 0 && <span className="rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-500">-{discount}%</span>}
+                                <h4 className="max-w-[220px] truncate text-sm font-bold text-[#49342B]">{p.name}</h4>
+                                <div className="mt-1 flex items-center gap-2 text-[9px]">
+                                  <span className="font-mono text-[#A29389]">ID: {p.id.slice(-6)}</span>
+                                  {p.rating !== undefined && <span className="flex items-center gap-0.5"><Star size={9} className="fill-yellow-400 text-yellow-400" /> {p.rating}</span>}
+                                  {discount > 0 && <span className="rounded bg-red-50 px-1 py-0.5 font-bold text-red-500">-{discount}%</span>}
                                 </div>
                               </div>
                             </div>
                           </td>
+                          <td className="px-4 py-4 text-[10px] font-bold text-[#766459]">{p.category}</td>
                           <td className="px-4 py-4">
-                            <span className="rounded-lg border border-[#E7D9CC] bg-[#FCF8F3] px-2.5 py-1.5 text-[9px] font-bold text-[#766459]">{product.category}</span>
+                            <p className="text-sm font-black text-[#49332A]">৳{p.price?.toLocaleString()}</p>
+                            {p.originalPrice && p.originalPrice > p.price && <p className="text-[9px] text-[#A29389] line-through">৳{p.originalPrice.toLocaleString()}</p>}
                           </td>
                           <td className="px-4 py-4">
-                            <div>
-                              <p className="text-sm font-black text-[#49332A]">৳{product.price?.toLocaleString()}</p>
-                              {product.originalPrice && product.originalPrice > product.price && (
-                                <p className="text-[9px] text-[#A29389] line-through">৳{product.originalPrice.toLocaleString()}</p>
-                              )}
+                            <div className="flex flex-wrap gap-1">
+                              {p.sizes?.slice(0, 5).map((s) => <span key={s} className="rounded bg-[#B98A5A]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#B98A5A]">{s}</span>)}
+                              {p.colors?.length ? <span className="text-[9px] text-gray-400">· {p.colors.length} colors</span> : null}
                             </div>
                           </td>
-                          <td className="px-4 py-4">
-                            <span className={`text-xs font-bold ${product.stock > 0 ? "text-green-600" : "text-red-500"}`}>
-                              {product.stock > 0 ? `${product.stock} in stock` : "Out of Stock"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4"><StatusBadge status={product.status} /></td>
+                          <td className="px-4 py-4"><StatusBadge status={p.status} /></td>
                           <td className="px-4 py-4">
                             <div className="flex flex-col gap-1.5">
-                              <ToggleCollectionButton isActive={product.isBestSeller || false} onClick={() => handleToggleCollection(product.id, "best-seller")} label="Best Seller" icon={<StarIcon size={11} />} activeColor="bg-[#F6B400]" />
-                              <ToggleCollectionButton isActive={product.isTodayDeal || false} onClick={() => handleToggleCollection(product.id, "today-deal")} label="Today's Deal" icon={<ClockIcon size={11} />} activeColor="bg-[#FF7A00]" />
-                              <ToggleCollectionButton isActive={product.isNewArrival || false} onClick={() => handleToggleCollection(product.id, "new-arrival")} label="New Arrival" icon={<TrendingUpIcon size={11} />} activeColor="bg-[#2E7D32]" />
-                              <ToggleCollectionButton isActive={product.isDealOfTheWeek || false} onClick={() => handleToggleCollection(product.id, "deal-of-the-week")} label="Deal of Week" icon={<CalendarIcon size={11} />} activeColor="bg-[#8B5CF6]" />
-                              <ToggleCollectionButton isActive={product.isTopRated || false} onClick={() => handleToggleCollection(product.id, "top-rated")} label="Top Rated" icon={<AwardIcon size={11} />} activeColor="bg-[#EC4899]" />
+                              <ToggleCollectionButton isActive={p.isBestSeller || false} onClick={() => handleToggleCollection(p.id, "best-seller")} label="Best Seller" icon={<Star size={11} />} activeColor="bg-[#F6B400]" />
+                              <ToggleCollectionButton isActive={p.isTodayDeal || false} onClick={() => handleToggleCollection(p.id, "today-deal")} label="Today's Deal" icon={<Clock size={11} />} activeColor="bg-[#FF7A00]" />
+                              <ToggleCollectionButton isActive={p.isNewArrival || false} onClick={() => handleToggleCollection(p.id, "new-arrival")} label="New Arrival" icon={<TrendingUp size={11} />} activeColor="bg-[#2E7D32]" />
+                              <ToggleCollectionButton isActive={p.isDealOfTheWeek || false} onClick={() => handleToggleCollection(p.id, "deal-of-the-week")} label="Deal of Week" icon={<Clock size={11} />} activeColor="bg-[#8B5CF6]" />
+                              <ToggleCollectionButton isActive={p.isTopRated || false} onClick={() => handleToggleCollection(p.id, "top-rated")} label="Top Rated" icon={<Award size={11} />} activeColor="bg-[#EC4899]" />
                             </div>
                           </td>
                           <td className="px-4 py-4">
-                            <div className="flex items-center justify-end gap-1">
-                              <button type="button" onClick={() => startEdit(product)} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#9A887B] transition hover:bg-[#B98A5A]/10 hover:text-[#B98A5A]" title="Edit">
-                                <Edit3 size={15} />
-                              </button>
-                              <button type="button" onClick={() => deleteProduct(product.id)} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#9A887B] transition hover:bg-red-50 hover:text-red-500" title="Delete">
-                                <Trash2 size={15} />
-                              </button>
+                            <div className="flex justify-end gap-1">
+                              <button onClick={() => startEdit(p)} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#9A887B] hover:bg-[#B98A5A]/10 hover:text-[#B98A5A]"><Edit3 size={15} /></button>
+                              <button onClick={() => deleteProduct(p.id)} className="flex h-9 w-9 items-center justify-center rounded-xl text-[#9A887B] hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
                             </div>
                           </td>
                         </tr>
@@ -1505,55 +920,27 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
                 </table>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredProducts.map((product) => {
-                  const discount = product.originalPrice && product.originalPrice > product.price ? calculateDiscount(product.price, product.originalPrice) : 0;
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredProducts.map((p) => {
+                  const discount = p.originalPrice && p.originalPrice > p.price ? calculateDiscount(p.price, p.originalPrice) : 0;
                   return (
-                    <div key={product.id} className="group rounded-2xl border border-[#EEE4DC] bg-white overflow-hidden transition hover:shadow-lg hover:border-[#B98A5A]/30">
-                      <div className="relative h-40 bg-[#FCF8F3] overflow-hidden">
-                        <img src={product.image} alt={product.name} className="h-full w-full object-cover transition group-hover:scale-105" />
-                        {discount > 0 && (
-                          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">-{discount}%</span>
-                        )}
-                        <span className="absolute top-2 right-2 bg-white/90 text-[#49332A] text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                          {product.category}
-                        </span>
+                    <div key={p.id} className="group overflow-hidden rounded-2xl border border-[#EEE4DC] bg-white transition hover:shadow-lg">
+                      <div className="relative h-44 overflow-hidden bg-[#FCF8F3]">
+                        <img src={p.image} alt={p.name} className="h-full w-full object-cover transition group-hover:scale-105" />
+                        {discount > 0 && <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">-{discount}%</span>}
                       </div>
                       <div className="p-4">
-                        <h4 className="text-sm font-bold text-[#49342B] truncate">{product.name}</h4>
+                        <h4 className="truncate text-sm font-bold text-[#49342B]">{p.name}</h4>
                         <div className="mt-2 flex items-center justify-between">
-                          <div>
-                            <p className="text-base font-black text-[#49332A]">৳{product.price?.toLocaleString()}</p>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                              <p className="text-[10px] text-[#A29389] line-through">৳{product.originalPrice.toLocaleString()}</p>
-                            )}
-                          </div>
-                          <StatusBadge status={product.status} />
+                          <p className="text-base font-black text-[#49332A]">৳{p.price?.toLocaleString()}</p>
+                          <StatusBadge status={p.status} />
                         </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span className={`text-[10px] font-bold ${product.stock > 0 ? "text-green-600" : "text-red-500"}`}>
-                            {product.stock > 0 ? `${product.stock} in stock` : "Out of Stock"}
-                          </span>
-                          {product.rating !== undefined && (
-                            <span className="flex items-center gap-0.5 text-[10px] text-[#806F63]">
-                              <Star size={10} className="fill-yellow-400 text-yellow-400" /> {product.rating}
-                            </span>
-                          )}
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {p.sizes?.slice(0, 4).map((s) => <span key={s} className="rounded bg-[#B98A5A]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#B98A5A]">{s}</span>)}
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-1">
-                          <ToggleCollectionButton isActive={product.isBestSeller || false} onClick={() => handleToggleCollection(product.id, "best-seller")} label="Best Seller" icon={<StarIcon size={10} />} activeColor="bg-[#F6B400]" />
-                          <ToggleCollectionButton isActive={product.isTodayDeal || false} onClick={() => handleToggleCollection(product.id, "today-deal")} label="Today's Deal" icon={<ClockIcon size={10} />} activeColor="bg-[#FF7A00]" />
-                          <ToggleCollectionButton isActive={product.isNewArrival || false} onClick={() => handleToggleCollection(product.id, "new-arrival")} label="New Arrival" icon={<TrendingUpIcon size={10} />} activeColor="bg-[#2E7D32]" />
-                          <ToggleCollectionButton isActive={product.isDealOfTheWeek || false} onClick={() => handleToggleCollection(product.id, "deal-of-the-week")} label="Deal of Week" icon={<CalendarIcon size={10} />} activeColor="bg-[#8B5CF6]" />
-                          <ToggleCollectionButton isActive={product.isTopRated || false} onClick={() => handleToggleCollection(product.id, "top-rated")} label="Top Rated" icon={<AwardIcon size={10} />} activeColor="bg-[#EC4899]" />
-                        </div>
-                        <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#EEE4DC] pt-3">
-                          <button type="button" onClick={() => startEdit(product)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9A887B] transition hover:bg-[#B98A5A]/10 hover:text-[#B98A5A]" title="Edit">
-                            <Edit3 size={14} />
-                          </button>
-                          <button type="button" onClick={() => deleteProduct(product.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9A887B] transition hover:bg-red-50 hover:text-red-500" title="Delete">
-                            <Trash2 size={14} />
-                          </button>
+                        <div className="mt-3 flex justify-end gap-1 border-t border-[#EEE4DC] pt-3">
+                          <button onClick={() => startEdit(p)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9A887B] hover:bg-[#B98A5A]/10 hover:text-[#B98A5A]"><Edit3 size={14} /></button>
+                          <button onClick={() => deleteProduct(p.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9A887B] hover:bg-red-50 hover:text-red-500"><Trash2 size={14} /></button>
                         </div>
                       </div>
                     </div>
@@ -1563,6 +950,38 @@ L${L.cm} X W${W.cm} X H${H.cm} cm`;
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================
+// REUSABLE SECTIONS
+// ======================================================
+function SectionHeader({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
+  return (
+    <div className="mb-4 flex items-center gap-2">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B98A5A]/10 text-[#B98A5A]">{icon}</div>
+      <div>
+        <h3 className="text-sm font-black text-[#49352D]">{title}</h3>
+        <p className="text-[9px] text-[#A09289]">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function SelectField({
+  label, value, onChange, options, placeholder,
+}: { label: string; value: string; onChange: (v: string) => void; options: string[]; placeholder?: string }) {
+  return (
+    <div>
+      <label className="mb-2 block text-[11px] font-bold text-[#5C493F]">{label}</label>
+      <div className="relative">
+        <select value={value} onChange={(e) => onChange(e.target.value)} className="h-10 w-full appearance-none rounded-xl border border-[#E7D9CC] bg-white px-3 pr-9 text-xs font-semibold text-[#30231E] outline-none focus:border-[#B98A5A]">
+          <option value="">{placeholder || "Select..."}</option>
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8A7D]" />
       </div>
     </div>
   );

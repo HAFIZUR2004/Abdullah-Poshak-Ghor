@@ -1,77 +1,63 @@
-// lib/mongodb.ts
-
-import mongoose from "mongoose";
 import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
-const uri = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!uri) {
-  throw new Error("❌ MONGODB_URI is missing in .env.local");
+if (!MONGODB_URI) {
+  throw new Error("Please add your Mongo URI to .env.local");
 }
 
-const options = {
-  serverSelectionTimeoutMS: 10000,
-  connectTimeoutMS: 10000,
-};
-
-/* =========================================================
-   1️⃣ MongoClient (raw driver) — auth/login এর জন্য
-   ========================================================= */
-
+// 1. Native Driver Setup (clientPromise)
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-declare global {
-  // eslint-disable-next-line no-var
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
-
-  // eslint-disable-next-line no-var
-  var _mongooseCache:
-    | {
-        conn: typeof mongoose | null;
-        promise: Promise<typeof mongoose> | null;
-      }
-    | undefined;
-}
-
 if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>;
+  };
+
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(MONGODB_URI, {});
+    globalWithMongo._mongoClientPromise = client.connect();
   }
-  clientPromise = global._mongoClientPromise;
+  clientPromise = globalWithMongo._mongoClientPromise;
 } else {
-  client = new MongoClient(uri, options);
+  client = new MongoClient(MONGODB_URI, {});
   clientPromise = client.connect();
 }
 
-/**
- * Default export — MongoClient promise
- * ব্যবহার: `import clientPromise from "@/lib/mongodb"`
- */
-export default clientPromise;
-
-/* =========================================================
-   2️⃣ Mongoose connection — models (Hero, Product, Banner) এর জন্য
-   ========================================================= */
-
-let cached = global._mongooseCache;
-
-if (!cached) {
-  cached = global._mongooseCache = { conn: null, promise: null };
+// 2. Mongoose Setup (dbConnect)
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
 }
 
-/**
- * ✅ Named export — mongoose connect
- * ব্যবহার: `import { dbConnect } from "@/lib/mongodb"`
- */
-export async function dbConnect() {
-  if (cached!.conn) return cached!.conn;
+declare global {
+  var _mongooseCache: MongooseCache | undefined;
+}
 
-  if (!cached!.promise) {
-    cached!.promise = mongoose.connect(uri!, options);
+const cached = global._mongooseCache ?? {
+  conn: null,
+  promise: null,
+};
+
+global._mongooseCache = cached;
+
+export async function dbConnect() {
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
   }
 
-  cached!.conn = await cached!.promise;
-  return cached!.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
+
+// ✅ দুটোই একসাথে এক্সপোর্ট করা হলো
+export default clientPromise;
