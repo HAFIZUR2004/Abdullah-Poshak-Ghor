@@ -34,7 +34,7 @@ export default function AuthShell({
             <div className="pointer-events-none absolute -bottom-16 -left-10 h-56 w-56 rounded-full bg-white/5" />
 
             <Image
-              src="https://i.ibb.co.com/FkcbNmzJ/Logo-2-removebg-preview.webp"
+              src="https://i.ibb.co.com/chYMQcpM/Whats-App-Image-2026-11-06-at-9-40-51-PM.jpg"
               alt="Sareng Furniture"
               width={56}
               height={56}
@@ -44,7 +44,7 @@ export default function AuthShell({
             <h2 className="relative text-4xl font-semibold">Welcome</h2>
 
             <p className="relative max-w-sm text-sm leading-relaxed text-text-white/85">
-              Sareng is a fast-growing furniture brand with customers and
+              Abdullah is a fast-growing fashion brand with customers and
               connoisseurs around the globe.
             </p>
 

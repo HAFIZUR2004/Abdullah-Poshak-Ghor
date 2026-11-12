@@ -411,7 +411,7 @@ export default function Navbar() {
 
             <div className="relative w-[20%] h-full flex items-center justify-center">
               <button onClick={() => setIsMenuOpen(true)} className="absolute -top-[22px] w-[58px] h-[58px] rounded-full bg-[#0F3D39] text-[#E5D3B3] flex items-center justify-center shadow-[0_6px_20px_rgba(15,61,57,0.5)] border-[5px] border-[#FDF6EE] active:scale-95 hover:bg-[#0B2523] transition-all duration-200" aria-label="Open menu">
-                {isMenuOpen ? <FiX size={25} /> : <img src={LOGO_URL} alt="Sareng Furniture" width={34} height={34} className="w-8 h-8 object-contain" />}
+                {isMenuOpen ? <FiX size={25} /> : <img src={LOGO_URL} alt="abdullah poshak ghor" width={34} height={34} className="w-8 h-8 object-contain" />}
               </button>
               <span className="absolute bottom-[7px] text-[9px] font-bold text-[#0B2523] whitespace-nowrap">Menu</span>
             </div>
@@ -450,7 +450,7 @@ export default function Navbar() {
             <div className="flex justify-between items-center px-5 py-4 border-b border-[#E5D3B3]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[#F4F5F7] flex items-center justify-center">
-                  <img src={LOGO_URL} alt="Sareng Furniture" width={25} height={25} className="w-6 h-6 object-contain" />
+                  <img src={LOGO_URL} alt=" Abdullah Poshak Ghor" width={25} height={25} className="w-6 h-6 object-contain" />
                 </div>
                 <span className="font-bold text-lg text-[#0B2523]">Menu</span>
               </div>

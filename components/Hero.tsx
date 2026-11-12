@@ -4,9 +4,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 const FALLBACK_IMAGES = [
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
-  "https://i.ibb.co.com/rfX2KWq3/hero1.webp",
+  "https://i.ibb.co.com/Vh4FCzd/download-9.jpg",
+  "https://i.ibb.co.com/tp1hJpTP/download-10.jpg",
+  "https://i.ibb.co.com/fGNmtw35/download-11.jpg",
 ];
 
 interface HeroProps {
