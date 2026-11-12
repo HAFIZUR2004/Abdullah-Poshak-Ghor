@@ -1,18 +1,25 @@
 import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
+if (!uri) {
   throw new Error("Please add your Mongo URI to .env.local");
 }
 
+// Lock the type as `string` so it stays narrowed inside functions below.
+const MONGODB_URI: string = uri;
+
+// ---------------------------------------------------------------------------
 // 1. Native Driver Setup (clientPromise)
+// ---------------------------------------------------------------------------
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
 if (process.env.NODE_ENV === "development") {
-  let globalWithMongo = global as typeof globalThis & {
+  // In development, reuse a global promise so HMR doesn't create
+  // a new connection on every reload.
+  const globalWithMongo = global as typeof globalThis & {
     _mongoClientPromise?: Promise<MongoClient>;
   };
 
@@ -26,24 +33,27 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
+// ---------------------------------------------------------------------------
 // 2. Mongoose Setup (dbConnect)
+// ---------------------------------------------------------------------------
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
 declare global {
+  // eslint-disable-next-line no-var
   var _mongooseCache: MongooseCache | undefined;
 }
 
-const cached = global._mongooseCache ?? {
+const cached: MongooseCache = global._mongooseCache ?? {
   conn: null,
   promise: null,
 };
 
 global._mongooseCache = cached;
 
-export async function dbConnect() {
+export async function dbConnect(): Promise<typeof mongoose> {
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
@@ -59,5 +69,6 @@ export async function dbConnect() {
   return cached.conn;
 }
 
-// ✅ দুটোই একসাথে এক্সপোর্ট করা হলো
+// ✅ Export both — default is the native driver promise,
+//    named `dbConnect` is the Mongoose helper.
 export default clientPromise;
